@@ -1,12 +1,7 @@
-import zmq
-import random
-import sys
-import time
-from robot.common.states import Block, MoveBlocksStore, Division
-from robot.communication.messages import *
+from components.robot.common.states import Block, Division
+from components.robot.communication import *
 import zlib
 import pickle
-import json
 from random import choice
 
 # port = "5556"
