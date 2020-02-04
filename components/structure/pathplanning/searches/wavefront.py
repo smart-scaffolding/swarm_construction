@@ -19,10 +19,11 @@ class Wavefront(PathPlannerImp):
         xdim = len(blueprint)
         ydim = len(blueprint[1])
 
-        for y in range(ydim):
-            for x in range(xdim):
+        for y in range(ydim-1, -1, -1):
+            for x in range(xdim-1, -1, -1):
                 positions[(x, y)] = blueprint[x][y]
 
+        print(positions)
         return Layer(xdim, ydim, positions, blueprint)
 
     def initialize_wavefront(self, goal, start):
@@ -80,7 +81,15 @@ class Wavefront(PathPlannerImp):
             return
 
     def get_path(self, start, goal):
-        return self.layer.navigate_to_goal(start, goal, display=self.print)
+        x_start, y_start = start
+        x_goal, y_goal = goal
+
+        x_start = x_start % self.layer.xdim
+        y_start = y_start % self.layer.ydim
+        x_goal = x_goal % self.layer.xdim
+        y_goal = y_goal % self.layer.ydim
+
+        return self.layer.navigate_to_goal((x_start, y_start), (x_goal, y_goal), display=self.print)
 
 
 class Layer(object):
@@ -134,7 +143,7 @@ class Layer(object):
             x, y = self.pos
             self.positions[self.pos] = 'R'
             moves = [(x + 1, y), (x - 1, y), (x, y - 1), (x, y + 1)]
-            move_directions = ["Front", "Back", "Right", "Left"]
+            move_directions = ["Back", "Front", "Right", "Left"]
 
             least_index = 1
             found_next_node = False
@@ -197,19 +206,50 @@ def convert_layer_to_grid(grid, layer, start, goal):
 
 
 if __name__ == '__main__':
+    # blueprint = [
+    #     [1, 0, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    #     [1, 1, 1, 1, 1, 1, 1, 1],
+    # ]
+
     blueprint = [
-        [1, 0, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
-        [1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
     ]
 
-    wf = Wavefront(blueprint=blueprint, feeding_location=(0, 0), furthest_division=(7, 7), print=True)
+    feeding_location = (0, 0)
 
-    path = wf.get_path(start=(0, 0), goal=(7, 7))
+    divisions = {
+        # (0, 0): 1,
+        (0, 1): 2,
+        (0, 2): 3,
+        (1, 0): 4,
+        (1, 1): 5,
+        (1, 2): 6,
+        (2, 0): 7,
+        (2, 1): 8,
+        (2, 2): 9,
+    }
 
-    print(f"\nPath: {path}")
+    wf = Wavefront(blueprint=blueprint, feeding_location=feeding_location, furthest_division=(len(blueprint),
+                                                                                              len(blueprint[0])),
+                   print=False)
+
+    # path = wf.get_path(start=(0, 0), goal=(0, 1))
+    #
+    # print(f"\nPath: {path}")
+
+    # path = wf.get_path(start=(0, 0), goal=(1, 0))
+    # print(f"\nPath: {path}")
+
+    for division in divisions:
+        print(division)
+        path = wf.get_path(start=feeding_location, goal=division)
+        print(f"\nGetting Path to division {division}: {path}")
+
