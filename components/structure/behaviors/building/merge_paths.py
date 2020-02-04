@@ -1,4 +1,4 @@
-
+from components.structure.behaviors.building.assign_robots_min_distance import Robot, assign_robots_closest_point
 from queue import PriorityQueue, Empty
 from functools import total_ordering
 # from priorityQueue import *
@@ -70,94 +70,98 @@ for node in path1:
     all_nodes[node.id] = (node, None)
     q.put(node)
 
-robots = [
-          Robot(id=1, pos=(0, 0), claimed_division=1),
-          Robot(id=2, pos=(0, 1), claimed_division=2),
-          Robot(id=4, pos=(0, 2), claimed_division=3),
-          Robot(id=3, pos=(1, 1), claimed_division=5),
-          Robot(id=5, pos=(2, 2), claimed_division=9),
-          ]
-
-# print(f"All nodes values: {list(all_nodes.values())}")
-# assign_robots_closest_point(robots, all_nodes.values()[0])
-
 currently_claimed_set = [] #TODO: Ensure this data structure cannot be modified, important to preserve order
 
-for bot in range(len(robots)):
-    if q.empty():
-        break
-    else:
-        node = q.get()
-        currently_claimed_set.append(node)
 
-# print(currently_claimed_set)
+def merge_paths_test():
+    robots = [
+              Robot(id=1, pos=(0, 0, 1), claimed_division=1),
+              Robot(id=2, pos=(0, 1, 1), claimed_division=2),
+              Robot(id=4, pos=(0, 2, 1), claimed_division=3),
+              Robot(id=3, pos=(1, 1, 1), claimed_division=5),
+              Robot(id=5, pos=(2, 2, 1), claimed_division=9),
+              ]
+
+    # print(f"All nodes values: {list(all_nodes.values())}")
+    # assign_robots_closest_point(robots, all_nodes.values()[0])
 
 
 
+    for bot in range(len(robots)):
+        if q.empty():
+            break
+        else:
+            node = q.get()
+            currently_claimed_set.append(node)
 
-assign_robots_closest_point(robots, currently_claimed_set)  # assign robots
-for bot in robots:  # update dictionary to include robot with claimed division
-    node, _ = all_nodes[bot.target.id]
-    all_nodes[bot.target.id] = (node, bot)
-
-currently_working = []
-node1 = currently_claimed_set[0]
-currently_working.append(node1)
-
-while len(currently_working) > 0:
-    # print(repr(node), end="\n\n")
-    #TODO: TELL FIRST ROBOT TO START DOING WORK
-
-    for node in currently_working:
-        # time.sleep(randint(1, 3))
-        print(f"Node in currently_working: {node}")
-        print(f"\nDOING WORK on node: {node.id}")
-        print(f"\nDOING WORK on node: {node.id}")
-        print(f"\nDOING WORK on node: {node.id}")
-        print(f"\nDOING WORK on node: {node.id}")
+    # print(currently_claimed_set)
 
 
 
 
-        #Robot has finished working
-        try:
-            print("Getting new node")
-            new_node = q.get(timeout=2)
-            print(f"New node: {new_node}")
-            currently_claimed_set.append(new_node)
-            # currently_claimed_set.remove(node)
-            print("Done updating")
-        except(Empty):
-            print("Queue is empty, continuing")
-            # continue
+    assign_robots_closest_point(robots, currently_claimed_set, None)  # assign robots
+    for bot in robots:  # update dictionary to include robot with claimed division
+        node, _ = all_nodes[bot.target.id]
+        all_nodes[bot.target.id] = (node, bot)
 
+    currently_working = []
+    node1 = currently_claimed_set[0]
+    currently_working.append(node1)
 
-        print("\nAssigning robots to points")
+    while len(currently_working) > 0:
+        # print(repr(node), end="\n\n")
+        #TODO: TELL FIRST ROBOT TO START DOING WORK
 
-        # TODO: Change assign_robots to deal with if num of points less than number of robots
-        if len(currently_claimed_set) > len(robots):
-            currently_claimed_set.remove(node)
-        #
-        # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
-        # print(f"Current claimed set: {currently_claimed_set}")
-        assign_robots_closest_point(robots, currently_claimed_set)
-        print("Updating dictionary with new robot positions")
-        for bot in robots:  # update dictionary to include robot with claimed division
-            update_node, _ = all_nodes[bot.claimed_division.id]
-            all_nodes[bot.claimed_division.id] = (update_node, bot)
-        print("\n\n")
-
-    # for node in currently_claimed_set:
-        for child in node.children:
-            if child is None:
-                print("No children to notify, continuing")
-                continue
-            else:
-                notify_node, robot = all_nodes[child] #
-                print(f"Notifiying child node with id: {child} {robot.id}")
-                currently_working.append(notify_node)
-                # currently_claimed_set.remove
-        currently_working.remove(node)
+        for node in currently_working:
+            # time.sleep(randint(1, 3))
+            print(f"Node in currently_working: {node}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
 
 
 
+
+            #Robot has finished working
+            try:
+                print("Getting new node")
+                new_node = q.get(timeout=2)
+                print(f"New node: {new_node}")
+                currently_claimed_set.append(new_node)
+                # currently_claimed_set.remove(node)
+                print("Done updating")
+            except(Empty):
+                print("Queue is empty, continuing")
+                # continue
+
+
+            print("\nAssigning robots to points")
+
+            # TODO: Change assign_robots to deal with if num of points less than number of robots
+            if len(currently_claimed_set) > len(robots):
+                currently_claimed_set.remove(node)
+            #
+            # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
+            # print(f"Current claimed set: {currently_claimed_set}")
+            assign_robots_closest_point(robots, currently_claimed_set, None)
+            print("Updating dictionary with new robot positions")
+            for bot in robots:  # update dictionary to include robot with claimed division
+                update_node, _ = all_nodes[bot.claimed_division.id]
+                all_nodes[bot.claimed_division.id] = (update_node, bot)
+            print("\n\n")
+
+        # for node in currently_claimed_set:
+            for child in node.children:
+                if child is None:
+                    print("No children to notify, continuing")
+                    continue
+                else:
+                    notify_node, robot = all_nodes[child] #
+                    print(f"Notifiying child node with id: {child} {robot.id}")
+                    currently_working.append(notify_node)
+                    # currently_claimed_set.remove
+            currently_working.remove(node)
+
+if __name__ == '__main__':
+    merge_paths_test()

@@ -38,6 +38,18 @@ class StatusUpdateMessage(Message):
         self.robot_status = status
         self.payload = payload
 
+
+class StatusUpdateMessagePayload:
+    def __init__(self, robot_base):
+        self.robot_base = robot_base
+
+
+class PlacedBlockUpdateMessagePayload:
+    def __init__(self, robot_base, block_placed):
+        self.robot_base = robot_base
+        self.block_placed = block_placed
+
+
 class AnimationUpdateMessage(Message):
     def __init__(self, robot_base, direction=None, trajectory=None, path=None, placedObstacle=False,
                  obstacle=None):
@@ -48,6 +60,7 @@ class AnimationUpdateMessage(Message):
         self.path = path
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
+
 
 class MessageWrapper:
     def __init__(self, topic, message):

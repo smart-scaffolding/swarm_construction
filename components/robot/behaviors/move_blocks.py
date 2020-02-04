@@ -63,7 +63,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
-        if len(self.blocks_to_move.blocks_to_remove) <= 0:
+        if len(self.blocks_to_move) <= 0:
 
             print(f"[{self.name.upper()}]: Success! All blocks have been moved")
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="All blocks have been moved "
@@ -83,14 +83,16 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
             print(f"[{self.name.upper()}]: Moving blocks...")
             self.state.set(name=self.keys["block_placed_state"], value=False)
-            self.move_block = self.blocks_to_move.blocks_to_remove.pop()
+            self.move_block = self.blocks_to_move.pop()
             print(f"[{self.name.upper()}]: New block being moved: {self.move_block}")
-            self.block_destination = self.blocks_to_move.locations_to_place_blocks.pop()
+            self.block_destination = self.move_block.location
             print(f"[{self.name.upper()}]: New block destination: {self.block_destination}")
             print("\n")
             self.blackboard.set(name=self.keys["remove_block_key"], value=self.move_block)
-            self.blackboard.set(name=self.keys["navigation_first_key"], value=self.move_block.current_position)
-            self.blackboard.set(name=self.keys["navigation_second_key"], value=self.block_destination)
+            self.blackboard.set(name=self.keys["navigation_first_key"], value=self.block_destination) #TODO: Change
+            # to previous location of block
+            self.blackboard.set(name=self.keys["navigation_second_key"], value=self.block_destination) #TODO: Change
+            # to next destination of block
             self.blackboard.set(name=self.keys["place_block_key"], value=self.block_destination)
         return new_status
 

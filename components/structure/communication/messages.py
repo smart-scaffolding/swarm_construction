@@ -39,6 +39,11 @@ class StatusUpdateMessage(Message):
         self.payload = payload
 
 
+class StatusUpdateMessagePayload:
+    def __init__(self, robot_base):
+        self.robot_base = robot_base
+
+
 class SimulatorStructureMessage(Message):
     def __init__(self, blueprint, colors):
         super(SimulatorStructureMessage, self).__init__(message_id=b"STRUCTURE")

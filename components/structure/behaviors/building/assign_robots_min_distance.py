@@ -1,6 +1,8 @@
-from components.structure import BuildingStates
+from components.structure.common.states import BuildingStates
 from queue import PriorityQueue
 from functools import total_ordering
+from components.structure.communication.messages import MoveToPointMessage
+from uuid import uuid4
 
 @total_ordering
 class Division:
@@ -41,6 +43,15 @@ class Division:
 #     item = q.get()
 #     print(f"ID: {item.id} STATUS: {item.status} POS: {item.position}")
 
+
+class Block:
+    def __init__(self, location, final_destination, assigned=1):
+        self.location = location
+        self.final_destination = final_destination
+        self.id = uuid4()
+        self.assigned_node = assigned
+
+
 @total_ordering
 class Robot:
     def __init__(self, id, pos, claimed_division=None):
@@ -51,6 +62,10 @@ class Robot:
         self.desired_target = None
         self.desired_target_distance = None
         self.claimed_division = claimed_division
+        self.status = None
+
+    def update_status(self, status):
+        self.status = status
 
     def find_new_target(self, points):
         # print(f"Unfiltered closest points: {self.closest_points}")
@@ -84,6 +99,9 @@ class Robot:
     def __repr__(self):
         return f"\n Robot ID: {self.id}\n\tPos: {self.pos}\n\tClaimed: {self.claimed_division}"
 
+    def __hash__(self):
+        return hash(self.id)
+
 class Location:
     def __init__(self, id, pos, status="UNCLAIMED"):
         self.id = id
@@ -97,7 +115,7 @@ class Location:
 import math
 import numpy as np
 def distance(me, other):
-    dist = math.sqrt((other[0] - me[0])**2 + (other[1] - me[1])**2)
+    dist = (other[0] - me[0])**2 + (other[1] - me[1])
     return dist
 
 # robots = [Robot(1, (0, 0)), Robot(2, (0, 1)), Robot(3, (1, 0))]
@@ -123,7 +141,7 @@ def robots_distances_to_locations(robots, points):
     # print(f"\t\tDistance: {robot.desired_target_distance}")
     # print("\n")
 
-def assign_robots_closest_point(robots, points):
+def assign_robots_closest_point(robots, points, robot_communicator):
     robots_distances_to_locations(robots, points)
     q = PriorityQueue()
     for robot in robots:
@@ -146,6 +164,10 @@ def assign_robots_closest_point(robots, points):
             print(f"\tClaimed target (id={robot.target.id}): {robot.target.pos}")
             print(f"\t\tDistance: {robot.desired_target_distance}")
             print("\n")
+
+            if robot_communicator:
+                robot_communicator.send_communication(topic=robot.id, message=MoveToPointMessage(
+                    destination=(robot.target.pos[0], robot.target.pos[1], 1)))
 
         else:
             robot.find_new_target(points)

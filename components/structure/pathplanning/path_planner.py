@@ -1,5 +1,5 @@
-from components.robot.pathplanning import FaceStar
-from components.robot.pathplanning import AStar
+from components.robot.pathplanning.searches.face_star import FaceStar
+from components.robot.pathplanning.searches.a_star import AStar
 from components.robot.common.states import PathPlanners
 
 

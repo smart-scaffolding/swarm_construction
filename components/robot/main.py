@@ -127,6 +127,8 @@ if __name__ == '__main__':
     writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/location_to_move_to", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
+
     #
     writer.set(name="state/blocks_to_move", value=None)
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
@@ -137,6 +139,8 @@ if __name__ == '__main__':
                              (1.5, 4.5, 1, "Top"), (4.5, 4.5, 1, "Top"), (5.5, 4.5, 1, "Top"),
                              (1.5, 7.5, 1, "Top"), (3.5, 7.5, 1, "Top"), (5.5, 7.5, 1, "Top"),
                              ]))
+
+    writer.set(name="state/current_position", value=np.array([0, 0, 0]))
 
 
     behaviour_tree.setup(timeout=15)

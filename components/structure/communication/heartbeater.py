@@ -86,7 +86,7 @@ class HeartBeater():
 
     def handle_pong(self, msg):
         "if heart is beating"
-        print("Handle pong")
+        # print("Handle pong")
         if msg[1] == str(self.lifetime).encode():
             self.responses.add(msg[0])
         else:

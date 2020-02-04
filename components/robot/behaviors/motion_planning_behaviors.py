@@ -8,7 +8,9 @@ import time
 import multiprocessing
 import atexit
 import components.robot.config as config
-from components.robot.communication.messages import AnimationUpdateMessage
+from components.robot.communication.messages import AnimationUpdateMessage, StatusUpdateMessagePayload, \
+    StatusUpdateMessage, PlacedBlockUpdateMessagePayload
+from components.robot.common.states import RobotBehaviors
 from components.robot.common.common import create_homogeneous_transform_from_point
 import numpy as np
 from random import choice
@@ -50,7 +52,8 @@ def place_block(robot, simulator_communicator, location_to_set_block):
         print(f"Robot is placing block at location {location_to_set_block}")
         time.sleep(1)
         if config.SIMULATE:
-            simulator_communicator.robot_communicator.send_communication("Placing block")
+            simulator_communicator.robot_communicator.send_communication(
+                PlacedBlockUpdateMessagePayload(robot_base=None, block_placed=location_to_set_block)) #TODO: Change base not to none
         print(f"Robot has placed block at: {location_to_set_block}")
         time.sleep(0.5)
         return True
@@ -244,10 +247,23 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         #     self.percentage_completion = self.parent_connection.recv().pop()
         #     if self.percentage_completion == 100:
         #         new_status = py_trees.common.Status.SUCCESS
-        place_block_action = place_block(self.robot, self.location_to_place_block, self.simulator_communicator)
+        place_block_action = place_block(robot=self.robot, location_to_set_block=self.location_to_place_block,
+                                         simulator_communicator=self.simulator_communicator)
         new_status = py_trees.common.Status.SUCCESS if place_block_action is True else \
             py_trees.common.Status.FAILURE
         if new_status == py_trees.common.Status.SUCCESS:
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=None, obstacle=self.location_to_place_block))
+            #TODO: Change base so it is not none (use blackboard)
+            self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                          message=StatusUpdateMessage(
+                                                                              status=RobotBehaviors.MOVE,
+                                                                              payload=PlacedBlockUpdateMessagePayload(
+                                                                                  robot_base=None,
+                                                                                  block_placed=self.location_to_place_block)))
+
+
             self.state.set(name=self.state_key, value=True)
             self.feedback_message = f"Robot has finished placing block at location {self.location_to_place_block}"
             self.logger.debug(
@@ -327,6 +343,11 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                               message=AnimationUpdateMessage(
                                                                                   robot_base=base))
+            self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                          message=StatusUpdateMessage(
+                                                                              status=RobotBehaviors.MOVE,
+                                                                              payload=StatusUpdateMessagePayload(
+                                                                                robot_base=base)))
             print(f"Next point moving to: {self.next_point}")
         if self.parent_connection.poll():
             self.percentage_completion = self.parent_connection.recv().pop()
@@ -345,6 +366,12 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                      message=AnimationUpdateMessage(
                     robot_base=base))
+
+                self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=StatusUpdateMessage(
+                                                                                  status=RobotBehaviors.MOVE,
+                                                                                  payload=StatusUpdateMessagePayload(
+                                                                                      robot_base=base)))
                 self.percentage_completion = self.parent_connection.recv().pop()
                 self.reached_point = (False, self.next_point)
             if self.percentage_completion == 100:

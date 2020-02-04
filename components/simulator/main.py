@@ -33,7 +33,14 @@ BLUEPRINT = np.array([
                          ] * 9)
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
+
 COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+
+# COLORS[0][1][0] = [vtk_named_colors(["Blue"])[0]]
+print(COLORS)
+    # colors[0]4][1] = vtk_named_colors(["Blue"])
+    # colors[0][4][4] = vtk_named_colors(["Blue"])
+    # colors[0][4][7] = vtk_named_colors(["Blue"])
 
 class WorkerThread(threading.Thread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline):
@@ -64,7 +71,7 @@ class WorkerThread(threading.Thread):
 
                     # self.result_q.put((topic, messagedata))
                 else:
-                    # print(f"[Worker thread] Putting message to be sent to calculator thread")
+                    print(f"[Worker thread] Putting message to be sent to calculator thread")
                     self.robot_actors[topic].put((topic, messagedata))
                     # self.result_q.put((topic, messagedata))
             except:
@@ -78,7 +85,7 @@ class WorkerThread(threading.Thread):
 class CalculatorThread(WorkerThread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline):
         super(CalculatorThread, self).__init__(dir_q, result_q, filter_q, socket, pipeline)
-
+        self.blocks = {}
 
     def run(self):
         while not self.stoprequest.isSet():
@@ -87,6 +94,7 @@ class CalculatorThread(WorkerThread):
             if not self.dir_q.empty():
                 # print("[Calculator thread] Getting robot to calculate")
                 actor, message = self.dir_q.get()
+
 
                 """
                 DISPLAY ROBOTS
@@ -178,10 +186,14 @@ class CalculatorThread(WorkerThread):
                     #                    [0, 0, 0, 1]])
                     #
                     new_position = message.message.robot_base
+                    # if message.message.obstacle:
+
                     # homo_trans = create_homogeneous_transform_from_point(new_position)
                     # print(message.message)
                     # base = choice([base1, base2, base3, base4, base5])
                     transform = np2vtk(new_position)
+
+
                     self.result_q.put((actor, [transform]))
 
             # except:
@@ -206,6 +218,7 @@ class vtkTimerCallback():
         self.socket = socket
         self.pipeline = pipeline
         self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
+        self.blocks = {}
 
 
     def add_robot_to_sim(self, robot, result_queue):
@@ -213,11 +226,15 @@ class vtkTimerCallback():
                           [0, 1, 0, 0.5],
                           [0, 0, 1, 1.],
                           [0, 0, 0, 1]])
+
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
-        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, points=True)
+        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=True)
         for link in robot_actor:
             self.pipeline.add_actor(link)
+
+        print("Should be seeing new robot, as it was just added")
+
         self.robot_actors[robot] = (robot_actor, new_robot, result_queue)
         # print(f"Robot added to known robots: {self.robot_actors}")
         self.pipeline.animate()
@@ -284,7 +301,8 @@ class vtkTimerCallback():
                    POINT
                    """
                    if POINTS:
-                       actors[index].SetUserMatrix(transforms[index])
+                       assembly = actors[index]
+                       assembly.SetUserMatrix(transforms[index])
 
                # x, y, z = edit_actor.GetPosition()
                # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)

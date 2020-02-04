@@ -10,7 +10,7 @@ import pkg_resources
 from random import uniform
 
 
-def setup_pipeline_objs(colors, points=False):
+def setup_pipeline_objs(colors, robot_id, points=False):
     """
     Internal function to initialise vtk objects.
     :return: reader_list, actor_list, mapper_list
@@ -28,7 +28,23 @@ def setup_pipeline_objs(colors, points=False):
         actor.SetMapper(mapper)
         actor.GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
 
-        return [], [actor], []
+        text = vtk.vtkVectorText()
+        text.SetText(robot_id)
+        text_mapper = vtk.vtkPolyDataMapper()
+        text_mapper.SetInputConnection(text.GetOutputPort())
+        text_actor = vtk.vtkActor()
+        text_actor.SetMapper(text_mapper)
+        text_actor.GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
+        text_actor.AddPosition(0, 0, 1)
+        text_actor.RotateX(60)
+        text_actor.SetScale(0.5)
+
+        assembly = vtk.vtkAssembly()
+        assembly.AddPart(actor)
+        assembly.AddPart(text_actor)
+
+
+        return [], [assembly], []
     stl_files = setup_file_names(4)
     print("STL FILES: {}".format(stl_files))
     reader_list = [0] * len(stl_files)
