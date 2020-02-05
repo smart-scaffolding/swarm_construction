@@ -118,7 +118,7 @@ def setup_structure_display(blueprint, pipeline, color):
 
 def add_block(position):
     reader_list = vtk.vtkSTLReader()
-    loc = pkg_resources.resource_filename("simulator", '/'.join(('media', "block.stl")))
+    loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
     # print(loc)
     reader_list.SetFileName(loc)
     mapper_list = vtk.vtkPolyDataMapper()

@@ -1,8 +1,9 @@
 from components.robot.common.states import Block, Division
 from components.robot.communication import *
+from components.simulator.communication.messages import *
 import zlib
 import pickle
-from random import choice
+from random import choice, randint
 
 # port = "5556"
 port = "5557"
@@ -20,24 +21,29 @@ socket.connect("tcp://127.0.0.1:5559")
 while True:
     # topic = random.randrange(10001,10010)
     # topic = 10001
-    topics = [b"ROBOT_1", b"ROBOT_2", b"ROBOT_3"]
+    # topics = [b"ROBOT_1", b"ROBOT_2", b"ROBOT_3"]
     # topics = [b"ROBOT_1"]
-    topic = choice(topics)
+    topics = [b"BLOCK_1", b"BLOCK_2", b"BLOCK_3"]
+    # topic = choice(topics)
+    topic = b"BLOCK_" + str(randint(0, 10)).encode()
     # topic = b"ROBOT_1"
     # messagedata =
 
+    # locations = [(0, 0, 1), (0, 1, 1), (1, 0, 1), (1, 1, 1)]
+    location = (randint(0, 8), randint(0, 8), 1)
     blocks_to_place = [Block(position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
                        Block(position=(1, 1, 1, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
                        Block(position=(2, 2, 2, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top"))]
 
-    division = Division()
+    # division = Division()
 
     # move_store = MoveBlocksStore(blocks_to_remove=blocks_to_place, division=division)
     # messagedata = BuildMessage(blocks_to_move=move_store)
 
 
-    messagedata = MoveToPointMessage(destination=(7, 7, 7, "Bottom"))
+    # messagedata = MoveToPointMessage(destination=(7, 7, 7, "Bottom"))
 
+    messagedata = BlockLocationMessage(block_id=topic, location=location)
     message_obj = MessageWrapper(topic=topic, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
     z = zlib.compress(p)

@@ -13,6 +13,7 @@ from components.simulator.model.create_actors import *
 # from components.simulator.model.graphics import *
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
+from components.simulator.communication.messages import BlockLocationMessage
 import zlib
 import pickle
 
@@ -43,7 +44,7 @@ print(COLORS)
     # colors[0][4][7] = vtk_named_colors(["Blue"])
 
 class WorkerThread(threading.Thread):
-    def __init__(self, dir_q, result_q, filter_q, socket, pipeline):
+    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(WorkerThread, self).__init__()
         self.robot_actors = {}
         self.dir_q = dir_q
@@ -52,6 +53,7 @@ class WorkerThread(threading.Thread):
         self.stoprequest = threading.Event()
         self.socket = socket
         self.pipeline = pipeline
+        self.block_q = block_q
 
 
     def run(self):
@@ -62,7 +64,10 @@ class WorkerThread(threading.Thread):
                 message = zlib.decompress(message)
                 messagedata = pickle.loads(message)
                 print(f"[Worker thread]: {topic} {messagedata}")
-                if topic not in self.robot_actors:
+                if "BLOCK" in str(topic.decode()):
+                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    self.block_q.put((topic, messagedata))
+                elif topic not in self.robot_actors:
                     print("[Worker thread]: Received new robot connection, adding to queue")
                     self.robot_actors[topic] = Queue()
                     self.robot_actors[topic].put((topic, messagedata))
@@ -83,8 +88,8 @@ class WorkerThread(threading.Thread):
 
 
 class CalculatorThread(WorkerThread):
-    def __init__(self, dir_q, result_q, filter_q, socket, pipeline):
-        super(CalculatorThread, self).__init__(dir_q, result_q, filter_q, socket, pipeline)
+    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
+        super(CalculatorThread, self).__init__(dir_q, result_q, filter_q, socket, pipeline, block_q)
         self.blocks = {}
 
     def run(self):
@@ -204,7 +209,7 @@ class CalculatorThread(WorkerThread):
 
 
 class vtkTimerCallback():
-    def __init__(self, renderer, renderWindow, queue, new_actors, dir_q, result_q, socket, pipeline):
+    def __init__(self, renderer, renderWindow, queue, new_actors, dir_q, result_q, socket, pipeline, block_q):
         self.timer_count = 0
         self.robot_actors = {}
         self.renderer = renderer
@@ -219,6 +224,7 @@ class vtkTimerCallback():
         self.pipeline = pipeline
         self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
         self.blocks = {}
+        self.block_q = block_q
 
 
     def add_robot_to_sim(self, robot, result_queue):
@@ -260,7 +266,7 @@ class vtkTimerCallback():
     def create_new_thread(self, queue, result_queue):
         print("Callback: Creating new thread for robot")
         calculate_thread = CalculatorThread(dir_q=queue, result_q=result_queue, filter_q=self.new_actors,
-                                            socket=self.socket, pipeline=self.pipeline)
+                                            socket=self.socket, pipeline=self.pipeline, block_q=self.block_q)
         self.worker_pool.append(calculate_thread)
         calculate_thread.start()
 
@@ -271,6 +277,24 @@ class vtkTimerCallback():
         if self.timer_count % 10 == 0:
            print(self.timer_count)
         self.timer_count += 1
+        while not self.block_q.empty():
+            topic, message = self.block_q.get()
+            print(f"Block Message: {message.message}")
+            if isinstance(message.message, BlockLocationMessage):
+                # print("IS INSTANCE")
+                if topic in self.blocks:
+                    print("Moving block from existing location")
+                    print(self.blocks)
+                    location, actor = self.blocks[message.message.id]
+                    actor.SetPosition(message.message.location)
+                    self.blocks[message.message.id] = (message.message.location, actor)
+                    # self.pipeline.animate()
+                else:
+                    actor, _, _ = add_block(message.message.location)
+                    self.blocks[message.message.id] = (message.message.location, actor)
+                    self.pipeline.add_actor(actor)
+                    self.pipeline.animate()
+                    print("Added new block")
         while not self.new_actors.empty():
            topic, message, queue = self.new_actors.get()
            result_q = Queue()
@@ -319,7 +343,7 @@ class vtkTimerCallback():
 
 
 class Simulate:
-    def __init__(self, robot_update, dir_q, result_q, new_actors, socket):
+    def __init__(self, robot_update, dir_q, result_q, new_actors, socket, block_q):
         self.robot_actors = {}
         self.worker_pool = []
         self.robot_update = robot_update
@@ -327,6 +351,7 @@ class Simulate:
         self.result_q = result_q
         self.new_actors = new_actors
         self.socket = socket
+        self.block_q = block_q
 
     # def add_robot_to_sim(self, robot):
     #     print(f"Simulator: Adding new robot to sim: {robot}")
@@ -421,7 +446,7 @@ class Simulate:
         cb = vtkTimerCallback(new_actors=self.new_actors, renderer=self.pipeline.ren,
                               renderWindow=self.pipeline.ren_win,
                               queue=self.robot_update, dir_q=self.dir_q, result_q=self.result_q, socket=self.socket,
-                              pipeline=self.pipeline)
+                              pipeline=self.pipeline, block_q=self.block_q)
         # cb.actors = self.robot_actors
         # cb.socket = socket
         # cb.queue = result_q
@@ -467,7 +492,7 @@ class Simulate:
         #     thread.start()
 
         pool = [WorkerThread(dir_q=self.dir_q, result_q=self.result_q, filter_q=self.new_actors, socket=socket,
-                             pipeline=self.pipeline)]
+                             pipeline=self.pipeline, block_q=self.block_q)]
 
         # Start all threads
         for thread in pool:
@@ -538,8 +563,10 @@ if __name__ == '__main__':
     result_q = Queue()
     new_actors = Queue()
     robot_update = Queue()
+    block_queue = Queue()
 
-    sim = Simulate(robot_update=robot_update, dir_q=dir_q, result_q=result_q, new_actors=new_actors, socket=socket)
+    sim = Simulate(robot_update=robot_update, dir_q=dir_q, result_q=result_q, new_actors=new_actors, socket=socket,
+                   block_q=block_queue)
     sim.simulate()
     # sim.wait_for_structure_initialization(blueprint=BLUEPRINT, colors=COLORS)
     # sim.wait_for_structure_initialization()
