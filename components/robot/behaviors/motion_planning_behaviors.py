@@ -426,7 +426,13 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
             # finish
             point = np.array(self.point_to_reach[0:3])
-            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, point[2] + 1))
+            try:
+                z = point[2]
+            except IndexError:
+                z = 2
+
+            #TODO: Fix last point
+            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
             self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                               message=AnimationUpdateMessage(
                                                                                   robot_base=base))

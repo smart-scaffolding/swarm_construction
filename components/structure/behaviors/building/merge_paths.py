@@ -5,7 +5,8 @@ from functools import total_ordering
 
 @total_ordering
 class Node:
-    def __init__(self, wavefront_order, id, child, direction, pos, status="UNCLAIMED", num_blocks=9):
+    def __init__(self, wavefront_order, id, child=None, direction=None, pos=None, status="UNCLAIMED", num_blocks=9,
+                 path_to_node=None):
         self.order = wavefront_order
         self.id = id
         self.children = {child} #used for notifying other divisions when done
@@ -13,6 +14,7 @@ class Node:
         self.status = status
         self.num_blocks = num_blocks #number of blocks to place in goal node
         self.pos = pos
+        self.path_to_node = path_to_node
 
     def __eq__(self, other):
         return self.order == other.order and self.id == other.id
