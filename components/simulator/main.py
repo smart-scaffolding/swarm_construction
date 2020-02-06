@@ -13,7 +13,7 @@ from components.simulator.model.create_actors import *
 # from components.simulator.model.graphics import *
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
-from components.simulator.communication.messages import BlockLocationMessage
+from components.robot.communication.messages import BlockLocationMessage
 import zlib
 import pickle
 
@@ -65,20 +65,23 @@ class WorkerThread(threading.Thread):
                 messagedata = pickle.loads(message)
                 print(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
-                elif topic not in self.robot_actors:
-                    print("[Worker thread]: Received new robot connection, adding to queue")
-                    self.robot_actors[topic] = Queue()
-                    self.robot_actors[topic].put((topic, messagedata))
-                    self.filter_q.put((topic, messagedata, self.robot_actors[topic])) # add new robot
-                    #create new worker here
+                elif "ROBOT" in str(topic.decode()):
+                    if topic not in self.robot_actors:
+                        print("[Worker thread]: Received new robot connection, adding to queue")
+                        self.robot_actors[topic] = Queue()
+                        self.robot_actors[topic].put((topic, messagedata))
+                        self.filter_q.put((topic, messagedata, self.robot_actors[topic])) # add new robot
+                        #create new worker here
 
-                    # self.result_q.put((topic, messagedata))
+                        # self.result_q.put((topic, messagedata))
+                    else:
+                        print(f"[Worker thread] Putting message to be sent to calculator thread")
+                        self.robot_actors[topic].put((topic, messagedata))
+                        # self.result_q.put((topic, messagedata))
                 else:
-                    print(f"[Worker thread] Putting message to be sent to calculator thread")
-                    self.robot_actors[topic].put((topic, messagedata))
-                    # self.result_q.put((topic, messagedata))
+                    print(f"Got message from unknown source: {topic} -> {messagedata}")
             except:
                 continue
 
@@ -277,24 +280,6 @@ class vtkTimerCallback():
         if self.timer_count % 10 == 0:
            print(self.timer_count)
         self.timer_count += 1
-        while not self.block_q.empty():
-            topic, message = self.block_q.get()
-            print(f"Block Message: {message.message}")
-            if isinstance(message.message, BlockLocationMessage):
-                # print("IS INSTANCE")
-                if topic in self.blocks:
-                    print("Moving block from existing location")
-                    print(self.blocks)
-                    location, actor = self.blocks[message.message.id]
-                    actor.SetPosition(message.message.location)
-                    self.blocks[message.message.id] = (message.message.location, actor)
-                    # self.pipeline.animate()
-                else:
-                    actor, _, _ = add_block(message.message.location)
-                    self.blocks[message.message.id] = (message.message.location, actor)
-                    self.pipeline.add_actor(actor)
-                    self.pipeline.animate()
-                    print("Added new block")
         while not self.new_actors.empty():
            topic, message, queue = self.new_actors.get()
            result_q = Queue()
@@ -330,6 +315,24 @@ class vtkTimerCallback():
 
                # x, y, z = edit_actor.GetPosition()
                # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)
+        while not self.block_q.empty():
+            topic, message = self.block_q.get()
+            print(f"Block Message: {message.message}")
+            if isinstance(message.message, BlockLocationMessage):
+                # print("IS INSTANCE")
+                if topic in self.blocks:
+                    print("Moving block from existing location")
+                    print(self.blocks)
+                    location, actor = self.blocks[message.message.id]
+                    actor.SetPosition(message.message.location)
+                    self.blocks[message.message.id] = (message.message.location, actor)
+                    # self.pipeline.animate()
+                else:
+                    actor, _, _ = add_block(message.message.location)
+                    self.blocks[message.message.id] = (message.message.location, actor)
+                    self.pipeline.add_actor(actor)
+                    self.pipeline.animate()
+                    print("Added new block")
         iren = obj
         iren.GetRenderWindow().Render()
 

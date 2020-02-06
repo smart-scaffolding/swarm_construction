@@ -41,10 +41,13 @@ class ReceiveTopicThread(threading.Thread):
             message = zlib.decompress(message)
             messagedata = pickle.loads(message)
 
-            print(f"[RecievedTopicThread]: Received communication from robots -> {topic} {messagedata}\n")
-            if topic in self.topics:
-                print(f"Message is in subscribed topics: {topic} {messagedata.message}")
-                self.result_q.put((topic, messagedata.message))
+            print(f"[RecievedTopicThread]: Received communication from robots -> {topic} {messagedata.message}\n")
+
+            #TODO: NEED TO UNCOMMENT THIS TO CHECK IF TOPIC IN SELF.TOPICS
+
+            # if topic in self.topics:
+            # print(f"Message is in subscribed topics: {topic} {messagedata.message}")
+            self.result_q.put((topic, messagedata.message))
             # except:
             #     continue
 
@@ -103,7 +106,7 @@ class RobotCommunication:
         while not self.receive_messages_queue.empty():
             message = self.receive_messages_queue.get()
             messages.append(message)
-        print(f"[Robot Communicator]: Messages downloaded {messages}")
+        # print(f"[Robot Communicator]: Messages downloaded {messages}")
         return messages
 
     def send_communication(self, topic, message):

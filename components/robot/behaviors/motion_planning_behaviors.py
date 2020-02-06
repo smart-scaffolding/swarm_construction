@@ -9,7 +9,7 @@ import multiprocessing
 import atexit
 import components.robot.config as config
 from components.robot.communication.messages import AnimationUpdateMessage, StatusUpdateMessagePayload, \
-    StatusUpdateMessage, PlacedBlockUpdateMessagePayload
+    StatusUpdateMessage, PlacedBlockUpdateMessagePayload, BlockLocationMessage
 from components.robot.common.states import RobotBehaviors
 from components.robot.common.common import create_homogeneous_transform_from_point
 import numpy as np
@@ -32,6 +32,13 @@ def remove_block(robot, block_to_pick_up, simulator_communicator):
         print(f"Robot is removing block at location {block_to_pick_up}")
         if config.SIMULATE:
             simulator_communicator.robot_communicator.send_communication("Removing block")
+
+            print("SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS ARE BEING REMOVED")
+            print(f"BLOCK: {block_to_pick_up} {block_to_pick_up.location}")
+            simulator_communicator.robot_communicator.send_communication(topic=block_to_pick_up.id,
+                                                                         message=BlockLocationMessage(
+                block_id=block_to_pick_up.id, location=block_to_pick_up.location))
+
         time.sleep(1)
         print(f"Robot has removed up block {block_to_pick_up}")
         time.sleep(0.5)
@@ -39,7 +46,7 @@ def remove_block(robot, block_to_pick_up, simulator_communicator):
     except KeyboardInterrupt:
         pass
 
-def place_block(robot, simulator_communicator, location_to_set_block):
+def place_block(robot, simulator_communicator, location_to_set_block, block):
     """
     Action used to place a block on the structure at the specified location
 
@@ -52,8 +59,17 @@ def place_block(robot, simulator_communicator, location_to_set_block):
         print(f"Robot is placing block at location {location_to_set_block}")
         time.sleep(1)
         if config.SIMULATE:
-            simulator_communicator.robot_communicator.send_communication(
-                PlacedBlockUpdateMessagePayload(robot_base=None, block_placed=location_to_set_block)) #TODO: Change base not to none
+            simulator_communicator.robot_communicator.send_communication(message=
+                                                                         PlacedBlockUpdateMessagePayload(
+                                                                             robot_base=None,
+                                                                             block_placed=location_to_set_block),
+                                                                        ) #TODO:
+
+            print("SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS HAVE BEEN PLACED")
+            print(f"BLOCK: {block} {block.location}")
+            simulator_communicator.robot_communicator.send_communication(topic=block.id, message=BlockLocationMessage(
+                block_id=block.id, location=block.next_destination))
+            # Change base not to none
         print(f"Robot has placed block at: {location_to_set_block}")
         time.sleep(0.5)
         return True
@@ -113,7 +129,7 @@ def get_path_to_point(robot, destination, simulator_communicator, old_path=None)
 
 
     # return [choice([(1, 0, 0, "Top"), (2, 0, 0, "Top"), (3, 0, 0, "Top"), (4, 0, 0, "Top")])]
-    return [destination] if destination==old_path else []
+    return []
 
 class RemoveBlock(py_trees.behaviour.Behaviour):
     """
@@ -131,7 +147,8 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         FAILURE: Robot has failed at removing a block
     """
 
-    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="RemoveBlock"):
+    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="RemoveBlock",
+                 ):
         """
 
         :param robot:
@@ -145,8 +162,13 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.blackboard = self.attach_blackboard_client("State", "remove_block")
         self.key = key
-        self.blackboard.register_key(key=str(self.key), access=py_trees.common.Access.READ)
 
+        # self.keys = {
+        #     "remove_block_key": remove_block_key,
+        # }
+
+        self.blackboard.register_key(key=str(self.key), access=py_trees.common.Access.READ)
+        # self.blackboard.register_key(key=remove_block_key, access=py_trees.common.Access.READ)
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
@@ -161,9 +183,15 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
     def initialise(self):
         self.percentage_completion = 0
         self.block_to_remove = self.blackboard.get(str(self.key))
+        # self.block = self.blackboard.get(self.keys["remove_block_key"])
+
+        # print(self.blackboard)
 
     def update(self):
         new_status = py_trees.common.Status.RUNNING
+        # print(self.blackboard)
+        # self.block_to_remove = self.blackboard.get(str(self.key))
+        # self.block = self.blackboard.get(self.keys["remove_block_key"])
         # if self.parent_connection.poll():
         #     self.percentage_completion = self.parent_connection.recv().pop()
         #     if self.percentage_completion == 100:
@@ -201,7 +229,10 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
     """
 
     def __init__(self, robot, key, robot_communicator, simulator_communicator,
-                 state_key="state/block_has_been_placed", name="PlaceBlock"):
+                 state_key="state/block_has_been_placed",
+                 place_block_key="place_block/location_to_place_block",
+                 remove_block_key="remove_block/block_to_remove",
+                 name="PlaceBlock"):
         """
         Default construction.
         """
@@ -212,10 +243,20 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         self.state_key = state_key
         self.blackboard = self.attach_blackboard_client("State", "place_block")
         self.blackboard.register_key(key=str(key), access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key=remove_block_key, access=py_trees.common.Access.READ)
 
         self.state = self.attach_blackboard_client()
         self.state.register_key(key=state_key, access=py_trees.common.Access.WRITE)
+        self.keys = {
+            "place_block_key": place_block_key,
+            "robot_state": state_key,
+            "remove_block_key": remove_block_key,
+        }
 
+        # self.blackboard.register_key()
+
+        self.state.register_key(key=self.keys["place_block_key"], access=py_trees.common.Access.READ)
+        self.state.register_key(key=self.keys["remove_block_key"], access=py_trees.common.Access.READ)
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
@@ -236,7 +277,10 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         Reset a counter variable.
         """
         self.percentage_completion = 0
-        self.location_to_place_block = self.blackboard.get(str(self.key))
+        # self.location_to_place_block = self.blackboard.get(str(self.key))
+        blocks_to_move_key = self.keys["place_block_key"]
+        self.location_to_place_block = self.state.get(blocks_to_move_key)
+        self.move_block = self.state.get(self.keys["remove_block_key"])
 
     def update(self):
         """
@@ -248,13 +292,14 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         #     if self.percentage_completion == 100:
         #         new_status = py_trees.common.Status.SUCCESS
         place_block_action = place_block(robot=self.robot, location_to_set_block=self.location_to_place_block,
-                                         simulator_communicator=self.simulator_communicator)
+                                         simulator_communicator=self.simulator_communicator, block=self.move_block)
         new_status = py_trees.common.Status.SUCCESS if place_block_action is True else \
             py_trees.common.Status.FAILURE
         if new_status == py_trees.common.Status.SUCCESS:
-            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                              message=AnimationUpdateMessage(
-                                                                                  robot_base=None, obstacle=self.location_to_place_block))
+            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+            #                                                                   message=AnimationUpdateMessage(
+            #                                                                       robot_base=create_homogeneous_transform_from_point([0.5, 0.5, 1]),
+            #                                                                           obstacle=self.location_to_place_block))
             #TODO: Change base so it is not none (use blackboard)
             self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                           message=StatusUpdateMessage(
@@ -378,7 +423,13 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 print(f"[{self.name.upper()}]: Reached point: {self.next_point}")
                 self.reached_point = (True, self.next_point)
         else:
-            self.reached_point = (False, self.next_point)
+            self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
+            # finish
+            point = np.array(self.point_to_reach[0:3])
+            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, point[2] + 1))
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base))
         if len(self.path) == 0 and self.reached_point[0]:
             new_status = py_trees.common.Status.SUCCESS
 
@@ -391,7 +442,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             if self.reached_point[0]:
                 self.feedback_message = f"Reached point: {self.reached_point[1]}"
             else:
-                self.feedback_message = f"(Still) Moving to point ({self.next_point})"
+                self.feedback_message = f"(Still) Moving to point ({self.reached_point[1]})"
             self.logger.debug("%s.update()[%s][%s]" % (self.__class__.__name__, self.status, self.feedback_message))
         return new_status
 

@@ -45,10 +45,11 @@ class Division:
 
 
 class Block:
-    def __init__(self, location, final_destination, assigned=1):
+    def __init__(self, location, next_destination, final_destination, assigned=1):
         self.location = location
+        self.next_destination = next_destination
         self.final_destination = final_destination
-        self.id = uuid4()
+        self.id = ("BLOCK_" + str(uuid4())).encode()
         self.assigned_node = assigned
 
 

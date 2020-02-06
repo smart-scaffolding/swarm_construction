@@ -2,7 +2,8 @@ from components.structure.communication import RobotCommunication
 from components.structure.communication import SimulatorCommunication
 from components.structure.communication.heartbeater import start_hearbeat_detector
 from components.structure.communication.messages import *
-from components.robot.communication.messages import StatusUpdateMessagePayload as RobotStatusUpdateMessagePayload
+from components.robot.communication.messages import StatusUpdateMessagePayload as RobotStatusUpdateMessagePayload, \
+    BlockLocationMessage, FerryBlocksStatusFinished
 from components.structure.common.common import create_point_from_homogeneous_transform
 import components.structure.config as config
 from components.simulator.model.graphics import vtk_named_colors
@@ -410,29 +411,35 @@ if __name__ == '__main__':
     # print(goals)
 
 
-    blocks_to_move = {8: [Block(location=(0, 0, 1), final_destination=(6, 0, 1)),
-                          Block(location=(0, 1, 1), final_destination=(6, 1, 1)),
-                          Block(location=(0, 2, 1), final_destination=(6, 2, 1)),
-                          Block(location=(1, 0, 1), final_destination=(7, 0, 1)),
-                          Block(location=(1, 1, 1), final_destination=(7, 1, 1)),
-                          Block(location=(1, 2, 1), final_destination=(7, 2, 1)),
-                          Block(location=(2, 0, 1), final_destination=(8, 0, 1)),
-                          Block(location=(2, 1, 1), final_destination=(8, 1, 1)),
-                          Block(location=(2, 2, 1), final_destination=(8, 2, 1)),
+    blocks_to_move = {8: [Block(location=(0, 0, 1), next_destination=(3, 2, 1), final_destination=(6, 0, 1)),
+                          Block(location=(0, 1, 1), next_destination=(4, 2, 1), final_destination=(6, 1, 1)),
+                          Block(location=(0, 2, 1), next_destination=(5, 2, 1), final_destination=(6, 2, 1)),
+                          Block(location=(1, 0, 1), next_destination=(3, 2, 2), final_destination=(7, 0, 1)),
+                          Block(location=(1, 1, 1), next_destination=(4, 2, 2), final_destination=(7, 1, 1)),
+                          Block(location=(1, 2, 1), next_destination=(5, 2, 2), final_destination=(7, 2, 1)),
+                          Block(location=(2, 0, 1), next_destination=(3, 2, 3), final_destination=(8, 0, 1)),
+                          Block(location=(2, 1, 1), next_destination=(4, 2, 3), final_destination=(8, 1, 1)),
+                          Block(location=(2, 2, 1), next_destination=(5, 2, 3), final_destination=(8, 2, 1)),
                           ],
-                      6: [Block(location=(0, 0, 2), final_destination=(6, 3, 1)),
-                          Block(location=(0, 1, 2), final_destination=(6, 4, 1)),
-                          Block(location=(0, 2, 2), final_destination=(6, 5, 1)),
-                          Block(location=(1, 0, 2), final_destination=(7, 3, 1)),
-                          Block(location=(1, 1, 2), final_destination=(7, 4, 1)),
-                          Block(location=(1, 2, 2), final_destination=(7, 5, 1)),
-                          Block(location=(2, 0, 2), final_destination=(8, 3, 1)),
-                          Block(location=(2, 1, 2), final_destination=(8, 4, 1)),
-                          Block(location=(2, 2, 2), final_destination=(8, 5, 1)),
+                      6: [Block(location=(0, 0, 2), next_destination=(4, 0, 1), final_destination=(6, 3, 1)),
+                          Block(location=(0, 1, 2), next_destination=(5, 1, 1), final_destination=(6, 4, 1)),
+                          Block(location=(0, 2, 2), next_destination=(5, 1, 1), final_destination=(6, 5, 1)),
+                          Block(location=(1, 0, 2), next_destination=(4, 0, 2), final_destination=(7, 3, 1)),
+                          Block(location=(1, 1, 2), next_destination=(4, 1, 2), final_destination=(7, 4, 1)),
+                          Block(location=(1, 2, 2), next_destination=(4, 1, 2), final_destination=(7, 5, 1)),
+                          Block(location=(2, 0, 2), next_destination=(5, 0, 3), final_destination=(8, 3, 1)),
+                          Block(location=(2, 1, 2), next_destination=(5, 1, 3), final_destination=(8, 4, 1)),
+                          Block(location=(2, 2, 2), next_destination=(4, 1, 3), final_destination=(8, 5, 1)),
                           ],
                      }
 
+    all_blocks = [val for sublist in list(blocks_to_move.values()) for val in sublist]
+    for block in all_blocks:
+        structure.simulator_communicator.send_communication(message=BlockLocationMessage(block_id=block.id,
+                                                                                         location=block.location),
+                                                            topic=block.id)
 
+    time.sleep(10)
     for node in path1:
         all_nodes[node.id] = (node, None)
         q.put(node)
@@ -480,29 +487,50 @@ if __name__ == '__main__':
 
             time.sleep(5)
             node, robot = all_nodes[node.id]
-            # if node.id in goal_ids:
-            #     structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-            #         blocks_to_move=blocks_to_move[node.id]))
-            #
-            # else:
-            #     flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-            #
-            #     ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
-            #     ferry_blocks = ferry_blocks_id[0:9]
-            #
-            #     structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-            #         blocks_to_move=ferry_blocks))
-            #
-            #     print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
-            # print(f"Node in currently_working: {node}")
-            # print(f"\nDOING WORK on node: {node.id}")
-            # print(f"\nDOING WORK on node: {node.id}")
-            # print(f"\nDOING WORK on node: {node.id}")
-            # print(f"\nDOING WORK on node: {node.id}")
-            #
-            # time.sleep(5)
+            if node.id in goal_ids:
+                structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
+                    blocks_to_move=blocks_to_move[node.id]))
 
+            else:
+                flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
 
+                ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
+                ferry_blocks_id.reverse()
+                ferry_blocks = ferry_blocks_id[0:2]
+                ferry_blocks.reverse()
+
+                structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
+                    blocks_to_move=ferry_blocks))
+
+                print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+            print(f"Node in currently_working: {node}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
+            print(f"\nDOING WORK on node: {node.id}")
+
+            message = None
+            finished = False
+
+            while not finished:
+                print("Waiting for robot to finish")
+                messages = structure.robot_communicator.get_communication()
+                for update in messages:
+                    topic, received_message = update
+                    message = received_message.payload
+                    # print(type(message))
+                    # print(type(FerryBlocksStatusFinished))
+                    # print(f"Is instance: {isinstance(message, FerryBlocksStatusFinished)}")
+
+                    finished = isinstance(message, FerryBlocksStatusFinished)
+                    if finished:
+                        break
+                    # print(f"[Structure] got message(s) from robot {topic}-> {message}")
+                    # print(received_message.robot_status)
+                    # print(f"DOING WORK on node: {node.id}")
+                time.sleep(1)
+
+            print("Robot has finished working on node")
             # Robot has finished working
             try:
                 print("Getting new node")

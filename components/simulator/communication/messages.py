@@ -68,6 +68,11 @@ class AnimationUpdateMessage(Message):
         self.obstacle = obstacle
 
 
+class FerryBlocksStatusFinished(Message):
+    def __init__(self):
+        super().__init__(message_id=RobotBehaviors.FERRY)
+        self.finished = True
+
 class MessageWrapper:
     def __init__(self, topic, message):
         self.topic = topic

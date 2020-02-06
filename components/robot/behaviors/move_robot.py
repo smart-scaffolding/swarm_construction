@@ -57,11 +57,11 @@ class MoveToNewLocation(py_trees.behaviour.Behaviour):
         self.destination = self.state.get(location_to_move_to_key)
 
         if self.robot_status != self.status_identifier:
-            print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
+            # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
         elif self.state.get(name=self.keys["destination_reached"]) is True:
-            print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
+            # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="Destination has been reached")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
             self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)

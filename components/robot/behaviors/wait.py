@@ -34,7 +34,7 @@ class Wait(py_trees.behaviour.Behaviour):
 
 
         if self.robot_status != self.status_identifier:
-            print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
+            # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
 

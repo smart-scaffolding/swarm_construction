@@ -12,6 +12,7 @@ import components.robot.config as config
 from components.robot.communication.communicate_with_simulator import SimulatorCommunication
 from components.robot.communication.communicate_with_structure import StructureCommunication
 from components.robot.communication.messages import *
+from components.structure.behaviors.building.assign_robots_min_distance import Block
 import py_trees
 import time
 import argparse
@@ -129,8 +130,20 @@ if __name__ == '__main__':
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
 
-    #
-    writer.set(name="state/blocks_to_move", value=None)
+
+    blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
+            Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
+            Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
+            Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
+            Block(location=(3, 1, 2), next_destination=(7, 4, 1), final_destination=(7, 4, 1)),
+            Block(location=(3, 2, 2), next_destination=(7, 5, 1), final_destination=(7, 5, 1)),
+            Block(location=(3, 0, 3), next_destination=(8, 3, 1), final_destination=(8, 3, 1)),
+            Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
+            Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
+            ]
+    blocks.reverse()
+
+    writer.set(name="state/blocks_to_move", value=blocks)
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
     writer.set(name="state/block_has_been_placed", value=True)
     writer.set(name="state/point_to_reach", value=True)
@@ -139,6 +152,7 @@ if __name__ == '__main__':
                              (1.5, 4.5, 1, "Top"), (4.5, 4.5, 1, "Top"), (5.5, 4.5, 1, "Top"),
                              (1.5, 7.5, 1, "Top"), (3.5, 7.5, 1, "Top"), (5.5, 7.5, 1, "Top"),
                              ]))
+
 
     writer.set(name="state/current_position", value=np.array([0, 0, 0]))
 
@@ -192,7 +206,8 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
         except KeyError as e:
-            print(e)
+            print(f"Key error exception caught in main: {e}")
+            # raise e
             continue
     # print("\n")
     # while True:

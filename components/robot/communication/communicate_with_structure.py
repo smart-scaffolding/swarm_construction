@@ -40,7 +40,7 @@ class ReceiveTopicThread(threading.Thread):
             message = zlib.decompress(message)
             messagedata = pickle.loads(message)
 
-            print(f"[RecievedTopicThread]: Received communication from structure -> {topic} {messagedata}\n")
+            # print(f"[RecievedTopicThread]: Received communication from structure -> {topic} {messagedata}\n")
             if topic in self.topics:
                 print(f"Message is in subscribed topics: {topic} {messagedata.message}")
                 self.result_q.put((topic, messagedata.message))
@@ -80,7 +80,7 @@ class SendTopicThread(threading.Thread):
                 messagedata_compressed = zlib.compress(message_pickle)
 
                 self.socket.send_multipart([topic, messagedata_compressed])
-                print(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
+                # print(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
             # except:
             #     continue
 
@@ -102,7 +102,7 @@ class StructureCommunication:
         while not self.receive_messages_queue.empty():
             message = self.receive_messages_queue.get()
             messages.append(message)
-        print(f"[Structure Communicator]: Messages downloaded {messages}")
+        # print(f"[Structure Communicator]: Messages downloaded {messages}")
         return messages
 
     def send_communication(self, topic, message):

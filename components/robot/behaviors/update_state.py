@@ -90,7 +90,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
 
 
         new_status = py_trees.common.Status.SUCCESS
-        print(f"[{self.name.upper()}]: Updates received")
+        # print(f"[{self.name.upper()}]: Updates received")
         return new_status
 
     def handle_ferry_message(self, update):

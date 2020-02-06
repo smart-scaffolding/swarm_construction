@@ -5,7 +5,7 @@
 import py_trees
 from .motion_planning_behaviors import get_motion_planning_behaviors_tree
 from components.robot.common.states import Block, MoveBlocksStore, Division, RobotBehaviors
-from components.robot.communication.messages import StatusUpdateMessage
+from components.robot.communication.messages import StatusUpdateMessage, BlockLocationMessage, FerryBlocksStatusFinished
 import time
 
 
@@ -15,7 +15,8 @@ import time
 
 
 class MoveBlocks(py_trees.behaviour.Behaviour):
-    def __init__(self, name, status_identifier, robot_communicator, navigation_first_key="navigation/point_to_reach",
+    def __init__(self, name, status_identifier, robot_communicator,
+                 simulator_communicator, navigation_first_key="navigation/point_to_reach",
                  place_block_key="place_block/location_to_place_block",
                  navigation_second_key="navigation/point_to_reach_2",
                  remove_block_key="remove_block/block_to_remove",
@@ -25,6 +26,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
                  ):
         super().__init__(name=name)
         self.communicator = robot_communicator.robot_communicator
+        self.simulator_communicator = simulator_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
         self.blackboard = self.attach_blackboard_client()
         self.state = self.attach_blackboard_client("State", "state")
@@ -52,6 +54,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
     def initialise(self):
         blocks_to_move_key = self.keys["blocks_to_move_key"]
         self.blocks_to_move = self.state.get(blocks_to_move_key)
+
         # print(self.blocks_to_move)
         robot_status_key = self.keys["robot_state"]
         self.robot_status = self.state.get(robot_status_key)
@@ -60,7 +63,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
         new_status = py_trees.common.Status.RUNNING
 
         if self.robot_status != self.status_identifier:
-            print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
+            # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
         if len(self.blocks_to_move) <= 0:
@@ -70,9 +73,28 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
                                                                                          "successfully")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
 
+            self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+
+            self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+
+            self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+
+            self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+
+
+            print("Sent finished status to structure (done moving blocks)")
             self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
-            new_status = py_trees.common.Status.SUCCESS
+            return py_trees.common.Status.SUCCESS
         if self.state.get(name=self.keys["block_placed_state"]) is False:
+            # print("SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS HAVE BEEN PLACED")
+            # print(f"BLOCK: {self.move_block.id} {self.move_block.location}")
+            # self.simulator_communicator.send_communication(topic=self.move_block.id, message=BlockLocationMessage(
+            #     block_id=self.move_block.id, location=self.move_block.next_destination))
+
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="Moving to place block")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
             print(f"[{self.name.upper()}]: Still moving")
@@ -81,6 +103,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="Block placed, getting next "
                                                                                          "block to place")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
+
             print(f"[{self.name.upper()}]: Moving blocks...")
             self.state.set(name=self.keys["block_placed_state"], value=False)
             self.move_block = self.blocks_to_move.pop()
@@ -91,9 +114,16 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             self.blackboard.set(name=self.keys["remove_block_key"], value=self.move_block)
             self.blackboard.set(name=self.keys["navigation_first_key"], value=self.block_destination) #TODO: Change
             # to previous location of block
-            self.blackboard.set(name=self.keys["navigation_second_key"], value=self.block_destination) #TODO: Change
+            self.blackboard.set(name=self.keys["navigation_second_key"], value=self.move_block.next_destination) #TODO: Change
             # to next destination of block
-            self.blackboard.set(name=self.keys["place_block_key"], value=self.block_destination)
+            self.blackboard.set(name=self.keys["place_block_key"], value=self.move_block.next_destination)
+
+            # self.simulator_communicator.send_communication(topic=self.move_block.id, message=BlockLocationMessage(
+            #     block_id=self.move_block.id, location=self.move_block.next_destination))
+            # print("SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS HAVE BEEN PLACED")
+            # print(f"BLOCK: {self.move_block.id} {self.move_block.location}")
+            # self.simulator_communicator.send_communication(topic=self.move_block.id, message=BlockLocationMessage(
+            #     block_id=self.move_block.id, location=self.move_block.next_destination))
         return new_status
 
 
@@ -109,11 +139,13 @@ def create_move_blocks_root(robot_communicator, robot, simulator_communicator=No
     if ferry:
         move_action = py_trees.decorators.RunningIsFailure(child=FerryBlocks(name="Ferry",
                                                                              status_identifier=RobotBehaviors.FERRY,
-                                                                             robot_communicator=robot_communicator))
+                                                                             robot_communicator=robot_communicator,
+                                                                             simulator_communicator=simulator_communicator))
     else:
         move_action = py_trees.decorators.RunningIsFailure(child=MoveBlocks(name="Build",
                                                                             status_identifier=RobotBehaviors.BUILD,
-                                                                            robot_communicator=robot_communicator))
+                                                                            robot_communicator=robot_communicator,
+                                                                            simulator_communicator=simulator_communicator))
 
     motion_planning_behaviors = get_motion_planning_behaviors_tree(robot_communicator=robot_communicator,
                                                                    simulator_communicator=simulator_communicator,

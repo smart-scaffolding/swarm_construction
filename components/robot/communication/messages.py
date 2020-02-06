@@ -15,6 +15,12 @@ class FerryBlocksMessage(Message):
         self.blocks_to_move = blocks_to_move
 
 
+class FerryBlocksStatusFinished:
+    def __init__(self):
+        # super().__init__(message_id=RobotBehaviors.FERRY)
+        self.finished = True
+
+
 class BuildMessage(Message):
     def __init__(self, blocks_to_move):
         super().__init__(message_id=RobotBehaviors.BUILD)
@@ -60,6 +66,12 @@ class AnimationUpdateMessage(Message):
         self.path = path
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
+
+
+class BlockLocationMessage:
+    def __init__(self, block_id, location):
+        self.id = block_id
+        self.location = location
 
 
 class MessageWrapper:
