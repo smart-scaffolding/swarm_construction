@@ -5,7 +5,16 @@ import pickle
 import serial
 from uuid import uuid4
 
-port = 'COM7' #change to serial port connected to homeblock arduino
+
+"""
+Run command in terminal:
+screen /dev/cu.usbmodem14101 115200
+
+screen [PORT] [BAUD]
+
+"""
+
+port = '/dev/cu.usbmodem14201' #change to serial port connected to homeblock arduino
 ser = serial.Serial(port, 115200, timeout=None)
 
 # ser.close() 
@@ -27,19 +36,25 @@ while True:
         start = True 
     elif (start and line != "" and line != "TIMEOUT!"):
         line = line.split(',')
-        x = line[0]
-        y = line[1]
-        z = line[2]
-        print(x, y, z)
-        
-        topic = b"BLOCK_" + str(uuid4()).encode()
-        location = (float(x), float(y), float(z))
+        print(line)
+        try:
+            x = line[0]
+            y = line[1]
+            z = line[2]
+            print(x, y, z)
 
-        messagedata = BlockLocationMessage(block_id=topic, location=location)
-        message_obj = MessageWrapper(topic=topic, message=messagedata)
-        p = pickle.dumps(message_obj, protocol=-1)
-        z = zlib.compress(p)
-        print(f"{topic} {z}")
+            topic = b"BLOCK_" + str(uuid4()).encode()
+            location = (float(x), float(y), float(z))
 
-        socket.send_multipart([topic, z])
-        time.sleep(3)
+            messagedata = BlockLocationMessage(block_id=topic, location=location)
+            message_obj = MessageWrapper(topic=topic, message=messagedata)
+            p = pickle.dumps(message_obj, protocol=-1)
+            z = zlib.compress(p)
+            print(f"{topic} {z}")
+
+            socket.send_multipart([topic, z])
+            time.sleep(3)
+        except IndexError:
+            print("Problem with block, check Arduino input and try again")
+        except ValueError:
+            print("Problem with block, check Arduino input and try again")

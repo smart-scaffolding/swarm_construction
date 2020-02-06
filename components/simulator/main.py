@@ -14,6 +14,8 @@ from components.simulator.model.create_actors import *
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
 from components.simulator.communication.messages import BlockLocationMessage
+import components.simulator.config as config
+
 import zlib
 import pickle
 
@@ -528,14 +530,14 @@ def axesUniversal():
 
 
 if __name__ == '__main__':
-    port = "5559"
-    if len(sys.argv) > 1:
-        port = sys.argv[1]
-        int(port)
-
-    if len(sys.argv) > 2:
-        port1 = sys.argv[2]
-        int(port1)
+    # port = "5559"
+    # if len(sys.argv) > 1:
+    #     port = sys.argv[1]
+    #     int(port)
+    #
+    # if len(sys.argv) > 2:
+    #     port1 = sys.argv[2]
+    #     int(port1)
 
     # Socket to talk to server
     context = zmq.Context()
@@ -543,11 +545,15 @@ if __name__ == '__main__':
 
     # socket1 = context.socket(zmq.SUB)
     print("Collecting updates from simulator...")
-    socket.bind("tcp://127.0.0.1:5559")
+    # socket.bind("tcp://127.0.0.1:5559")
+
+    socket.bind(config.communication["receive_messages_port"])
+
+
     # socket1.connect(f"tcp://localhost:{port}")
 
-    if len(sys.argv) > 2:
-        socket.connect(f"tcp://localhost:{port1}")
+    # if len(sys.argv) > 2:
+    #     socket.connect(f"tcp://localhost:{port1}")
         # socket1.connect(f"tcp://localhost:{port1}")
 
     # Subscribe to zipcode, default is NYC, 10001
