@@ -1,0 +1,40 @@
+zmq\_vtk.components.structure package
+=====================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    zmq_vtk.components.structure.behaviors
+    zmq_vtk.components.structure.common
+    zmq_vtk.components.structure.communication
+    zmq_vtk.components.structure.pathplanning
+
+Submodules
+----------
+
+zmq\_vtk.components.structure.config module
+-------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.main module
+-----------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.main
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.components.structure
+    :members:
+    :undoc-members:
+    :show-inheritance:

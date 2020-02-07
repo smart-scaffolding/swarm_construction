@@ -1,0 +1,22 @@
+zmq\_vtk.components.logger package
+==================================
+
+Submodules
+----------
+
+zmq\_vtk.components.logger.log\_aggregator module
+-------------------------------------------------
+
+.. automodule:: zmq_vtk.components.logger.log_aggregator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.components.logger
+    :members:
+    :undoc-members:
+    :show-inheritance:

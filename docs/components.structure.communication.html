@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>components.structure.communication package &mdash; Swarm Construction 1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Swarm Construction
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">components.structure.communication package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication.communicate_with_robots">components.structure.communication.communicate_with_robots module</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication.communicate_with_simulator">components.structure.communication.communicate_with_simulator module</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication.heartbeater">components.structure.communication.heartbeater module</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication.messages">components.structure.communication.messages module</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication.old_heartbeater">components.structure.communication.old_heartbeater module</a></li>
+<li><a class="reference internal" href="#module-components.structure.communication">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Swarm Construction</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>components.structure.communication package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/components.structure.communication.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="components-structure-communication-package">
+<h1>components.structure.communication package<a class="headerlink" href="#components-structure-communication-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-components.structure.communication.communicate_with_robots">
+<span id="components-structure-communication-communicate-with-robots-module"></span><h2>components.structure.communication.communicate_with_robots module<a class="headerlink" href="#module-components.structure.communication.communicate_with_robots" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.structure.communication.communicate_with_robots.ReceiveTopicThread">
+<em class="property">class </em><code class="descclassname">components.structure.communication.communicate_with_robots.</code><code class="descname">ReceiveTopicThread</code><span class="sig-paren">(</span><em>result_q</em>, <em>socket_port</em>, <em>topics</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.ReceiveTopicThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.ReceiveTopicThread.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.ReceiveTopicThread.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the thread terminates.</p>
+<p>This blocks the calling thread until the thread whose join() method is
+called terminates – either normally or through an unhandled exception
+or until the optional timeout occurs.</p>
+<p>When the timeout argument is present and not None, it should be a
+floating point number specifying a timeout for the operation in seconds
+(or fractions thereof). As join() always returns None, you must call
+is_alive() after join() to decide whether a timeout happened – if the
+thread is still alive, the join() call timed out.</p>
+<p>When the timeout argument is not present or None, the operation will
+block until the thread terminates.</p>
+<p>A thread can be join()ed many times.</p>
+<p>join() raises a RuntimeError if an attempt is made to join the current
+thread as that would cause a deadlock. It is also an error to join() a
+thread before it has been started and attempts to do so raises the same
+exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.ReceiveTopicThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.ReceiveTopicThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method representing the thread’s activity.</p>
+<p>You may override this method in a subclass. The standard run() method
+invokes the callable object passed to the object’s constructor as the
+target argument, if any, with sequential and keyword arguments taken
+from the args and kwargs arguments, respectively.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.communicate_with_robots.RobotCommunication">
+<em class="property">class </em><code class="descclassname">components.structure.communication.communicate_with_robots.</code><code class="descname">RobotCommunication</code><span class="sig-paren">(</span><em>receive_messages_socket</em>, <em>send_messages_socket</em>, <em>send_topics</em>, <em>receive_topics</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.RobotCommunication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.RobotCommunication.get_communication">
+<code class="descname">get_communication</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.RobotCommunication.get_communication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.RobotCommunication.initialize_communication_with_structure">
+<code class="descname">initialize_communication_with_structure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.RobotCommunication.initialize_communication_with_structure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.RobotCommunication.send_communication">
+<code class="descname">send_communication</code><span class="sig-paren">(</span><em>topic</em>, <em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.RobotCommunication.send_communication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.communicate_with_robots.SendTopicThread">
+<em class="property">class </em><code class="descclassname">components.structure.communication.communicate_with_robots.</code><code class="descname">SendTopicThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>socket_port</em>, <em>topics</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.SendTopicThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.SendTopicThread.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.SendTopicThread.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the thread terminates.</p>
+<p>This blocks the calling thread until the thread whose join() method is
+called terminates – either normally or through an unhandled exception
+or until the optional timeout occurs.</p>
+<p>When the timeout argument is present and not None, it should be a
+floating point number specifying a timeout for the operation in seconds
+(or fractions thereof). As join() always returns None, you must call
+is_alive() after join() to decide whether a timeout happened – if the
+thread is still alive, the join() call timed out.</p>
+<p>When the timeout argument is not present or None, the operation will
+block until the thread terminates.</p>
+<p>A thread can be join()ed many times.</p>
+<p>join() raises a RuntimeError if an attempt is made to join the current
+thread as that would cause a deadlock. It is also an error to join() a
+thread before it has been started and attempts to do so raises the same
+exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_robots.SendTopicThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_robots.SendTopicThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method representing the thread’s activity.</p>
+<p>You may override this method in a subclass. The standard run() method
+invokes the callable object passed to the object’s constructor as the
+target argument, if any, with sequential and keyword arguments taken
+from the args and kwargs arguments, respectively.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.structure.communication.communicate_with_simulator">
+<span id="components-structure-communication-communicate-with-simulator-module"></span><h2>components.structure.communication.communicate_with_simulator module<a class="headerlink" href="#module-components.structure.communication.communicate_with_simulator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread">
+<em class="property">class </em><code class="descclassname">components.structure.communication.communicate_with_simulator.</code><code class="descname">SendTopicToSimulatorThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>socket_port</em>, <em>topics</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the thread terminates.</p>
+<p>This blocks the calling thread until the thread whose join() method is
+called terminates – either normally or through an unhandled exception
+or until the optional timeout occurs.</p>
+<p>When the timeout argument is present and not None, it should be a
+floating point number specifying a timeout for the operation in seconds
+(or fractions thereof). As join() always returns None, you must call
+is_alive() after join() to decide whether a timeout happened – if the
+thread is still alive, the join() call timed out.</p>
+<p>When the timeout argument is not present or None, the operation will
+block until the thread terminates.</p>
+<p>A thread can be join()ed many times.</p>
+<p>join() raises a RuntimeError if an attempt is made to join the current
+thread as that would cause a deadlock. It is also an error to join() a
+thread before it has been started and attempts to do so raises the same
+exception.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SendTopicToSimulatorThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method representing the thread’s activity.</p>
+<p>You may override this method in a subclass. The standard run() method
+invokes the callable object passed to the object’s constructor as the
+target argument, if any, with sequential and keyword arguments taken
+from the args and kwargs arguments, respectively.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.communicate_with_simulator.SimulatorCommunication">
+<em class="property">class </em><code class="descclassname">components.structure.communication.communicate_with_simulator.</code><code class="descname">SimulatorCommunication</code><span class="sig-paren">(</span><em>send_messages_socket</em>, <em>send_topics</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SimulatorCommunication" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_simulator.SimulatorCommunication.initialize_communication_with_simulator">
+<code class="descname">initialize_communication_with_simulator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SimulatorCommunication.initialize_communication_with_simulator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.communicate_with_simulator.SimulatorCommunication.send_communication">
+<code class="descname">send_communication</code><span class="sig-paren">(</span><em>message</em>, <em>topic=b'STRUCTURE'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.SimulatorCommunication.send_communication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="components.structure.communication.communicate_with_simulator.vtk_named_colors">
+<code class="descclassname">components.structure.communication.communicate_with_simulator.</code><code class="descname">vtk_named_colors</code><span class="sig-paren">(</span><em>colors</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.communicate_with_simulator.vtk_named_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of vtk colors
+:param colors: List of color names supported by vtk
+:return: A list of vtk colors</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.structure.communication.heartbeater">
+<span id="components-structure-communication-heartbeater-module"></span><h2>components.structure.communication.heartbeater module<a class="headerlink" href="#module-components.structure.communication.heartbeater" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.structure.communication.heartbeater.HeartBeater">
+<em class="property">class </em><code class="descclassname">components.structure.communication.heartbeater.</code><code class="descname">HeartBeater</code><span class="sig-paren">(</span><em>robot_queue</em>, <em>period=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.HeartBeater" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.heartbeater.HeartBeater.beat">
+<code class="descname">beat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.HeartBeater.beat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.heartbeater.HeartBeater.handle_heart_failure">
+<code class="descname">handle_heart_failure</code><span class="sig-paren">(</span><em>heart</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.HeartBeater.handle_heart_failure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.heartbeater.HeartBeater.handle_new_heart">
+<code class="descname">handle_new_heart</code><span class="sig-paren">(</span><em>heart</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.HeartBeater.handle_new_heart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.heartbeater.HeartBeater.handle_pong">
+<code class="descname">handle_pong</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.HeartBeater.handle_pong" title="Permalink to this definition">¶</a></dt>
+<dd><p>if heart is beating</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="components.structure.communication.heartbeater.create_heartbeat_detector">
+<code class="descclassname">components.structure.communication.heartbeater.</code><code class="descname">create_heartbeat_detector</code><span class="sig-paren">(</span><em>robot_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.create_heartbeat_detector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.structure.communication.heartbeater.start_hearbeat_detector">
+<code class="descclassname">components.structure.communication.heartbeater.</code><code class="descname">start_hearbeat_detector</code><span class="sig-paren">(</span><em>robot_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.heartbeater.start_hearbeat_detector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-components.structure.communication.messages">
+<span id="components-structure-communication-messages-module"></span><h2>components.structure.communication.messages module<a class="headerlink" href="#module-components.structure.communication.messages" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.structure.communication.messages.BuildMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">BuildMessage</code><span class="sig-paren">(</span><em>blocks_to_move</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.BuildMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.FerryBlocksMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">FerryBlocksMessage</code><span class="sig-paren">(</span><em>blocks_to_move</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.FerryBlocksMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.Message">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">Message</code><span class="sig-paren">(</span><em>message_id</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.MessageWrapper">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">MessageWrapper</code><span class="sig-paren">(</span><em>topic</em>, <em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.MessageWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.MoveToPointMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">MoveToPointMessage</code><span class="sig-paren">(</span><em>destination</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.MoveToPointMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.SimulatorStructureMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">SimulatorStructureMessage</code><span class="sig-paren">(</span><em>blueprint</em>, <em>colors</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.SimulatorStructureMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.StatusUpdateMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">StatusUpdateMessage</code><span class="sig-paren">(</span><em>status</em>, <em>payload</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.StatusUpdateMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.StatusUpdateMessagePayload">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">StatusUpdateMessagePayload</code><span class="sig-paren">(</span><em>robot_base</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.messages.StatusUpdateMessagePayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.structure.communication.messages.WaitMessage">
+<em class="property">class </em><code class="descclassname">components.structure.communication.messages.</code><code class="descname">WaitMessage</code><a class="headerlink" href="#components.structure.communication.messages.WaitMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.structure.communication.messages.Message" title="components.structure.communication.messages.Message"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.structure.communication.messages.Message</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.structure.communication.old_heartbeater">
+<span id="components-structure-communication-old-heartbeater-module"></span><h2>components.structure.communication.old_heartbeater module<a class="headerlink" href="#module-components.structure.communication.old_heartbeater" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.structure.communication.old_heartbeater.HeartBeater">
+<em class="property">class </em><code class="descclassname">components.structure.communication.old_heartbeater.</code><code class="descname">HeartBeater</code><span class="sig-paren">(</span><em>robot_queue</em>, <em>period=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.HeartBeater" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.structure.communication.old_heartbeater.HeartBeater.beat">
+<code class="descname">beat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.HeartBeater.beat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.old_heartbeater.HeartBeater.handle_heart_failure">
+<code class="descname">handle_heart_failure</code><span class="sig-paren">(</span><em>heart</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.HeartBeater.handle_heart_failure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.old_heartbeater.HeartBeater.handle_new_heart">
+<code class="descname">handle_new_heart</code><span class="sig-paren">(</span><em>heart</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.HeartBeater.handle_new_heart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.structure.communication.old_heartbeater.HeartBeater.handle_pong">
+<code class="descname">handle_pong</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.HeartBeater.handle_pong" title="Permalink to this definition">¶</a></dt>
+<dd><p>if heart is beating</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="components.structure.communication.old_heartbeater.create_heartbeat_detector">
+<code class="descclassname">components.structure.communication.old_heartbeater.</code><code class="descname">create_heartbeat_detector</code><span class="sig-paren">(</span><em>robot_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.create_heartbeat_detector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.structure.communication.old_heartbeater.start_hearbeat_detector">
+<code class="descclassname">components.structure.communication.old_heartbeater.</code><code class="descname">start_hearbeat_detector</code><span class="sig-paren">(</span><em>robot_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.structure.communication.old_heartbeater.start_hearbeat_detector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-components.structure.communication">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-components.structure.communication" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Caleb Wagner
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
