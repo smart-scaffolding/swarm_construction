@@ -1,0 +1,29 @@
+zmq\_vtk.components.structure.pathplanning package
+==================================================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    zmq_vtk.components.structure.pathplanning.searches
+
+Submodules
+----------
+
+zmq\_vtk.components.structure.pathplanning.path\_planner module
+---------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning.path_planner
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning
+    :members:
+    :undoc-members:
+    :show-inheritance:
