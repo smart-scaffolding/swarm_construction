@@ -1,0 +1,2301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>components.robot.common package &mdash; Swarm Construction 1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Swarm Construction
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">components.robot.common package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.check_args">components.robot.common.check_args module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.common">components.robot.common.common module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.pose">components.robot.common.pose module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.quaternion">components.robot.common.quaternion module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.serial_link">components.robot.common.serial_link module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.states">components.robot.common.states module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.super_pose">components.robot.common.super_pose module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.transforms">components.robot.common.transforms module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common.util">components.robot.common.util module</a></li>
+<li><a class="reference internal" href="#module-components.robot.common">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Swarm Construction</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>components.robot.common package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/components.robot.common.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="components-robot-common-package">
+<h1>components.robot.common package<a class="headerlink" href="#components-robot-common-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-components.robot.common.check_args">
+<span id="components-robot-common-check-args-module"></span><h2>components.robot.common.check_args module<a class="headerlink" href="#module-components.robot.common.check_args" title="Permalink to this headline">¶</a></h2>
+<p>test_args module contains test for input arguments.
+It checks if input argument passed by user is valid or not.
+If any invalid data is found,
+the called function in test_args returns false</p>
+<dl class="function">
+<dt id="components.robot.common.check_args.is_mat_list">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">is_mat_list</code><span class="sig-paren">(</span><em>list_matrices</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.is_mat_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>is_mat_list checks(arg1) checks if arg1
+is a list containing numpy matrix data type elements or not.
+If not, False is returned.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.is_vector">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">is_vector</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.is_vector" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.np2vtk">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">np2vtk</code><span class="sig-paren">(</span><em>mat</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.np2vtk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.rpy2r">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">rpy2r</code><span class="sig-paren">(</span><em>theta</em>, <em>order</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.rpy2r" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.se2_constructor_args_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">se2_constructor_args_check</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>rot</em>, <em>theta</em>, <em>so2</em>, <em>se2</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.se2_constructor_args_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.se2_valid">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">se2_valid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.se2_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so2_angle_list_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so2_angle_list_check</code><span class="sig-paren">(</span><em>ang_list</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so2_angle_list_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so2_input_matrix">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so2_input_matrix</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so2_input_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so2_input_types_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so2_input_types_check</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so2_input_types_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so2_interp_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so2_interp_check</code><span class="sig-paren">(</span><em>obj1</em>, <em>obj2</em>, <em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so2_interp_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so2_valid">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so2_valid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so2_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.so3_constructor_args_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">so3_constructor_args_check</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.so3_constructor_args_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.super_pose_add_sub_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">super_pose_add_sub_check</code><span class="sig-paren">(</span><em>obj</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.super_pose_add_sub_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.super_pose_appenditem">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">super_pose_appenditem</code><span class="sig-paren">(</span><em>obj</em>, <em>item</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.super_pose_appenditem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.super_pose_divide_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">super_pose_divide_check</code><span class="sig-paren">(</span><em>obj</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.super_pose_divide_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.super_pose_multiply_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">super_pose_multiply_check</code><span class="sig-paren">(</span><em>obj</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.super_pose_multiply_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.super_pose_subclass_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">super_pose_subclass_check</code><span class="sig-paren">(</span><em>obj</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.super_pose_subclass_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.tr2angvec">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">tr2angvec</code><span class="sig-paren">(</span><em>tr</em>, <em>unit</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.tr2angvec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.tr2eul">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">tr2eul</code><span class="sig-paren">(</span><em>tr</em>, <em>unit</em>, <em>flip</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.tr2eul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.tr2rpy">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">tr2rpy</code><span class="sig-paren">(</span><em>tr</em>, <em>unit</em>, <em>order</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.tr2rpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.unit_check">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">unit_check</code><span class="sig-paren">(</span><em>unit</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.unit_check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.check_args.valid_pose">
+<code class="descclassname">components.robot.common.check_args.</code><code class="descname">valid_pose</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.check_args.valid_pose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.common">
+<span id="components-robot-common-common-module"></span><h2>components.robot.common.common module<a class="headerlink" href="#module-components.robot.common.common" title="Permalink to this headline">¶</a></h2>
+<p>Common Module contains code shared by robotics and machine vision toolboxes</p>
+<dl class="function">
+<dt id="components.robot.common.common.create_homogeneous_transform_from_point">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">create_homogeneous_transform_from_point</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.create_homogeneous_transform_from_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a homogeneous transform to move to a given point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>p</strong> (<em>numpy.ndarray</em>) – The (x, y, z) point we want our homogeneous tranform to move to</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">4x4 Homogeneous Transform of a point</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.matrix</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.create_point_from_homogeneous_transform">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">create_point_from_homogeneous_transform</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.create_point_from_homogeneous_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a point from a homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> (<em>numpy matrix</em>) – The 4x4 homogeneous transform</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The (x, y, z) coordinates of a point from a transform</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.flip_base">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">flip_base</code><span class="sig-paren">(</span><em>ee_pos</em>, <em>direction</em>, <em>value</em>, <em>animation=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.flip_base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.get_rotation_from_homogeneous_transform">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">get_rotation_from_homogeneous_transform</code><span class="sig-paren">(</span><em>transform</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.get_rotation_from_homogeneous_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the rotation section of the homogeneous transformation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transform</strong> (<em>numpy.ndarray</em>) – The 4x4 homogeneous transform to extract the
+rotation matrix from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">3x3 Rotation Matrix</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.matrix</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.ishomog">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">ishomog</code><span class="sig-paren">(</span><em>tr</em>, <em>dim</em>, <em>rtest=''</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.ishomog" title="Permalink to this definition">¶</a></dt>
+<dd><p>ISHOMOG Test if SE(3) homogeneous transformation matrix.
+ISHOMOG(T) is true if the argument T is of dimension 4x4 or 4x4xN, else false.
+ISHOMOG(T, ‘valid’) as above, but also checks the validity of the rotation sub-matrix.
+See Also: isrot, ishomog2, isvec</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.isrot">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">isrot</code><span class="sig-paren">(</span><em>rot</em>, <em>dtest=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.isrot" title="Permalink to this definition">¶</a></dt>
+<dd><p>ISROT Test if SO(2) or SO(3) rotation matrix
+ISROT(rot) is true if the argument if of dimension 2x2, 2x2xN, 3x3, or 3x3xN, else false (0).
+ISROT(rot, ‘valid’) as above, but also checks the validity of the rotation.
+See also  ISHOMOG, ISROT2, ISVEC.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.isrot2">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">isrot2</code><span class="sig-paren">(</span><em>rot</em>, <em>dtest=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.isrot2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.isvec">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">isvec</code><span class="sig-paren">(</span><em>v</em>, <em>l=3</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.isvec" title="Permalink to this definition">¶</a></dt>
+<dd><p>ISVEC Test if vector</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.common.round_end_effector_position">
+<code class="descclassname">components.robot.common.common.</code><code class="descname">round_end_effector_position</code><span class="sig-paren">(</span><em>ee_pos</em>, <em>direction</em>, <em>point</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.common.round_end_effector_position" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.pose">
+<span id="components-robot-common-pose-module"></span><h2>components.robot.common.pose module<a class="headerlink" href="#module-components.robot.common.pose" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.robot.common.pose.SE2">
+<em class="property">class </em><code class="descclassname">components.robot.common.pose.</code><code class="descname">SE2</code><span class="sig-paren">(</span><em>theta=None</em>, <em>unit='rad'</em>, <em>x=None</em>, <em>y=None</em>, <em>rot=None</em>, <em>so2=None</em>, <em>se2=None</em>, <em>null=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.pose.SO2" title="components.robot.common.pose.SO2"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.pose.SO2</span></code></a></p>
+<dl class="method">
+<dt id="components.robot.common.pose.SE2.SE3">
+<code class="descname">SE3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.SE3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SE2.inv">
+<code class="descname">inv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an inverse SE2 object of same length</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SE2.is_valid">
+<em class="property">static </em><code class="descname">is_valid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a np.matrix is a valid SO2 pose.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SE2.log">
+<code class="descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE2.rand">
+<em class="property">classmethod </em><code class="descname">rand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.rand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SE2.t_matrix">
+<code class="descname">t_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.t_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of translation matrices of SE2 object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SE2.transl">
+<code class="descname">transl</code><a class="headerlink" href="#components.robot.common.pose.SE2.transl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SE2.transl_vec">
+<code class="descname">transl_vec</code><a class="headerlink" href="#components.robot.common.pose.SE2.transl_vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of translation vectors of SE2 object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SE2.xyt">
+<code class="descname">xyt</code><span class="sig-paren">(</span><em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE2.xyt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of 3x1 dimension vectors containing x, y translation components and theta</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.pose.SE3">
+<em class="property">class </em><code class="descclassname">components.robot.common.pose.</code><code class="descname">SE3</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>z=None</em>, <em>rot=None</em>, <em>so3=None</em>, <em>se3=None</em>, <em>null=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.pose.SO3" title="components.robot.common.pose.SO3"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.pose.SO3</span></code></a></p>
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.Rx">
+<em class="property">classmethod </em><code class="descname">Rx</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.Rx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.Ry">
+<em class="property">classmethod </em><code class="descname">Ry</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.Ry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.Rz">
+<em class="property">classmethod </em><code class="descname">Rz</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.Rz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SE3.form_trans_matrix">
+<em class="property">static </em><code class="descname">form_trans_matrix</code><span class="sig-paren">(</span><em>rot</em>, <em>transl</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.form_trans_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.np">
+<em class="property">classmethod </em><code class="descname">np</code><span class="sig-paren">(</span><em>arg_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.rand">
+<em class="property">classmethod </em><code class="descname">rand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.rand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SE3.se3">
+<em class="property">classmethod </em><code class="descname">se3</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SE3.se3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SE3.transl">
+<code class="descname">transl</code><a class="headerlink" href="#components.robot.common.pose.SE3.transl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.pose.SO2">
+<em class="property">class </em><code class="descclassname">components.robot.common.pose.</code><code class="descname">SO2</code><span class="sig-paren">(</span><em>args_in=None</em>, <em>unit='rad'</em>, <em>null=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.super_pose.SuperPose" title="components.robot.common.super_pose.SuperPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.super_pose.SuperPose</span></code></a></p>
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.SE2">
+<code class="descname">SE2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.SE2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns SE2 object with same rotational component as SO2 and a zero translation component</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SO2.angle">
+<code class="descname">angle</code><a class="headerlink" href="#components.robot.common.pose.SO2.angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns angle of SO2 object matrices in unit radians</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SO2.check">
+<em class="property">static </em><code class="descname">check</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SO2.det">
+<code class="descname">det</code><a class="headerlink" href="#components.robot.common.pose.SO2.det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list containing determinants of all matrices in a SO2 object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.eig">
+<code class="descname">eig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.eig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SO2.exp">
+<em class="property">static </em><code class="descname">exp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.exp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SO2.form_trans_matrix">
+<em class="property">static </em><code class="descname">form_trans_matrix</code><span class="sig-paren">(</span><em>rot</em>, <em>transl</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.form_trans_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.interp">
+<code class="descname">interp</code><span class="sig-paren">(</span><em>other</em>, <em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the interpolated SO2 object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.inv">
+<code class="descname">inv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns inverse SO2 object</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SO2.is_valid">
+<em class="property">static </em><code class="descname">is_valid</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a np.matrix is a valid SO2 pose.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.log">
+<code class="descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.new">
+<code class="descname">new</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of SO2 object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO2.rand">
+<em class="property">classmethod </em><code class="descname">rand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.rand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO2.t_matrix">
+<code class="descname">t_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO2.t_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of transformation matrices</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.pose.SO2.unit">
+<code class="descname">unit</code><a class="headerlink" href="#components.robot.common.pose.SO2.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.pose.SO3">
+<em class="property">class </em><code class="descclassname">components.robot.common.pose.</code><code class="descname">SO3</code><span class="sig-paren">(</span><em>args_in=None</em>, <em>null=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.super_pose.SuperPose" title="components.robot.common.super_pose.SuperPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.super_pose.SuperPose</span></code></a></p>
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.Rx">
+<em class="property">classmethod </em><code class="descname">Rx</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.Rx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.Ry">
+<em class="property">classmethod </em><code class="descname">Ry</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.Ry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.Rz">
+<em class="property">classmethod </em><code class="descname">Rz</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.Rz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.angvec">
+<code class="descname">angvec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.angvec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.animate">
+<code class="descname">animate</code><span class="sig-paren">(</span><em>other=None</em>, <em>duration=5</em>, <em>gif=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.animate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.approach_vec">
+<code class="descname">approach_vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.approach_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.pose.SO3.check">
+<em class="property">static </em><code class="descname">check</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.ctraj">
+<code class="descname">ctraj</code><span class="sig-paren">(</span><em>T1</em>, <em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.ctraj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.det">
+<code class="descname">det</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.det" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.eig">
+<code class="descname">eig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.eig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.eul">
+<em class="property">classmethod </em><code class="descname">eul</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.eul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.exp">
+<code class="descname">exp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.exp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.interp">
+<code class="descname">interp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.interp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.inv">
+<code class="descname">inv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.inv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.log">
+<code class="descname">log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.new">
+<code class="descname">new</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.norm_vec">
+<code class="descname">norm_vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.norm_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.np">
+<em class="property">classmethod </em><code class="descname">np</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.np" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.oa">
+<em class="property">classmethod </em><code class="descname">oa</code><span class="sig-paren">(</span><em>o</em>, <em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.oa" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.orient_vec">
+<code class="descname">orient_vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.orient_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.rand">
+<em class="property">classmethod </em><code class="descname">rand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.rand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.rotation">
+<code class="descname">rotation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.rotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.rpy">
+<em class="property">classmethod </em><code class="descname">rpy</code><span class="sig-paren">(</span><em>thetas</em>, <em>order='zyx'</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.rpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.se3">
+<em class="property">classmethod </em><code class="descname">se3</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.se3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.pose.SO3.so3">
+<em class="property">classmethod </em><code class="descname">so3</code><span class="sig-paren">(</span><em>args_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.so3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.t_matrix">
+<code class="descname">t_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.t_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns transformation matrices associated with the pose object.
+Return data type is list or np.matrix depending on number of transformation matrices present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.to_se3">
+<code class="descname">to_se3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.to_se3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.toangvec">
+<code class="descname">toangvec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.toangvec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.toeul">
+<code class="descname">toeul</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.toeul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.torpy">
+<code class="descname">torpy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.torpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.pose.SO3.trnorm">
+<code class="descname">trnorm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.pose.SO3.trnorm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.quaternion">
+<span id="components-robot-common-quaternion-module"></span><h2>components.robot.common.quaternion module<a class="headerlink" href="#module-components.robot.common.quaternion" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.robot.common.quaternion.Quaternion">
+<em class="property">class </em><code class="descclassname">components.robot.common.quaternion.</code><code class="descname">Quaternion</code><span class="sig-paren">(</span><em>s=None</em>, <em>v=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.conj">
+<code class="descname">conj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.conj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.double">
+<code class="descname">double</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.double" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the quaternion as 4-element vector.
+Code retrieved from: <a class="reference external" href="https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py">https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py</a>
+Original authors: Luis Fernando Lara Tobar and Peter Corke
+&#64;rtype: 4-vector
+&#64;return: the quaternion elements</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.inv">
+<code class="descname">inv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.inv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.matrix">
+<code class="descname">matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.norm">
+<code class="descname">norm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the norm of this quaternion.
+Code retrieved from: <a class="reference external" href="https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py">https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py</a>
+Original authors: Luis Fernando Lara Tobar and Peter Corke
+&#64;rtype: number
+&#64;return: the norm</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.Quaternion.pure">
+<em class="property">classmethod </em><code class="descname">pure</code><span class="sig-paren">(</span><em>vec</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.pure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.Quaternion.qt">
+<em class="property">classmethod </em><code class="descname">qt</code><span class="sig-paren">(</span><em>arg_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.qt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.r">
+<code class="descname">r</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an equivalent rotation matrix.
+Code retrieved from: <a class="reference external" href="https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py">https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py</a>
+Original authors: Luis Fernando Lara Tobar and Peter Corke
+&#64;rtype: 3x3 orthonormal rotation matrix
+&#64;return: equivalent rotation matrix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.tr">
+<code class="descname">tr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.tr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.Quaternion.unit">
+<code class="descname">unit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.Quaternion.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an equivalent unit quaternion
+Code retrieved from: <a class="reference external" href="https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py">https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py</a>
+Original authors: Luis Fernando Lara Tobar and Peter Corke
+&#64;rtype: quaternion
+&#64;return: equivalent unit quaternion</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.quaternion.UnitQuaternion">
+<em class="property">class </em><code class="descclassname">components.robot.common.quaternion.</code><code class="descname">UnitQuaternion</code><span class="sig-paren">(</span><em>s=None</em>, <em>v=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.quaternion.Quaternion" title="components.robot.common.quaternion.Quaternion"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.quaternion.Quaternion</span></code></a></p>
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.Rx">
+<em class="property">classmethod </em><code class="descname">Rx</code><span class="sig-paren">(</span><em>angle</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.Rx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.Ry">
+<em class="property">classmethod </em><code class="descname">Ry</code><span class="sig-paren">(</span><em>angle</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.Ry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.Rz">
+<em class="property">classmethod </em><code class="descname">Rz</code><span class="sig-paren">(</span><em>angle</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.Rz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.angvec">
+<em class="property">classmethod </em><code class="descname">angvec</code><span class="sig-paren">(</span><em>theta</em>, <em>v</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.angvec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.animate">
+<code class="descname">animate</code><span class="sig-paren">(</span><em>qr=None</em>, <em>duration=5</em>, <em>gif=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.animate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.dot">
+<code class="descname">dot</code><span class="sig-paren">(</span><em>omega</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.dot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.dotb">
+<code class="descname">dotb</code><span class="sig-paren">(</span><em>omega</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.dotb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.eul">
+<em class="property">classmethod </em><code class="descname">eul</code><span class="sig-paren">(</span><em>arg_in</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.eul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.interp">
+<code class="descname">interp</code><span class="sig-paren">(</span><em>qr</em>, <em>r=0.5</em>, <em>shortest=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Algorithm source: <a class="reference external" href="https://en.wikipedia.org/wiki/Slerp">https://en.wikipedia.org/wiki/Slerp</a>
+:param qr: UnitQuaternion
+:param shortest: Take the shortest path along the great circle
+:param r: interpolation point
+:return: interpolated UnitQuaternion</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.matrix">
+<code class="descname">matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.new">
+<code class="descname">new</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.omega">
+<em class="property">classmethod </em><code class="descname">omega</code><span class="sig-paren">(</span><em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.omega" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.q2r">
+<code class="descname">q2r</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.q2r" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.q2tr">
+<code class="descname">q2tr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.q2tr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.qt">
+<em class="property">classmethod </em><code class="descname">qt</code><span class="sig-paren">(</span><em>arg_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.qt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.rot">
+<em class="property">classmethod </em><code class="descname">rot</code><span class="sig-paren">(</span><em>arg_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.rot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.rpy">
+<em class="property">classmethod </em><code class="descname">rpy</code><span class="sig-paren">(</span><em>arg_in</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.rpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_angvec">
+<code class="descname">to_angvec</code><span class="sig-paren">(</span><em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_angvec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_rot">
+<code class="descname">to_rot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_rot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_rpy">
+<code class="descname">to_rpy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_rpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_se3">
+<code class="descname">to_se3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_se3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_so3">
+<code class="descname">to_so3</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_so3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.quaternion.UnitQuaternion.to_vec">
+<code class="descname">to_vec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.to_vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.tr2q">
+<em class="property">static </em><code class="descname">tr2q</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.tr2q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a homogeneous rotation matrix to a Quaternion object
+Code retrieved from: <a class="reference external" href="https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py">https://github.com/petercorke/robotics-toolbox-python/blob/master/robot/Quaternion.py</a>
+Original authors: Luis Fernando Lara Tobar and Peter Corke
+:param t: homogeneous matrix
+:return: quaternion object</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="components.robot.common.quaternion.UnitQuaternion.vec">
+<em class="property">classmethod </em><code class="descname">vec</code><span class="sig-paren">(</span><em>arg_in</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.quaternion.UnitQuaternion.vec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.serial_link">
+<span id="components-robot-common-serial-link-module"></span><h2>components.robot.common.serial_link module<a class="headerlink" href="#module-components.robot.common.serial_link" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.robot.common.serial_link.Link">
+<em class="property">class </em><code class="descclassname">components.robot.common.serial_link.</code><code class="descname">Link</code><span class="sig-paren">(</span><em>j</em>, <em>theta</em>, <em>d</em>, <em>a</em>, <em>alpha</em>, <em>length</em>, <em>offset=None</em>, <em>kind=''</em>, <em>mdh=0</em>, <em>flip=None</em>, <em>qlim=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Link object class.</p>
+<dl class="method">
+<dt id="components.robot.common.serial_link.Link.A">
+<code class="descname">A</code><span class="sig-paren">(</span><em>q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Link.A" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.serial_link.Link.display">
+<code class="descname">display</code><span class="sig-paren">(</span><em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Link.display" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the link’s properties nicely</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.serial_link.Link.set_theta">
+<code class="descname">set_theta</code><span class="sig-paren">(</span><em>theta</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Link.set_theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets theta to the new theta and computes the new
+transformation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>theta</strong> (<em>int</em>) – The new theta for the link</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.serial_link.Link.update_velocity">
+<code class="descname">update_velocity</code><span class="sig-paren">(</span><em>accel</em>, <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Link.update_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the current velocity of the link when acted upon
+by some acceleration over some time</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>accel</strong> (<em>int</em>) – The acceleration acting upon the link
+(radians per second^2)</li>
+<li><strong>time</strong> (<em>int</em>) – The time the accelration is applied over (seconds)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.serial_link.Prismatic">
+<em class="property">class </em><code class="descclassname">components.robot.common.serial_link.</code><code class="descname">Prismatic</code><span class="sig-paren">(</span><em>j</em>, <em>theta</em>, <em>d</em>, <em>a</em>, <em>alpha</em>, <em>offset</em>, <em>qlim</em>, <em>length</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Prismatic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.serial_link.Link" title="components.robot.common.serial_link.Link"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.serial_link.Link</span></code></a></p>
+<p>Prismatic object class.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.serial_link.Revolute">
+<em class="property">class </em><code class="descclassname">components.robot.common.serial_link.</code><code class="descname">Revolute</code><span class="sig-paren">(</span><em>j</em>, <em>theta</em>, <em>d</em>, <em>a</em>, <em>alpha</em>, <em>offset</em>, <em>qlim</em>, <em>length</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.Revolute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.robot.common.serial_link.Link" title="components.robot.common.serial_link.Link"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.robot.common.serial_link.Link</span></code></a></p>
+<p>Revolute object class.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.serial_link.SerialLink">
+<em class="property">class </em><code class="descclassname">components.robot.common.serial_link.</code><code class="descname">SerialLink</code><span class="sig-paren">(</span><em>links</em>, <em>name=None</em>, <em>base=None</em>, <em>tool=None</em>, <em>stl_files=None</em>, <em>q=None</em>, <em>colors=None</em>, <em>param=None</em>, <em>blueprint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.SerialLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>SerialLink object class.</p>
+<dl class="method">
+<dt id="components.robot.common.serial_link.SerialLink.fkine">
+<code class="descname">fkine</code><span class="sig-paren">(</span><em>stance</em>, <em>unit='rad'</em>, <em>apply_stance=False</em>, <em>num_links=4</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.serial_link.SerialLink.fkine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates forward kinematics for a list of joint angles.
+:param stance: stance is list of joint angles.
+:param unit: unit of input angles.
+:param apply_stance: If True, then applied tp actor_list.
+:param actor_list: Passed to apply transformations computed by fkine.
+:param timer: internal use only (for animation).
+:return: homogeneous transformation matrix.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.serial_link.SerialLink.length">
+<code class="descname">length</code><a class="headerlink" href="#components.robot.common.serial_link.SerialLink.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>length property
+:return: int</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.states">
+<span id="components-robot-common-states-module"></span><h2>components.robot.common.states module<a class="headerlink" href="#module-components.robot.common.states" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.robot.common.states.Block">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>position</em>, <em>status</em>, <em>final_destination</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.Block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.BlockFace">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">BlockFace</code><span class="sig-paren">(</span><em>xPos</em>, <em>yPos</em>, <em>zPos</em>, <em>face</em>, <em>blockWidth=0.49</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.BlockFace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.robot.common.states.BlockFace.get_face_coordinate">
+<code class="descname">get_face_coordinate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.BlockFace.get_face_coordinate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.BuildingStates">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">BuildingStates</code><a class="headerlink" href="#components.robot.common.states.BuildingStates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.IntEnum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="components.robot.common.states.BuildingStates.DONE">
+<code class="descname">DONE</code><em class="property"> = 3</em><a class="headerlink" href="#components.robot.common.states.BuildingStates.DONE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.BuildingStates.DONE_ORIGIN">
+<code class="descname">DONE_ORIGIN</code><em class="property"> = 2</em><a class="headerlink" href="#components.robot.common.states.BuildingStates.DONE_ORIGIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.BuildingStates.EMPTY">
+<code class="descname">EMPTY</code><em class="property"> = 4</em><a class="headerlink" href="#components.robot.common.states.BuildingStates.EMPTY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.BuildingStates.WAITING_FOR_FERRYING">
+<code class="descname">WAITING_FOR_FERRYING</code><em class="property"> = 0</em><a class="headerlink" href="#components.robot.common.states.BuildingStates.WAITING_FOR_FERRYING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.BuildingStates.WAITING_FOR_FILLING">
+<code class="descname">WAITING_FOR_FILLING</code><em class="property"> = 1</em><a class="headerlink" href="#components.robot.common.states.BuildingStates.WAITING_FOR_FILLING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.Division">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">Division</code><a class="headerlink" href="#components.robot.common.states.Division" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="components.robot.common.states.Division.get_locations_to_place_blocks">
+<code class="descname">get_locations_to_place_blocks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.Division.get_locations_to_place_blocks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.MoveBlocksStore">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">MoveBlocksStore</code><span class="sig-paren">(</span><em>blocks_to_remove</em>, <em>division</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.MoveBlocksStore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.PathPlanners">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">PathPlanners</code><a class="headerlink" href="#components.robot.common.states.PathPlanners" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="components.robot.common.states.PathPlanners.AStar">
+<code class="descname">AStar</code><em class="property"> = 1</em><a class="headerlink" href="#components.robot.common.states.PathPlanners.AStar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.PathPlanners.FaceStar">
+<code class="descname">FaceStar</code><em class="property"> = 0</em><a class="headerlink" href="#components.robot.common.states.PathPlanners.FaceStar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.RobotBehaviors">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">RobotBehaviors</code><a class="headerlink" href="#components.robot.common.states.RobotBehaviors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.BUILD">
+<code class="descname">BUILD</code><em class="property"> = 3</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.BUILD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.FERRY">
+<code class="descname">FERRY</code><em class="property"> = 0</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.FERRY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.MOVE">
+<code class="descname">MOVE</code><em class="property"> = 2</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.MOVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.SIMULATION">
+<code class="descname">SIMULATION</code><em class="property"> = 5</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.SIMULATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.UPDATE">
+<code class="descname">UPDATE</code><em class="property"> = 4</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.UPDATE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.states.RobotBehaviors.WAIT">
+<code class="descname">WAIT</code><em class="property"> = 1</em><a class="headerlink" href="#components.robot.common.states.RobotBehaviors.WAIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="components.robot.common.states.RobotCommunicator">
+<em class="property">class </em><code class="descclassname">components.robot.common.states.</code><code class="descname">RobotCommunicator</code><span class="sig-paren">(</span><em>robot_communicator</em>, <em>robot_id</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.states.RobotCommunicator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.super_pose">
+<span id="components-robot-common-super-pose-module"></span><h2>components.robot.common.super_pose module<a class="headerlink" href="#module-components.robot.common.super_pose" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="components.robot.common.super_pose.SuperPose">
+<em class="property">class </em><code class="descclassname">components.robot.common.super_pose.</code><code class="descname">SuperPose</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.super_pose.SuperPose.data">
+<code class="descname">data</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Always returns a list containing the matrices of the pose object.
+:return: A list of matrices.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.super_pose.SuperPose.dim">
+<code class="descname">dim</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dimensions of first matrix in pose object.
+Assumed that all matrices have same dimension.
+:return: tuple</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.super_pose.SuperPose.isSE">
+<code class="descname">isSE</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.isSE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if object is of type SE2 or SE3 or none of them.
+:return: bool</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.is_equal">
+<code class="descname">is_equal</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.is_equal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.ishomog">
+<code class="descname">ishomog</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.ishomog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.ishomog2">
+<code class="descname">ishomog2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.ishomog2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.isrot">
+<code class="descname">isrot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.isrot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.isrot2">
+<code class="descname">isrot2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.isrot2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.super_pose.SuperPose.length">
+<code class="descname">length</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property to return number of matrices in pose object
+:return: int</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="components.robot.common.super_pose.SuperPose.mat">
+<code class="descname">mat</code><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property to return the matrices of pose object.
+:return: Returns np.matrix type if only one matrix is present. Else returns a list of np.matrix.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.render">
+<code class="descname">render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.render" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.t_2_r">
+<code class="descname">t_2_r</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.t_2_r" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.tr_2_rt">
+<code class="descname">tr_2_rt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.tr_2_rt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.tranimate">
+<code class="descname">tranimate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.tranimate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.trplot">
+<code class="descname">trplot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.trplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.trplot2">
+<code class="descname">trplot2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.trplot2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="components.robot.common.super_pose.SuperPose.trprint">
+<code class="descname">trprint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.super_pose.SuperPose.trprint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.transforms">
+<span id="components-robot-common-transforms-module"></span><h2>components.robot.common.transforms module<a class="headerlink" href="#module-components.robot.common.transforms" title="Permalink to this headline">¶</a></h2>
+<p>This file contains all of the transforms functions that will be used within the toolbox</p>
+<dl class="function">
+<dt id="components.robot.common.transforms.angvec2r">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">angvec2r</code><span class="sig-paren">(</span><em>theta</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.angvec2r" title="Permalink to this definition">¶</a></dt>
+<dd><p>ANGVEC2R(THETA, V) is an orthonormal rotation matrix (3x3)
+equivalent to a rotation of THETA about the vector V.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians</li>
+<li><strong>v</strong> – vector</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Notes::
+- If THETA == 0 then return identity matrix.
+- If THETA ~= 0 then V must have a finite length.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.angvec2tr">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">angvec2tr</code><span class="sig-paren">(</span><em>theta</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.angvec2tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>ANGVEC2TR(THETA, V) is a homogeneous transform matrix (4x4) equivalent to a
+rotation of THETA about the vector V.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians</li>
+<li><strong>v</strong> – vector</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogenous transform matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Notes::
+- The translational part is zero.
+- If THETA == 0 then return identity matrix.
+- If THETA ~= 0 then V must have a finite length.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.eul2r">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">eul2r</code><span class="sig-paren">(</span><em>phi</em>, <em>theta=None</em>, <em>psi=None</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.eul2r" title="Permalink to this definition">¶</a></dt>
+<dd><p>EUL2R Convert Euler angles to rotation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>phi</strong> – x axis rotation</li>
+<li><strong>theta</strong> – y axis rotation</li>
+<li><strong>psi</strong> – z axis rotation</li>
+<li><strong>unit</strong> – ‘rad’ or ‘deg’ for angles</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>R = EUL2R(PHI, THETA, PSI, UNIT) is an SO(3) orthonornal rotation
+matrix (3x3) equivalent to the specified Euler angles.  These correspond
+to rotations about the Z, Y, Z axes respectively. If PHI, THETA, PSI are
+column vectors (Nx1) then they are assumed to represent a trajectory and
+R is a three-dimensional matrix (3x3xN), where the last index corresponds
+to rows of PHI, THETA, PSI.</p>
+<p>R = EUL2R(EUL, OPTIONS) as above but the Euler angles are taken from the
+vector (1x3)  EUL = [PHI THETA PSI]. If EUL is a matrix (Nx3) then R is a
+three-dimensional matrix (3x3xN), where the last index corresponds to
+rows of RPY which are assumed to be [PHI,THETA,PSI].</p>
+<p>Options::
+‘deg’      Angles given in degrees (radians default)</p>
+<p>Note::
+- The vectors PHI, THETA, PSI must be of the same length.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.eul2tr">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">eul2tr</code><span class="sig-paren">(</span><em>phi</em>, <em>theta=None</em>, <em>psi=None</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.eul2tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>EUL2TR Convert Euler angles to homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>phi</strong> – x axis rotation</li>
+<li><strong>theta</strong> – y axis rotation</li>
+<li><strong>psi</strong> – z axis rotation</li>
+<li><strong>unit</strong> – ‘rad’ or ‘deg’ for angles</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>T = EUL2TR(PHI, THETA, PSI, OPTIONS) is an SE(3) homogeneous
+transformation matrix (4x4) with zero translation and rotation equivalent
+to the specified Euler angles. These correspond to rotations about the Z,
+Y, Z axes respectively. If PHI, THETA, PSI are column vectors (Nx1) then
+they are assumed to represent a trajectory and R is a three-dimensional
+matrix (4x4xN), where the last index corresponds to rows of PHI, THETA,
+PSI.</p>
+<p>R = EUL2R(EUL, OPTIONS) as above but the Euler angles are taken from the
+vector (1x3)  EUL = [PHI THETA PSI]. If EUL is a matrix (Nx3) then R is a
+three-dimensional matrix (4x4xN), where the last index corresponds to
+rows of RPY which are assumed to be [PHI,THETA,PSI].</p>
+<p>Options::
+‘deg’      Angles given in degrees (radians default)</p>
+<p>Note::
+- The vectors PHI, THETA, PSI must be of the same length.
+- The translational part is zero.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.np2vtk">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">np2vtk</code><span class="sig-paren">(</span><em>mat</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.np2vtk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.oa2r">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">oa2r</code><span class="sig-paren">(</span><em>o</em>, <em>a=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.oa2r" title="Permalink to this definition">¶</a></dt>
+<dd><p>OA2R Convert orientation and approach vectors to rotation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>o</strong> – vector parallel to Y- axes</li>
+<li><strong>a</strong> – vector parallel to the z-axes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>R = OA2R(O, A) is an SO(3) rotation matrix (3x3) for the specified orientation
+and approach vectors (3x1) formed from 3 vectors such that R = [N O A] and N = O x A.</p>
+<p>Notes::
+- The matrix is guaranteed to be orthonormal so long as O and A are not parallel.
+- The vectors O and A are parallel to the Y- and Z-axes of the coordinate frame.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.oa2tr">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">oa2tr</code><span class="sig-paren">(</span><em>o</em>, <em>a=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.oa2tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>OA2TR Convert orientation and approach vectors to homogeneous transformation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>o</strong> – vector parallel to Y- axes</li>
+<li><strong>a</strong> – vector parallel to the z-axes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>T = OA2TR(O, A) is an SE(3) homogeneous tranformation (4x4) for the
+specified orientation and approach vectors (3x1) formed from 3 vectors
+such that R = [N O A] and N = O x A.</p>
+<p>Notes::
+- The rotation submatrix is guaranteed to be orthonormal so long as O and A
+are not parallel.
+- The translational part is zero.
+- The vectors O and A are parallel to the Y- and Z-axes of the coordinate frame.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.r2t">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">r2t</code><span class="sig-paren">(</span><em>rmat</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.r2t" title="Permalink to this definition">¶</a></dt>
+<dd><p>R2T Convert rotation matrix to a homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rmat</strong> – rotation matrix</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">homogeneous transformation</td>
+</tr>
+</tbody>
+</table>
+<p>R2T(rmat) is an SE(2) or SE(3) homogeneous transform equivalent to an
+SO(2) or SO(3) orthonormal rotation matrix rmat with a zero translational
+component. Works for T in either SE(2) or SE(3):
+if rmat is 2x2 then return is 3x3, or
+if rmat is 3x3 then return is 4x4.</p>
+<p>Translational component is zero.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rot2">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rot2</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rot2" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROT2 SO(2) Rotational Matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians or degrees</li>
+<li><strong>unit</strong> – “rad” or “deg” to indicate unit being used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotational matrix (2x2)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>ROT2(THETA) is an SO(2) rotation matrix (2x2) representing a rotation of THETA radians.
+ROT2(THETA, ‘deg’) as above but THETA is in degrees.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rotx">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rotx</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rotx" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROTX gives rotation about X axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – angle for rotation matrix</li>
+<li><strong>unit</strong> – unit of input passed. ‘rad’ or ‘deg’</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>rotx(THETA) is an SO(3) rotation matrix (3x3) representing a rotation
+of THETA radians about the x-axis
+rotx(THETA, “deg”) as above but THETA is in degrees</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.roty">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">roty</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.roty" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROTY Rotation about Y axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – angle for rotation matrix</li>
+<li><strong>unit</strong> – unit of input passed. ‘rad’ or ‘deg’</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>roty(THETA) is an SO(3) rotation matrix (3x3) representing a rotation
+of THETA radians about the y-axis
+roty(THETA, “deg”) as above but THETA is in degrees</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rotz">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rotz</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rotz" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROTZ Rotation about Z axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – angle for rotation matrix</li>
+<li><strong>unit</strong> – unit of input passed. ‘rad’ or ‘deg’</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>rotz(THETA) is an SO(3) rotation matrix (3x3) representing a rotation
+of THETA radians about the z-axis
+rotz(THETA, “deg”) as above but THETA is in degrees</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rpy2r">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rpy2r</code><span class="sig-paren">(</span><em>thetas</em>, <em>order='zyx'</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rpy2r" title="Permalink to this definition">¶</a></dt>
+<dd><p>RPY2R Roll-pitch-yaw angles to rotation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>thetas</strong> – list of angles</li>
+<li><strong>order</strong> – ‘xyz’, ‘zyx’ or ‘yxz’</li>
+<li><strong>unit</strong> – ‘rad’ or ‘deg’</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>RPY2R(ROLL, PITCH, YAW, OPTIONS) is an SO(3) orthonormal rotation matrix
+(3x3) equivalent to the specified roll, pitch, yaw angles angles.
+These correspond to rotations about the Z, Y, X axes respectively. If ROLL,
+PITCH, YAW are column vectors (Nx1) then they are assumed to represent a
+trajectory and R is a three-dimensional matrix (3x3xN), where the last index
+corresponds to rows of ROLL, PITCH, YAW.</p>
+<p>R = RPY2R(RPY, OPTIONS) as above but the roll, pitch, yaw angles are taken
+from the vector (1x3) RPY=[ROLL,PITCH,YAW]. If RPY is a matrix(Nx3) then R
+is a three-dimensional matrix (3x3xN), where the last index corresponds to
+rows of RPY which are assumed to be [ROLL,PITCH,YAW].</p>
+<dl class="docutils">
+<dt>Options::</dt>
+<dd>‘deg’   Compute angles in degrees (radians default)
+‘xyz’   Rotations about X, Y, Z axes (for a robot gripper)
+‘yxz’   Rotations about Y, X, Z axes (for a camera)</dd>
+</dl>
+<p>Note::
+- Toolbox rel 8-9 has the reverse angle sequence as default.
+- ZYX order is appropriate for vehicles with direction of travel in the X
+direction.  XYZ order is appropriate if direction of travel is in the Z direction.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rpy2tr">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rpy2tr</code><span class="sig-paren">(</span><em>thetas</em>, <em>order='zyx'</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rpy2tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>RPY2TR Roll-pitch-yaw angles to homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>thetas</strong> – list of angles</li>
+<li><strong>order</strong> – order can be ‘xyz’/’arm’, ‘zyx’/’vehicle’, ‘yxz’/’camera’</li>
+<li><strong>unit</strong> – unit of input angles</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transformation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>T = RPY2TR(ROLL, PITCH, YAW, OPTIONS) is an SE(3) homogeneous
+transformation matrix (4x4) with zero translation and rotation equivalent
+to the specified roll, pitch, yaw angles angles. These correspond to
+rotations about the Z, Y, X axes respectively. If ROLL, PITCH, YAW are
+column vectors (Nx1) then they are assumed to represent a trajectory and
+R is a three-dimensional matrix (4x4xN), where the last index corresponds
+to rows of ROLL, PITCH, YAW.</p>
+<p>T = RPY2TR(RPY, OPTIONS) as above but the roll, pitch, yaw angles are
+taken from the vector (1x3) RPY=[ROLL,PITCH,YAW]. If RPY is a matrix
+(Nx3) then R is a three-dimensional matrix (4x4xN), where the last index
+corresponds to rows of RPY which are assumed to be
+ROLL,PITCH,YAW].</p>
+<dl class="docutils">
+<dt>Options::</dt>
+<dd>‘deg’   Compute angles in degrees (radians default)
+‘xyz’   Rotations about X, Y, Z axes (for a robot gripper)
+‘yxz’   Rotations about Y, X, Z axes (for a camera)</dd>
+</dl>
+<p>Note::
+- Toolbox rel 8-9 has the reverse angle sequence as default.
+- ZYX order is appropriate for vehicles with direction of travel in the X
+direction.  XYZ order is appropriate if direction of travel is in the Z
+direction.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.rt2tr">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">rt2tr</code><span class="sig-paren">(</span><em>r</em>, <em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.rt2tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>RT2TR Convert rotation and translation to homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>r</strong> – rotation matrix</li>
+<li><strong>t</strong> – translation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>RT2TR(R, t) is a homogeneous transformation matrix (N+1xN+1) formed from an
+orthonormal rotation matrix R (NxN) and a translation vector t
+(Nx1).  Works for R in SO(2) or SO(3):
+- If R is 2x2 and t is 2x1, then TR is 3x3
+- If R is 3x3 and t is 3x1, then TR is 4x4</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.skew">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">skew</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.skew" title="Permalink to this definition">¶</a></dt>
+<dd><p>SKEW creates Skew-symmetric metrix from vector</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> – 1 or 3 vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">skew-symmetric matrix</td>
+</tr>
+</tbody>
+</table>
+<p>SKEW(V) is a skew-symmetric matrix formed from V.</p>
+<dl class="docutils">
+<dt>If V (1x1) then S =</dt>
+<dd><div class="first last line-block">
+<div class="line">0  -v |</div>
+<div class="line">v   0 |</div>
+</div>
+</dd>
+<dt>and if V (1x3) then S =</dt>
+<dd><div class="first line-block">
+<div class="line-block">
+<div class="line">0  -vz   vy |</div>
+</div>
+<div class="line">vz    0  -vx |</div>
+</div>
+<p class="last"><a href="#id1"><span class="problematic" id="id2">|</span></a>-vy   vx    0 |</p>
+</dd>
+</dl>
+<p>Notes::
+- This is the inverse of the function VEX().
+- These are the generator matrices for the Lie algebras so(2) and so(3).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.skewa">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">skewa</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.skewa" title="Permalink to this definition">¶</a></dt>
+<dd><p>SKEWA creates augmented skew-symmetric matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> – 3 or 6 vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">augmented skew-symmetric matrix</td>
+</tr>
+</tbody>
+</table>
+<p>SKEWA(V) is an augmented skew-symmetric matrix formed from V.</p>
+<dl class="docutils">
+<dt>If V (1x3) then S =</dt>
+<dd><div class="first last line-block">
+<div class="line-block">
+<div class="line">0  -v3  v1 |</div>
+</div>
+<div class="line">v3    0  v2 |</div>
+<div class="line-block">
+<div class="line">0    0   0 |</div>
+</div>
+</div>
+</dd>
+<dt>and if V (1x6) then S =</dt>
+<dd><div class="first line-block">
+<div class="line-block">
+<div class="line">0  -v6   v5  v1 |</div>
+</div>
+<div class="line">v6    0  -v4  v2 |</div>
+</div>
+<p class="last"><a href="#id3"><span class="problematic" id="id4">|</span></a>-v5   v4    0  v3 |
+|  0    0    0   0 |</p>
+</dd>
+</dl>
+<p>Notes::
+- This is the inverse of the function VEXA().
+- These are the generator matrices for the Lie algebras se(2) and se(3).
+- Map twist vectors in 2D and 3D space to se(2) and se(3).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.t2r">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">t2r</code><span class="sig-paren">(</span><em>tmat</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.t2r" title="Permalink to this definition">¶</a></dt>
+<dd><p>R2T Convert homogeneous transform to a rotation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tmat</strong> – homogeneous transform</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">rotation matrix</td>
+</tr>
+</tbody>
+</table>
+<p>T2R(tmat) is the orthonormal rotation matrix component of homogeneous
+transformation matrix tmat.  Works for T in SE(2) or SE(3)
+if tmat is 3x3 then return is 2x2, or
+if tmat is 4x4 then return is 3x3.</p>
+<p>Validity of rotational part is not checked</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.tr2angvec">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">tr2angvec</code><span class="sig-paren">(</span><em>tr</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.tr2angvec" title="Permalink to this definition">¶</a></dt>
+<dd><p>TR2ANGVEC Convert rotation matrix to angle-vector form
+:param tr: Rotation matrix
+:param unit: ‘rad’ or ‘deg’
+:return: Angle-vector form
+TR2ANGVEC(R, OPTIONS) is rotation expressed in terms of an angle THETA (1x1) about the axis V (1x3) equivalent to the orthonormal rotation matrix R (3x3).
+TR2ANGVEC(T, OPTIONS) as above but uses the rotational part of the homogeneous transform T (4x4).
+If R (3x3xK) or T (4x4xK) represent a sequence then THETA (Kx1)is a vector of angles for corresponding elements of the sequence and V (Kx3) are the corresponding axes, one per row.
+Options::
+‘deg’   Return angle in degrees
+Notes::
+- For an identity rotation matrix both THETA and V are set to zero.
+- The rotation angle is always in the interval [0 pi], negative rotation is handled by inverting the direction of the rotation axis.
+- If no output arguments are specified the result is displayed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.tr2eul">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">tr2eul</code><span class="sig-paren">(</span><em>tr</em>, <em>unit='rad'</em>, <em>flip=False</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.tr2eul" title="Permalink to this definition">¶</a></dt>
+<dd><p>TR2EUL Convert homogeneous transform to Euler angles
+:param tr: Homogeneous transformation
+:param unit: ‘rad’ or ‘deg’
+:param flip: True or False
+:return: Euler angles
+TR2EUL(T, OPTIONS) are the ZYZ Euler angles (1x3) corresponding to the rotational part of a homogeneous transform T (4x4). The 3 angles EUL=[PHI,THETA,PSI] correspond to sequential rotations about the Z, Y and Z axes respectively.
+TR2EUL(R, OPTIONS) as above but the input is an orthonormal rotation matrix R (3x3).
+If R (3x3xK) or T (4x4xK) represent a sequence then each row of EUL corresponds to a step of the sequence.
+Options::
+‘deg’   Compute angles in degrees (radians default)
+‘flip’  Choose first Euler angle to be in quadrant 2 or 3.
+Notes::
+- There is a singularity for the case where THETA=0 in which case PHI is arbitrarily set to zero and PSI is the sum (PHI+PSI).
+- Translation component is ignored.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.tr2rpy">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">tr2rpy</code><span class="sig-paren">(</span><em>tr</em>, <em>unit='rad'</em>, <em>order='zyx'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.tr2rpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>TR2RPY Convert a homogeneous transform to roll-pitch-yaw angles
+:param tr: Homogeneous transformation
+:param unit: ‘rad’ or ‘deg’
+:param order: ‘xyz’, ‘zyx’ or ‘yxz’
+:return: Roll-pitch-yaw angle
+TR2RPY(T, options) are the roll-pitch-yaw angles (1x3) corresponding to the rotation part of a homogeneous transform T. The 3 angles RPY=[R,P,Y] correspond to sequential rotations about the Z, Y and X axes respectively.
+TR2RPY(R, options) as above but the input is an orthonormal rotation matrix R (3x3).
+If R (3x3xK) or T (4x4xK) represent a sequence then each row of RPY corresponds to a step of the sequence.
+Options::
+‘deg’   Compute angles in degrees (radians default)
+‘xyz’   Return solution for sequential rotations about X, Y, Z axes
+‘yxz’   Return solution for sequential rotations about Y, X, Z axes
+Notes::
+- There is a singularity for the case where P=pi/2 in which case R is arbitrarily set to zero and Y is the sum (R+Y).
+- Translation component is ignored.
+- Toolbox rel 8-9 has the reverse default angle sequence as default</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.tr2rt">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">tr2rt</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.tr2rt" title="Permalink to this definition">¶</a></dt>
+<dd><p>TR2RT Convert homogeneous transform to rotation and translation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>t</strong> – homogeneous transform matrix</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Rotation and translation of the homogeneous transform</td>
+</tr>
+</tbody>
+</table>
+<p>TR2RT(TR) splits a homogeneous transformation matrix (NxN) into an orthonormal
+rotation matrix R (MxM) and a translation vector T (Mx1), where N=M+1.</p>
+<p>Works for TR in SE(2) or SE(3)
+- If TR is 4x4, then R is 3x3 and T is 3x1.
+- If TR is 3x3, then R is 2x2 and T is 2x1.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.transl">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">transl</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em>, <em>z=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.transl" title="Permalink to this definition">¶</a></dt>
+<dd><p>TRANSL Create or unpack an SE(3) translational homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> – translation along x axes, homogeneous transform or a list of translations</li>
+<li><strong>y</strong> – translation along y axes</li>
+<li><strong>z</strong> – translation along z axes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform with pure translation</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Create a translational SE(3) matrix:</p>
+<p>T = TRANSL(X, Y, Z) is an SE(3) homogeneous transform (4x4) representing a
+pure translation of X, Y and Z.</p>
+<p>T = TRANSL(P) is an SE(3) homogeneous transform (4x4) representing a
+translation of P=[X,Y,Z]. If P (Mx3) it represents a sequence and T (4x4xM)
+is a sequence of homogeneous transforms such that T(:,:,i) corresponds to
+the i’th row of P.</p>
+<p>Extract the translational part of an SE(3) matrix:</p>
+<p>P = TRANSL(T) is the translational part of a homogeneous transform T as a
+3-element column vector.  If T (4x4xM) is a homogeneous transform sequence
+the rows of P (Mx3) are the translational component of the corresponding
+transform in the sequence.</p>
+<p>[X,Y,Z] = TRANSL(T) is the translational part of a homogeneous transform
+T as three components.  If T (4x4xM) is a homogeneous transform sequence
+then X,Y,Z (1xM) are the translational components of the corresponding
+transform in the sequence.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.transl2">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">transl2</code><span class="sig-paren">(</span><em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.transl2" title="Permalink to this definition">¶</a></dt>
+<dd><p>TRANSL2 Create or unpack an SE(2) translational homogeneous transform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> – x translation, homogeneous transform or a list of translations</li>
+<li><strong>y</strong> – y translation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform matrix or the translation elements of a</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>homogeneous transform</p>
+<p>Create a translational SE(2) matrix:</p>
+<p>T = TRANSL2(X, Y) is an SE(2) homogeneous transform (3x3) representing a
+pure translation.</p>
+<p>T = TRANSL2(P) is a homogeneous transform representing a translation or
+point P=[X,Y]. If P (Mx2) it represents a sequence and T (3x3xM) is a
+sequence of homogeneous transforms such that T(:,:,i) corresponds to the
+i’th row of P.</p>
+<p>Extract the translational part of an SE(2) matrix:</p>
+<p>P = TRANSL2(T) is the translational part of a homogeneous transform as a
+2-element column vector.  If T (3x3xM) is a homogeneous transform
+sequence the rows of P (Mx2) are the translational component of the
+corresponding transform in the sequence.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trexp">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trexp</code><span class="sig-paren">(</span><em>S</em>, <em>theta=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trexp" title="Permalink to this definition">¶</a></dt>
+<dd><p>TREXP matrix exponential for so(3) and se(3)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>S</strong> – SO(3), SE(3), unit vector or twist vector</li>
+<li><strong>theta</strong> – Rotation in radians</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">matrix exponential</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For so(3):</p>
+<p>TREXP(OMEGA) is the matrix exponential (3x3) of the so(3) element OMEGA that
+yields a rotation matrix (3x3).</p>
+<p>TREXP(OMEGA, THETA) as above, but so(3) motion of THETA*OMEGA.</p>
+<p>TREXP(S, THETA) as above, but rotation of THETA about the unit vector S.</p>
+<p>TREXP(W) as above, but the so(3) value is expressed as a vector W (1x3) where
+W = S * THETA. Rotation by ||W|| about the vector W.</p>
+<p>For se(3):</p>
+<p>TREXP(SIGMA) is the matrix exponential (4x4) of the se(3) element SIGMA that
+yields a homogeneous transformation  matrix (4x4).</p>
+<p>TREXP(TW) as above, but the se(3) value is expressed as a twist vector TW (1x6).</p>
+<p>TREXP(SIGMA, THETA) as above, but se(3) motion of SIGMA*THETA, the rotation
+part of SIGMA (4x4) must be unit norm.</p>
+<p>TREXP(TW, THETA) as above, but se(3) motion of TW*THETA, the rotation part
+of TW (1x6) must be unit norm.</p>
+<p>Notes::
+- Efficient closed-form solution of the matrix exponential for arguments
+that are so(3) or se(3).
+- If theta is given then the first argument must be a unit vector or a
+skew-symmetric matrix from a unit vector.
+- Angle vector argument order is different to ANGVEC2R.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trexp2">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trexp2</code><span class="sig-paren">(</span><em>S</em>, <em>theta=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trexp2" title="Permalink to this definition">¶</a></dt>
+<dd><p>TREXP2 matrix exponential for so(2) and se(2)</p>
+<p>:param S:S: SO(2), SE(2) or unit vector
+:param theta:
+:return: matrix exponential</p>
+<p>R = TREXP2(OMEGA) is the matrix exponential (2x2) of the so(2) element OMEGA that
+yields a rotation matrix (2x2).</p>
+<p>R = TREXP2(THETA) as above, but rotation by THETA (1x1).</p>
+<p>SE(2):</p>
+<p>T = TREXP2(SIGMA) is the matrix exponential (3x3) of the se(2) element
+SIGMA that yields a homogeneous transformation  matrix (3x3).</p>
+<p>T = TREXP2(TW) as above, but the se(2) value is expressed as a vector TW
+(1x3).</p>
+<p>T = TREXP2(SIGMA, THETA) as above, but se(2) rotation of SIGMA*THETA, the
+rotation part of SIGMA (3x3) must be unit norm.</p>
+<p>T = TREXP(TW, THETA) as above, but se(2) rotation of TW*THETA, the
+rotation part of TW must be unit norm.</p>
+<p>Notes::
+- Efficient closed-form solution of the matrix exponential for arguments that are</p>
+<blockquote>
+<div>so(2) or se(2).</div></blockquote>
+<ul class="simple">
+<li>If theta is given then the first argument must be a unit vector or a
+skew-symmetric matrix from a unit vector.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trlog">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trlog</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trlog" title="Permalink to this definition">¶</a></dt>
+<dd><p>TRLOG logarithm of SO(3) or SE(3) matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>T</strong> – SO(3) or SE(3) Matrix</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">[rotation, vector]</td>
+</tr>
+</tbody>
+</table>
+<p>[theta,w] = trlog(R) as above but returns directly theta the rotation angle and w
+(3x1) the unit-vector indicating the rotation axis.</p>
+<p>[theta,twist] = trlog(T) as above but returns directly theta the rotation angle
+and a twist vector (6x1) comprising [v w].</p>
+<p>Notes::
+- Efficient closed-form solution of the matrix logarithm for arguments that are
+SO(3) or SE(3).
+- Special cases of rotation by odd multiples of pi are handled.
+- Angle is always in the interval [0,pi].</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trot2">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trot2</code><span class="sig-paren">(</span><em>theta</em>, <em>unit='rad'</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trot2" title="Permalink to this definition">¶</a></dt>
+<dd><p>TROT2 SE2 rotation matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians or degrees</li>
+<li><strong>unit</strong> – “rad” or “deg” to indicate unit being used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform matrix (3x3)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>TROT2(THETA) is a homogeneous transformation (3x3) representing a rotation of
+THETA radians.
+TROT2(THETA, ‘deg’) as above but THETA is in degrees.
+Notes::
+- Translational component is zero.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trotx">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trotx</code><span class="sig-paren">(</span><em>theta, unit='rad', xyz=[0, 0, 0]</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trotx" title="Permalink to this definition">¶</a></dt>
+<dd><p>TROTX Rotation about X axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians or degrees</li>
+<li><strong>unit</strong> – “rad” or “deg” to indicate unit being used</li>
+<li><strong>xyz</strong> – the xyz translation, if blank defaults to [0,0,0]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>trotx(THETA) is a homogeneous transformation (4x4) representing a rotation
+of THETA radians about the x-axis.
+trotx(THETA, ‘deg’) as above but THETA is in degrees
+trotx(THETA, ‘rad’, [x,y,z]) as above with translation of [x,y,z]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.troty">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">troty</code><span class="sig-paren">(</span><em>theta, unit='rad', xyz=[0, 0, 0]</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.troty" title="Permalink to this definition">¶</a></dt>
+<dd><p>TROTY Rotation about Y axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians or degrees</li>
+<li><strong>unit</strong> – “rad” or “deg” to indicate unit being used</li>
+<li><strong>xyz</strong> – the xyz translation, if blank defaults to [0,0,0]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>troty(THETA) is a homogeneous transformation (4x4) representing a rotation
+of THETA radians about the y-axis.
+troty(THETA, ‘deg’) as above but THETA is in degrees
+troty(THETA, ‘rad’, [x,y,z]) as above with translation of [x,y,z]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.trotz">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">trotz</code><span class="sig-paren">(</span><em>theta, unit='rad', xyz=[0, 0, 0]</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.trotz" title="Permalink to this definition">¶</a></dt>
+<dd><p>TROTZ Rotation about Z axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>theta</strong> – rotation in radians or degrees</li>
+<li><strong>unit</strong> – “rad” or “deg” to indicate unit being used</li>
+<li><strong>xyz</strong> – the xyz translation, if blank defaults to [0,0,0]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">homogeneous transform matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>trotz(THETA) is a homogeneous transformation (4x4) representing a rotation
+of THETA radians about the z-axis.
+trotz(THETA, ‘deg’) as above but THETA is in degrees
+trotz(THETA, ‘rad’, [x,y,z]) as above with translation of [x,y,z]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.unitize">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">unitize</code><span class="sig-paren">(</span><em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.unitize" title="Permalink to this definition">¶</a></dt>
+<dd><p>UNIT Unitize a vector</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>v</strong> – given unit vector</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a unit-vector parallel to V.</td>
+</tr>
+</tbody>
+</table>
+<p>Reports error for the case where V is non-symbolic and norm(V) is zero</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="components.robot.common.transforms.vex">
+<code class="descclassname">components.robot.common.transforms.</code><code class="descname">vex</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#components.robot.common.transforms.vex" title="Permalink to this definition">¶</a></dt>
+<dd><p>VEX Convert skew-symmetric matrix to vector</p>
+<p>:param s:skew-symmetric matrix
+:return: vector</p>
+<p>VEX(S) is the vector which has the corresponding skew-symmetric matrix S.
+In the case that S (2x2) then V is 1x1</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>S = | 0  -v |</dt>
+<dd><div class="first last line-block">
+<div class="line">v   0 |</div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>In the case that S (3x3) then V is 3x1.</dt>
+<dd><blockquote class="first">
+<div><div class="line-block">
+<div class="line">0  -vz   vy |</div>
+</div>
+</div></blockquote>
+<dl class="last docutils">
+<dt>S = | vz    0  -vx |</dt>
+<dd><a href="#id5"><span class="problematic" id="id6">|</span></a>-vy   vx    0 |</dd>
+</dl>
+</dd>
+</dl>
+<p>Notes::
+- This is the inverse of the function SKEW().
+- Only rudimentary checking (zero diagonal) is done to ensure that the matrix
+is actually skew-symmetric.
+- The function takes the mean of the two elements that correspond to each unique
+element of the matrix.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-components.robot.common.util">
+<span id="components-robot-common-util-module"></span><h2>components.robot.common.util module<a class="headerlink" href="#module-components.robot.common.util" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-components.robot.common">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-components.robot.common" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Caleb Wagner
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

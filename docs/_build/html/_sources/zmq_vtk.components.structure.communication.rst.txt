@@ -1,0 +1,54 @@
+zmq\_vtk.components.structure.communication package
+===================================================
+
+Submodules
+----------
+
+zmq\_vtk.components.structure.communication.communicate\_with\_robots module
+----------------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.communication.communicate_with_robots
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.communication.communicate\_with\_simulator module
+-------------------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.communication.communicate_with_simulator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.communication.heartbeater module
+--------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.communication.heartbeater
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.communication.messages module
+-----------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.communication.messages
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.communication.old\_heartbeater module
+-------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.communication.old_heartbeater
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.components.structure.communication
+    :members:
+    :undoc-members:
+    :show-inheritance:

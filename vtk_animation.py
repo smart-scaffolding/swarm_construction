@@ -236,7 +236,7 @@ def axesUniversal():
 
 
 if __name__ == '__main__':
-    port = "5556"
+    port = "5559"
     if len(sys.argv) > 1:
         port = sys.argv[1]
         int(port)

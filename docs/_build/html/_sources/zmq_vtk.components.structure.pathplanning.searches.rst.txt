@@ -1,0 +1,38 @@
+zmq\_vtk.components.structure.pathplanning.searches package
+===========================================================
+
+Submodules
+----------
+
+zmq\_vtk.components.structure.pathplanning.searches.a\_star module
+------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning.searches.a_star
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.pathplanning.searches.face\_star module
+---------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning.searches.face_star
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+zmq\_vtk.components.structure.pathplanning.searches.wavefront module
+--------------------------------------------------------------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning.searches.wavefront
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.components.structure.pathplanning.searches
+    :members:
+    :undoc-members:
+    :show-inheritance:

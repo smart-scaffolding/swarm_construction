@@ -1,0 +1,10 @@
+zmq\_vtk.global package
+=======================
+
+Module contents
+---------------
+
+.. automodule:: zmq_vtk.global
+    :members:
+    :undoc-members:
+    :show-inheritance:
