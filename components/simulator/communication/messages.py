@@ -57,7 +57,7 @@ class BlockLocationMessage:
 
 
 class AnimationUpdateMessage(Message):
-    def __init__(self, robot_base, direction=None, trajectory=None, path=None, placedObstacle=False,
+    def __init__(self, robot_base, trajectory, direction=None, path=None, placedObstacle=False,
                  obstacle=None):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base

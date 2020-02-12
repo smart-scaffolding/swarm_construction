@@ -14,6 +14,7 @@ from components.simulator.model.create_actors import *
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
 from components.robot.communication.messages import BlockLocationMessage
+from components.simulator.communication.messages import AnimationUpdateMessage
 import zlib
 import pickle
 
@@ -30,8 +31,8 @@ ROBOTS = 1
 #     ])
 
 BLUEPRINT = np.array([
-                             [[1] * 1] * 9,
-                         ] * 9)
+                             [[1] * 1] * 15,
+                         ] * 15)
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
 
@@ -67,7 +68,7 @@ class WorkerThread(threading.Thread):
                 if "BLOCK" in str(topic.decode()):
                     print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
-                elif "ROBOT" in str(topic.decode()):
+                if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
                         print("[Worker thread]: Received new robot connection, adding to queue")
                         self.robot_actors[topic] = Queue()
@@ -78,6 +79,7 @@ class WorkerThread(threading.Thread):
                         # self.result_q.put((topic, messagedata))
                     else:
                         print(f"[Worker thread] Putting message to be sent to calculator thread")
+                        print(messagedata.message)
                         self.robot_actors[topic].put((topic, messagedata))
                         # self.result_q.put((topic, messagedata))
                 else:
@@ -108,63 +110,70 @@ class CalculatorThread(WorkerThread):
                 DISPLAY ROBOTS
                 """
                 if not POINTS:
-                    base = np.matrix([[1, 0, 0, 0.5],
-                                     [0, 1, 0, 0.5],
-                                     [0, 0, 1, 1.],
-                                     [0, 0, 0, 1]])
-                    base1 = np.matrix([[1, 0, 0, 1.5],
-                                      [0, 1, 0, 0.5],
-                                      [0, 0, 1, 1.],
-                                      [0, 0, 0, 1]])
-                    base2 = np.matrix([[1, 0, 0, 1.5],
-                                      [0, 1, 0, 1.5],
-                                      [0, 0, 1, 1.],
-                                      [0, 0, 0, 1]])
-                    base3 = np.matrix([[1, 0, 0, 4.5],
-                                      [0, 1, 0, 0.5],
-                                      [0, 0, 1, 1.],
-                                      [0, 0, 0, 1]])
-                    base4 = np.matrix([[1, 0, 0, 4.5],
-                                      [0, 1, 0, 1.5],
-                                      [0, 0, 1, 3.],
-                                      [0, 0, 0, 1]])
-                    base5 = np.matrix([[1, 0, 0, 5.5],
-                                      [0, 1, 0, 0.5],
-                                      [0, 0, 1, 1.],
-                                      [0, 0, 0, 1]])
-                    if actor == b"ROBOT_1":
-                        base = base
-                    elif actor == b"ROBOT_2":
-                        base = base5
-                    else:
-                        base = base4
+
+                    # if isinstance(message.message, AnimationUpdateMessage): #TODO: Add this line back in
+                    base = message.message.robot_base
+                    trajectory = message.message.trajectory
+
+
+                # base = np.matrix([[1, 0, 0, 0.5],
+                #                  [0, 1, 0, 0.5],
+                #                  [0, 0, 1, 1.],
+                #                  [0, 0, 0, 1]])
+                # base1 = np.matrix([[1, 0, 0, 1.5],
+                #                   [0, 1, 0, 0.5],
+                #                   [0, 0, 1, 1.],
+                #                   [0, 0, 0, 1]])
+                # base2 = np.matrix([[1, 0, 0, 1.5],
+                #                   [0, 1, 0, 1.5],
+                #                   [0, 0, 1, 1.],
+                #                   [0, 0, 0, 1]])
+                # base3 = np.matrix([[1, 0, 0, 4.5],
+                #                   [0, 1, 0, 0.5],
+                #                   [0, 0, 1, 1.],
+                #                   [0, 0, 0, 1]])
+                # base4 = np.matrix([[1, 0, 0, 4.5],
+                #                   [0, 1, 0, 1.5],
+                #                   [0, 0, 1, 3.],
+                #                   [0, 0, 0, 1]])
+                # base5 = np.matrix([[1, 0, 0, 5.5],
+                #                   [0, 1, 0, 0.5],
+                #                   [0, 0, 1, 1.],
+                #                   [0, 0, 0, 1]])
+                #     if actor == b"ROBOT_1":
+                #         base = base
+                #     elif actor == b"ROBOT_2":
+                #         base = base5
+                #     else:
+                #         base = base4
                     # base = choice([base, base4])
-                    trajectory1 = np.array([[0, 0, 0, 0]])
-                    trajectory2 = np.array([[0, 0, np.pi/2, 0]])
-                    trajectory3 = np.array([[0, 0, 0, np.pi/2]])
-                    trajectory4 = np.array([[0, 0, np.pi/2, np.pi/2]])
-                    trajectory5 = np.array([[0, np.pi/2, 0, 0]])
+                    # trajectory1 = np.array([[0, 0, 0, 0]])
+                    # trajectory2 = np.array([[0, 0, np.pi/2, 0]])
+                    # trajectory3 = np.array([[0, 0, 0, np.pi/2]])
+                    # trajectory4 = np.array([[0, 0, np.pi/2, np.pi/2]])
+                    # trajectory5 = np.array([[0, np.pi/2, 0, 0]])
+                    # trajectory_choice = np.array([[-180.0, 62.18857719797052, 124.377154395941,
+                    #                                27.811422802029494]])*np.pi/180
 
-
-
-                    num_points = 60
-                    trajectory_choice = choice([trajectory1, trajectory2, trajectory3, trajectory4, trajectory5])
+                    # robot.
+                    # num_points = 60
+                    # # trajectory_choice = choice([trajectory1, trajectory2, trajectory3, trajectory4, trajectory5])
                     robot = Inchworm(base=base)
-
-                    forward_1 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][0]), trajectory_choice[0][0],
-                                                                     num_points)))
-                    forward_2 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][1]), trajectory_choice[0][1],
-                                                                     num_points)))
-                    forward_3 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][2]), trajectory_choice[0][2],
-                                                                     num_points)))
-                    forward_4 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][3]), trajectory_choice[0][3],
-                                                                     num_points)))
-
-                    multiple_trajectories = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=1)
-
-                    for trajectory in multiple_trajectories:
-                        transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True)
-                        self.result_q.put((actor, robot_actors))
+                    #
+                    # forward_1 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][0]), trajectory_choice[0][0],
+                    #                                                  num_points)))
+                    # forward_2 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][1]), trajectory_choice[0][1],
+                    #                                                  num_points)))
+                    # forward_3 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][2]), trajectory_choice[0][2],
+                    #                                                  num_points)))
+                    # forward_4 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][3]), trajectory_choice[0][3],
+                    #                                                  num_points)))
+                    #
+                    # multiple_trajectories = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=1)
+                    #
+                    # for trajectory in multiple_trajectories:
+                    transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True)
+                    self.result_q.put((actor, robot_actors))
 
 
                 """
@@ -238,7 +247,7 @@ class vtkTimerCallback():
 
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
-        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=True)
+        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS)
         for link in robot_actor:
             self.pipeline.add_actor(link)
 
@@ -277,7 +286,7 @@ class vtkTimerCallback():
         # string = self.socket.recv()
         # topic, messagedata = string.split()
         # print(topic, messagedata)
-        if self.timer_count % 10 == 0:
+        if self.timer_count % 100 == 0:
            print(self.timer_count)
         self.timer_count += 1
         while not self.new_actors.empty():
@@ -303,6 +312,7 @@ class vtkTimerCallback():
                    ROBOT
                    """
                    if not POINTS:
+                       print("Updating robot with new transforms")
                        actors[index].SetUserMatrix(transforms[index])
                        actors[index].SetScale(0.013)
 
@@ -464,7 +474,7 @@ class Simulate:
         # Create the "thread pool"
 
         self.pipeline.iren.AddObserver('TimerEvent', cb.execute)
-
+        timerId = self.pipeline.iren.CreateRepeatingTimer(10)
         start = time.time()
         print(start)
 

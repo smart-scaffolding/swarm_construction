@@ -1,21 +1,37 @@
 from components.structure.pathplanning.path_planner import PathPlannerImp
-from components.structure.behaviors.building.merge_paths import Node
+# from components.structure.behaviors.building.merge_paths import Node
+# from components.structure.behaviors.divide_structure import Division
 from queue import PriorityQueue, Empty
 import time
 
 
 class Wavefront(PathPlannerImp):
-    def __init__(self, blueprint, furthest_division, feeding_location, print=False):
+    def __init__(self, blueprint, furthest_division, feeding_location, divisions=None, print=False):
         self.blueprint = blueprint
         self.layer = self.convert_blueprint_to_layer(blueprint)
         self.feeding_location = feeding_location
         self.furthest_division = furthest_division
         self.initialize_wavefront(goal=self.feeding_location, start=self.furthest_division)
         self.print = print
-
+        if divisions:
+            self.map_wavefront_values_to_divisions(divisions)
         if print:
             self.layer.print_grid(grid=convert_layer_to_grid(self.blueprint, self.layer, self.feeding_location,
                                                              self.furthest_division))
+
+    def map_wavefront_values_to_divisions(self, divisions):
+        for position in self.layer.positions:
+            try:
+                divisions[position].order = self.layer.positions[position]
+                # print(position)
+                # print(self.layer.positions[position])
+                # print(divisions[position].order)
+
+            except KeyError:
+                print(f"Unable to find key: {position} in divisions")
+                continue
+        # print(divisions)
+        return divisions
 
     def convert_blueprint_to_layer(self, blueprint):
         positions = {}
@@ -142,8 +158,11 @@ class Layer(object):
 
         current = self.positions[start]
 
+        if goal == start:
+            return []
         while not finished:
             x, y = self.pos
+
             # self.positions[self.pos] = 'R'
             moves = [(x + 1, y), (x - 1, y), (x, y - 1), (x, y + 1)]
             move_directions = ["BACK", "FRONT", "RIGHT", "LEFT"]
@@ -208,11 +227,11 @@ def convert_layer_to_grid(grid, layer, start, goal):
     return grid
 
 
-class Division:
-    def __init__(self, division_id, position):
-        self.division_id = division_id
-        self.path = None
-        self.position = position
+# class Division:
+#     def __init__(self, division_id, position):
+#         self.division_id = division_id
+#         self.path = None
+#         self.position = position
 
 
 if __name__ == '__main__':
@@ -235,106 +254,106 @@ if __name__ == '__main__':
 
     feeding_location = (0, 0)
 
-    divisions = {
-        (0, 0): Node(wavefront_order=1, id=1, pos=(1.5, 1.5)),
-        (0, 1): Node(wavefront_order=2, id=2, pos=(4.5, 1.5)),
-        (0, 2): Node(wavefront_order=3, id=3, pos=(7.5, 1.5)),
-        (1, 0): Node(wavefront_order=2, id=4, pos=(1.5, 4.5)),
-        (1, 1): Node(wavefront_order=3, id=5, pos=(4.5, 4.5)),
-        (1, 2): Node(wavefront_order=4, id=6, pos=(7.5, 4.5)),
-        (2, 0): Node(wavefront_order=3, id=7, pos=(1.5, 7.5)),
-        (2, 1): Node(wavefront_order=4, id=8, pos=(4.5, 7.5)),
-        (2, 2): Node(wavefront_order=5, id=9, pos=(7.5, 7.5)),
-    }
-
-    wf = Wavefront(blueprint=blueprint, feeding_location=feeding_location, furthest_division=(len(blueprint),
-                                                                                              len(blueprint[0])),
-                   print=False)
-
-    for division in divisions:
-
-        node = divisions[division]
-        path = wf.get_path(start=feeding_location, goal=division)
-        path.append((division, None))
-        print(f"Got path to division {node.id}: {division} -> {path}")
-
-
-
-
-        modified_path = []
-        next_point = None
-        for i in range(len(path)):
-            pos, direction = path[i]
-
-            next_point = None
-            if i < len(path)-1:
-                next_point_location, _ = path[i+1]
-                next_point = divisions[next_point_location].id
-
-
-            wavefront_order = divisions[pos].order
-            node_id = divisions[pos].id
-
-            actual_pos = divisions[pos].pos
-
-            new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point, direction=direction)
-
-            previous_point = node_id
-
-            modified_path.append(new_node)
-
-        old_node = divisions[division]
-        old_node.path_to_node = modified_path
-        divisions[pos] = old_node
-        print(f"Modified path: {modified_path}")
-
-    print("\n\n\n")
-    values = list(divisions.values())
-    values.sort(key=lambda x: x.order)
-    print(f"Values: {values}")
-
-    values.pop(0) # TODO: Need to add back in first one (feeding location)
-
-
-    item1 = 0
-    item2 = 1
-
-    path1 = values[item1].path_to_node
-    path2 = values[item2].path_to_node
-
-    all_nodes = {}
-
-    # for point in path
-    merged_path = path1
-    q = PriorityQueue()
-
-    # MERGE = False
-    for node in path2:
-        if node in path1:
-            # MERGE = True
-
-            index_in_path = path1.index(node)
-            node_in_path = path1[index_in_path]
-
-            node_in_path.direction = node_in_path.direction.union(node.direction)
-            node_in_path.children = node_in_path.children.union(node.children)
-            node_in_path.num_blocks += node.num_blocks
-
-        else:
-            all_nodes[node.id] = (node, None)
-            q.put(node)
-
-    goals = [values[item1], values[item2]]
-
-    goals.sort(key=lambda x: x.order)
-    goal_ids = [values[item1].id, values[item2].id]
-
-    for node in path1:
-        all_nodes[node.id] = (node, None)
-        q.put(node)
-
-    currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve order
-    # print(all_nodes)
+    # divisions = {
+    #     (0, 0): Division(division_id=1, position=(1.5, 1.5)),
+    #     (0, 1): Node(wavefront_order=2, id=2, pos=(4.5, 1.5)),
+    #     (0, 2): Node(wavefront_order=3, id=3, pos=(7.5, 1.5)),
+    #     (1, 0): Node(wavefront_order=2, id=4, pos=(1.5, 4.5)),
+    #     (1, 1): Node(wavefront_order=3, id=5, pos=(4.5, 4.5)),
+    #     (1, 2): Node(wavefront_order=4, id=6, pos=(7.5, 4.5)),
+    #     (2, 0): Node(wavefront_order=3, id=7, pos=(1.5, 7.5)),
+    #     (2, 1): Node(wavefront_order=4, id=8, pos=(4.5, 7.5)),
+    #     (2, 2): Node(wavefront_order=5, id=9, pos=(7.5, 7.5)),
+    # }
+    #
+    # wf = Wavefront(blueprint=blueprint, feeding_location=feeding_location, furthest_division=(len(blueprint),
+    #                                                                                           len(blueprint[0])),
+    #                print=False)
+    #
+    # for division in divisions:
+    #
+    #     node = divisions[division]
+    #     path = wf.get_path(start=feeding_location, goal=division)
+    #     path.append((division, None))
+    #     print(f"Got path to division {node.id}: {division} -> {path}")
+    #
+    #
+    #
+    #
+    #     modified_path = []
+    #     next_point = None
+    #     for i in range(len(path)):
+    #         pos, direction = path[i]
+    #
+    #         next_point = None
+    #         if i < len(path)-1:
+    #             next_point_location, _ = path[i+1]
+    #             next_point = divisions[next_point_location].id
+    #
+    #
+    #         wavefront_order = divisions[pos].order
+    #         node_id = divisions[pos].id
+    #
+    #         actual_pos = divisions[pos].pos
+    #
+    #         new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point, direction=direction)
+    #
+    #         previous_point = node_id
+    #
+    #         modified_path.append(new_node)
+    #
+    #     old_node = divisions[division]
+    #     old_node.path_to_node = modified_path
+    #     divisions[pos] = old_node
+    #     print(f"Modified path: {modified_path}")
+    #
+    # print("\n\n\n")
+    # values = list(divisions.values())
+    # values.sort(key=lambda x: x.order)
+    # print(f"Values: {values}")
+    #
+    # values.pop(0) # TODO: Need to add back in first one (feeding location)
+    #
+    #
+    # item1 = 0
+    # item2 = 1
+    #
+    # path1 = values[item1].path_to_node
+    # path2 = values[item2].path_to_node
+    #
+    # all_nodes = {}
+    #
+    # # for point in path
+    # merged_path = path1
+    # q = PriorityQueue()
+    #
+    # # MERGE = False
+    # for node in path2:
+    #     if node in path1:
+    #         # MERGE = True
+    #
+    #         index_in_path = path1.index(node)
+    #         node_in_path = path1[index_in_path]
+    #
+    #         node_in_path.direction = node_in_path.direction.union(node.direction)
+    #         node_in_path.children = node_in_path.children.union(node.children)
+    #         node_in_path.num_blocks += node.num_blocks
+    #
+    #     else:
+    #         all_nodes[node.id] = (node, None)
+    #         q.put(node)
+    #
+    # goals = [values[item1], values[item2]]
+    #
+    # goals.sort(key=lambda x: x.order)
+    # goal_ids = [values[item1].id, values[item2].id]
+    #
+    # for node in path1:
+    #     all_nodes[node.id] = (node, None)
+    #     q.put(node)
+    #
+    # currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve order
+    # # print(all_nodes)
 
 
 

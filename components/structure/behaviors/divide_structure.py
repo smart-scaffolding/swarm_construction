@@ -1,102 +1,33 @@
-import numpy as np
-# from .graphics import VtkPipeline
-# from .graphics import axesCubeFloor
-# from .graphics import MakeAxesActor
-# from .graphics import setup_structure_display
-from robopy.base.graphics import *
-from robopy.base.states import DivisionStates
-import time
-import vtk
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 from itertools import cycle
 
+from components.structure.behaviors.building.common_building import Division
+from components.structure.pathplanning.searches.wavefront import Wavefront
+from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
+from math import sqrt
+
 class BuildingPlanner:
-    def __init__(self, blueprint, time_steps=3000, gif=None, num_robots=10, threshold=2):
-        self.pipeline = VtkPipeline(total_time_steps=time_steps, gif_file=gif)
-        self.param = {
-            "cube_axes_x_bounds": np.matrix([[0, len(blueprint)]]),
-            "cube_axes_y_bounds": np.matrix([[0, len(blueprint[0])]]),
-            "cube_axes_z_bounds": np.matrix([[0, len(blueprint[0][0])]]),
-            "floor_position": np.matrix([[0, 0, 0]])
-        }
+    def __init__(self, blueprint, feeding_location):
         self.blueprint = blueprint
         self.structure = None
-        cube_axes = axesCubeFloor(self.pipeline.ren,
-                                  self.param.get("cube_axes_x_bounds"),
-                                  self.param.get("cube_axes_y_bounds"),
-                                  self.param.get("cube_axes_z_bounds"),
-                                  self.param.get("floor_position"))
+        self.feeding_location = feeding_location
 
-        self.pipeline.add_actor(cube_axes)
-        self.structure_actors = None
-        self.NUM_ROBOTS = num_robots
-        self.THRESHOLD = threshold
-
-    def execute(self, obj, event):
-
-        self.pipeline.timer_tick()
-        timer = self.pipeline.timer_count
-        print(timer)
-        if len(self.structure_actors) > 0 and timer % 10 == 0:
-            for robot in range(self.NUM_ROBOTS):
-                block = self.structure_actors.pop()
-                self.pipeline.add_actor(block)
-            self.pipeline.animate()
-
-        self.pipeline.iren = obj
-        self.pipeline.iren.GetRenderWindow().Render()
-
-    def create_building_plan(self):
-        blueprint_sorted = self.structure.sort(key=lambda block: [block.position[0], block.position[1],
-                                                                  block.position[2]])
-        return blueprint_sorted
-
-    def show_structure(self):
-
-        self.structure = intialize_structure(self.blueprint)
-
-        divided_structure = self.divide_structure()
-        building_plan = []
-        for division in divided_structure:
-            building_plan.append(np.array(spiral_sort(division)).flatten())
-        self.structure_actors = setup_structure_display(np.array(building_plan), self.NUM_ROBOTS)
-        self.pipeline.iren.AddObserver('TimerEvent', self.execute)
-
-
-        # if display_path:
-        #     self.pipeline.add_actor(self._display_path())
-
-        xyzLabels = ['X', 'Y', 'Z']
-        scale = [1.0, 1.0, 1.0]
-        axes = MakeAxesActor(scale, xyzLabels)
-
-        om2 = vtk.vtkOrientationMarkerWidget()
-        om2.SetOrientationMarker(axes)
-        # Position lower right in the viewport.
-        om2.SetViewport(0.8, 0, 1.0, 0.2)
-        om2.SetInteractor(self.pipeline.iren)
-        om2.EnabledOn()
-        om2.InteractiveOn()
-
-        self.pipeline.animate()
-
-    def create_divisions(self):
+    def create_divisions(self, division_size=3):
         #TODO: Change so does not need to be square
         x, y, z = self.blueprint.shape
         colors = np.array([[["DarkGreen"] * z] * y] * x)
-        if x != y or y != z:
+        if x != y:
             raise Exception("Structure must be square for the time being")
 
         vtk_colors = cycle(["DarkGreen", "Red", "Blue", "Orange", "Yellow"])
-        increment = 4
+        increment = division_size
         p_zi = 0
         p_xi = 0
         p_yi = 0
         self.divisions = []
 
-        for zi in range(increment, z+increment, increment):
+        if z == 1:
             for xi in range(increment, x+increment, increment):
                 for yi in range(increment, y+increment, increment):
                     #create division
@@ -104,10 +35,10 @@ class BuildingPlanner:
                         yi = y
                     if xi + increment > x:
                         xi = x
-                    if zi + increment > z:
-                        zi = z
-                    d = Division((p_xi, xi), (p_yi, yi), (p_zi, zi))
-                    colors[p_xi:xi, p_yi:yi, p_zi:zi] = next(vtk_colors)
+
+                    d = Division((p_xi, xi), (p_yi, yi), (0, 1),
+                                 num_blocks=np.sum(self.blueprint[p_xi:xi, p_yi:yi, 0:1]))
+                    colors[p_xi:xi, p_yi:yi, 0:1] = next(vtk_colors)
                     self.divisions.append(d)
                     # print(yi)
                     p_yi = yi
@@ -115,10 +46,121 @@ class BuildingPlanner:
                 p_xi = xi
             p_yi = 0
             p_xi = 0
-            p_zi = zi
+
+        else:
+            for zi in range(increment, z+increment, increment):
+                for xi in range(increment, x+increment, increment):
+                    for yi in range(increment, y+increment, increment):
+                        #create division
+                        if yi + increment > y:
+                            yi = y
+                        if xi + increment > x:
+                            xi = x
+                        if zi + increment > z:
+                            zi = z
+                        d = Division((p_xi, xi), (p_yi, yi), (p_zi, zi))
+                        colors[p_xi:xi, p_yi:yi, p_zi:zi] = next(vtk_colors)
+                        self.divisions.append(d)
+                        # print(yi)
+                        p_yi = yi
+                    p_yi = 0
+                    p_xi = xi
+                p_yi = 0
+                p_xi = 0
+                p_zi = zi
+
+        self._reshape_divisions_helper()
+        self._assign_children_helper()
+        return self.divisions, self.structure
+
+    def _reshape_divisions_helper(self):
+        a, b = int(len(self.divisions) / 2), len(self.divisions) - int(len(self.divisions) / 2)
+        reshape_value = int(sqrt(len(self.divisions)))
+        reshaped = np.asarray(self.divisions).reshape((reshape_value, reshape_value))
+        # print(reshaped.shape)
+
+        x, y = reshaped.shape
+
+        new_structure = {}
+        self.structure = np.zeros((x, y))
+        for x_val in range(x):
+            for y_val in range(y):
+                new_structure[(x_val, y_val)] = reshaped[x_val][y_val]
+                self.structure[x_val][y_val] = 1
+        # print(new_structure)
+        print(self.structure)
+        self.divisions = new_structure
+
+    def _assign_children_helper(self):
+        wf = Wavefront(blueprint=self.structure, feeding_location=(0, 0),
+                       furthest_division=(len(self.structure), len(self.structure[0])),
+                       divisions=self.divisions, print=False)
 
 
-        return self.divisions, colors
+        self.divisions[(0, 0)].order = 1 #TODO: May want to remove this
+        print(self.divisions)
+        for division in self.divisions:
+
+            # node = self.divisions[division]
+            path = wf.get_path(start=self.feeding_location, goal=division)
+            path.append((division, None))
+            # print(f"Got path to division {node.id}: {division} -> {path}")
+
+            modified_path = []
+            next_point = None
+            for i in range(len(path)):
+                pos, direction = path[i]
+
+                # print(f"Pos: {pos}, Direction")
+                next_point = None
+                if i < len(path) - 1:
+                    next_point_location, _ = path[i + 1]
+                    next_point = self.divisions[next_point_location].id
+
+                old_node = self.divisions[pos]
+                # wavefront_order = old_node.order
+                node_id = old_node.id
+
+                x_range = old_node.x_range
+                y_range = old_node.y_range
+                z_range = old_node.z_range
+                # actual_pos = old_node.pos
+                # centroid = old_node.centroid
+                num_blocks = old_node.num_blocks
+                order = old_node.order
+
+                # new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point,
+                #                 direction=direction)
+
+                new_node = Division(x_range=x_range, y_range=y_range, z_range=z_range, id=node_id)
+
+                # new_node = self.divisions[pos]
+                new_node.num_blocks = num_blocks
+                new_node.children.add(next_point)
+                try:
+                    if len(new_node.children) > 1 and None in new_node.children:
+                        new_node.children.remove(None)
+                except KeyError:
+                    continue
+
+                new_node.order = order
+                new_node.direction.add(direction)
+
+                try:
+                    if len(new_node.direction) > 1 and None in new_node.direction:
+                        new_node.direction.remove(None)
+                except KeyError:
+                    continue
+
+                previous_point = node_id
+
+                modified_path.append(new_node)
+
+            original_node = self.divisions[division]
+            original_node.path_to_node = modified_path
+            self.divisions[pos] = original_node
+
+        # print(self.divisions)
 
     def get_cmap(self, n, name='hsv'):
         '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct
@@ -163,199 +205,7 @@ class BuildingPlanner:
             return plt, ax
         plt.show()
 
-    def divide_structure(self):
 
-
-        x, y, z = self.structure.shape
-
-        select_colors = ['r', 'g', 'k', 'b']
-
-        if z > y and z > x:
-            maxDirection = "Z"
-        elif y > x and y > z:
-            maxDirection = "Y"
-        else:
-            maxDirection = "X"
-
-        increment = int(max(x, y, z) / self.NUM_ROBOTS)
-        print(f"Increment: {increment}")
-        if increment <= self.THRESHOLD:
-            raise Exception("Too many robots, please try lowering the number of robots")
-
-        divided_structure = []
-        start = 0
-        end = increment
-        scale = 1
-        for robot in range(self.NUM_ROBOTS):
-            if robot == self.NUM_ROBOTS - 1:
-                end = None
-            print(start, end, scale)
-            if maxDirection == "X":
-                divided_structure.append(self.structure[start:end, :, :])
-            if maxDirection == "Y":
-                divided_structure.append(self.structure[:, start:end, :])
-            if maxDirection == "Z":
-                divided_structure.append(self.structure[:, :, start:end])
-
-            start = end
-            scale += 1
-            end = increment * scale
-
-        return np.array(divided_structure)
-
-
-def intialize_structure(blueprint):
-    print(f"Blueprint size: {len(blueprint)} -- {len(blueprint[0])} -- {len(blueprint[0][0])}")
-
-    structure = np.array([[[Block((0, 0, 0), False)]*len(blueprint[0][0])]*len(blueprint[0])]*len(blueprint))
-    print(f"\n\nRANGE: {range(len(blueprint))} \t {range(len(blueprint[0]))} \t {range(len(blueprint[0][0]))}\n\n")
-    for i in range(len(blueprint)):
-
-        for j in range(len(blueprint[0])):
-            # print(f"\t\tMIDDLE: {j}")
-            for k in range(len(blueprint[0][0])):
-                # print(f"\t\tINNERMOST: {k}")
-                pos = [i,j,k]
-                print(f"\t\tITERATION: {pos}")
-                print(f"\n\nVAL: {i} \t {j} \t {k}\n\n")
-
-                if blueprint[i][j][k]:
-                    print(f"Adding block at {pos}")
-                    structure[i, j, k] = Block(pos, True)
-                else:
-                    print(f"Nothing to add at {pos}")
-                    structure[i, j, k] = Block(pos, False)
-
-                # for i in range(len(structure)):
-                #     for j in range(len(structure[0])):
-                #         for k in range(len(structure[0][0])):
-                #             try:
-                #                 print(f"Iterating: {structure[i, j, k].position[0]}-{structure[i, j, k].position[1]}-{structure[i, j, k].position[2]}")
-                #             except:
-                #                 print(f"Iterating: {structure[i, j, k]}")
-
-    # # for block in structure:
-    # for i in range(len(structure)):
-    #     for j in range(len(structure[0])):
-    #         for k in range(len(structure[0][0])):
-    #             try:
-    #                 print(f"FINAL: {structure[i, j, k].position[0]}-{structure[i, j, k].position[1]}-{structure[i, j,k].position[2]}")
-    #             except:
-    #                 print(f"FINAL: {structure[i, j, k]}")
-
-    return structure
-
-def spiral_sort(blueprint):
-    sorted_blueprint = []
-
-    # blueprint = np.array([[[1, 2, 3], [4, 5, 6]],
-    #      [[7, 8, 9], [10, 11, 12]],
-    #      [[13, 14, 15], [16, 17, 18]]])
-
-    # print(f"Blueprint: {blueprint}")
-    print(f"Blueprint size: {len(blueprint)} -- {len(blueprint[0])} -- {len(blueprint[0][0])}")
-    rows = len(blueprint)
-    columns = len(blueprint[0])
-    for index in range(len(blueprint[0][0])):
-        layer = spiral_sort_helper(rows, columns, blueprint[:, :, index])
-        layer = layer[::-1]
-        sorted_blueprint.append(layer)
-        for block in layer:
-            print(f"Spiral sorted block at {block.position[0]}-{block.position[1]}-{block.position[2]}")
-    print(sorted_blueprint)
-    return sorted_blueprint[::-1]
-
-
-
-def spiral_sort_helper(m, n, a):
-    sorted_array = []
-    k = 0
-    l = 0
-
-    ''' k - starting row index 
-        m - ending row index 
-        l - starting column index 
-        n - ending column index 
-        i - iterator '''
-
-    while (k < m and l < n):
-
-        for i in range(l, n):
-            # print(a[k][i], end=" ")
-            sorted_array.append(a[k][i])
-
-        k += 1
-
-
-        for i in range(k, m):
-            # print(a[i][n - 1], end=" ")
-            sorted_array.append(a[i][n-1])
-
-
-        n -= 1
-
-        if (k < m):
-
-            for i in range(n - 1, (l - 1), -1):
-                # print(a[m - 1][i], end=" ")
-                sorted_array.append(a[m-1][i])
-
-            m -= 1
-
-        if (l < n):
-            for i in range(m - 1, k - 1, -1):
-                # print(a[i][l], end=" ")
-                sorted_array.append(a[i][l])
-
-            l += 1
-    return sorted_array
-
-
-class Block:
-    def __init__(self, position, hasBlock):
-        self.position = position
-        self.hasBlock = hasBlock
-
-class Division:
-    def __init__(self, x_range, y_range, z_range, status=DivisionStates.UNCLAIMED, owner=None, centroid=None):
-        self.x_range = x_range
-        self.y_range = y_range
-        self.z_range = z_range
-        self.status = status
-        self.owner = owner
-        self.centroid = self.calculate_centroid() if centroid is None else centroid
-        self.area = self.area()
-
-    def change_status(self, new_status):
-        self.status = new_status
-
-    def claim(self, owner):
-        self.owner = owner
-
-    def calculate_centroid(self):
-        x = (self.x_range[0] + self.x_range[1])/2
-        y = (self.y_range[0] + self.y_range[1]) / 2
-        z = (self.z_range[0] + self.z_range[1]) / 2
-        return (x, y, z)
-
-    def area(self):
-        x_start, x_end = self.x_range
-        y_start, y_end = self.y_range
-        z_start, z_end = self.z_range
-
-        x = x_end-x_start
-        y = y_end-y_start
-        z = z_end-z_start
-
-        return x*y*z
-
-
-    def __add__(self, other):
-        x = self.x_range + other.x_range
-        y = self.y_range + other.y_range
-        z = self.z_range + other.z_range
-
-        return Division(x, y, z, self.status, self.owner, self.centroid)
 
 if __name__ == '__main__':
     blueprint = np.array([
@@ -367,77 +217,82 @@ if __name__ == '__main__':
         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
     ])
     blueprint = np.array([
-        [[1]*9]*9,
-    ]*9)
+        [[1]*1]*15,
+    ]*15)
 
-    # blueprint = np.array([[[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 0, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 0, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1]],
-    #    [[1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 0, 1, 1, 0, 1, 1, 1],
-    #     [1, 1, 1, 1, 1, 1, 1, 1],
-    #     [0, 0, 0, 0, 0, 1, 1, 1]]])
+
     buildingPlanner = BuildingPlanner(blueprint)
-    # buildingPlanner.show_structure()
-    # spiral_sort(blueprint)
-    # buildingPlanner.structure
-    divisions = buildingPlanner.create_divisions()
-    print(len(divisions))
-    buildingPlanner.display()
+
+    divisions, _ = buildingPlanner.create_divisions(division_size=5)
+    # print(divisions)
+    # x, y, z = blueprint.shape
+    a, b = int(len(divisions) / 2), len(divisions) - int(len(divisions) / 2)
+    reshape_value = int(sqrt(len(divisions)))
+    reshaped = np.asarray(divisions).reshape((reshape_value, reshape_value))
+    # print(reshaped.shape)
+
+    x,y = reshaped.shape
+
+    new_structure = {}
+    wavefront_blueprint = np.zeros((x, y))
+    for x_val in range(x):
+        for y_val in range(y):
+            new_structure[(x_val, y_val)] = reshaped[x_val][y_val]
+            wavefront_blueprint[x_val][y_val] = 1
+    # print(new_structure)
+    print(wavefront_blueprint)
+
+    wf = Wavefront(blueprint=wavefront_blueprint, feeding_location=(0,0),
+                   furthest_division=(len(wavefront_blueprint), len(wavefront_blueprint[0])),
+                   divisions=new_structure, print=False)
+
+
+    goal = new_structure[(2, 1)].id
+
+    path = wf.get_path(start=(0, 0), goal=(2, 1))
+    path.append(((2,1), None))
+    print(path)
+
+
+    for item in new_structure:
+        print(new_structure[item])
+        node = new_structure[item]
+        node.direction = {'RIGHT'}
+
+        x_start, x_end = node.x_range
+        y_start, y_end = node.y_range
+        z_start, z_end = node.z_range
+
+        level = blueprint[x_start:x_end, y_start:y_end, z_start:z_end]
+        m, n, _ = level.shape
+        num_blocks = node.num_blocks
+        x_offset, y_offset, z_offset = node.centroid
+
+
+        _, new_block_locations = determine_ferry_regions(level, num_rows=m, num_cols=n, direction=node.direction,
+                                                         ferry_region_size=2,
+                                                         x_offset=round(x_offset)-2,
+                                                         y_offset=round(y_offset)-2,
+                                                         z_offset=round(z_offset),
+                                                         num_blocks={
+                                                             "FRONT": 0,
+                                                             "RIGHT": node.num_blocks,
+                                                             "BACK": 0,
+                                                             "LEFT": 0
+                                                         })
+
+        print(new_block_locations)
+        # while True:
+        #     pass
+
+    # blueprint = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16, 17, 18, 19, 20], [21, 22, 23,
+    #                                                                                                       24, 25]])
+    #
+    # rows = len(blueprint)
+    # columns = len(blueprint[0])
+    # layer, new_pos = spiral_sort_helper(rows, columns, blueprint[:, :])
+    # print(layer)
+    # print(new_pos)
+
+
+    # buildingPlanner.display()

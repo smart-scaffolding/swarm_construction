@@ -41,7 +41,7 @@ class ReceiveTopicThread(threading.Thread):
             message = zlib.decompress(message)
             messagedata = pickle.loads(message)
 
-            print(f"[RecievedTopicThread]: Received communication from robots -> {topic} {messagedata.message}\n")
+            # print(f"[RecievedTopicThread]: Received communication from robots -> {topic} {messagedata.message}\n")
 
             #TODO: NEED TO UNCOMMENT THIS TO CHECK IF TOPIC IN SELF.TOPICS
 

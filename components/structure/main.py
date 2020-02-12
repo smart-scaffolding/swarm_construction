@@ -7,10 +7,9 @@ from components.robot.communication.messages import StatusUpdateMessagePayload a
 from components.structure.common.common import create_point_from_homogeneous_transform
 import components.structure.config as config
 from components.simulator.model.graphics import vtk_named_colors
-from components.structure.behaviors.building.assign_robots_min_distance import Robot, assign_robots_closest_point, Block
+from components.structure.behaviors.building.assign_robots_min_distance import assign_robots_closest_point
 from queue import PriorityQueue, Empty
 from functools import total_ordering
-from components.structure.behaviors.building.merge_paths import Node
 from components.structure.pathplanning.searches.wavefront import Wavefront
 from random import sample, choice
 import time
@@ -18,15 +17,30 @@ import time
 # import asyncio
 from multiprocessing import Queue
 import numpy as np
+from math import sqrt
+from components.structure.behaviors.divide_structure import BuildingPlanner
+from components.structure.behaviors.building.common_building import spiral_sort_helper, Block, Robot
+from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
+from copy import deepcopy
 
 configuration = None
 
 
 class StructureMain:
-    def __init__(self):
+    def __init__(self, blueprint):
         self.configuration = config
         self.robot_queue = Queue()
         self.known_robots = {}
+        self.blueprint = blueprint
+        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=(0, 0))
+
+        self.goals = set()
+        self.goal_ids = set()
+        self.blocks_to_move = []
+        self.all_nodes = {}
+        self.nodes_to_visit = PriorityQueue()
+        self.currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve
+        self.currently_working = []
         try:
             # self.id = Config.ROBOT_ID.encode('UTF-8')
             # self.heartbeat_connection_in = Config.communication["heartbeat_connection_in"]
@@ -56,7 +70,7 @@ class StructureMain:
                 send_messages_socket=self.simulator_send_messages_socket,
                 send_topics=b"STRUCTURE")
 
-    def initialize_communications(self, blueprint=None, colors=None):
+    def initialize_communications(self, colors=None):
         """
 
         :return:
@@ -65,18 +79,527 @@ class StructureMain:
         start_hearbeat_detector(self.robot_queue)
         self.robot_communicator.initialize_communication_with_structure()
         if config.SIMULATE:
-            self.initialize_simulator(blueprint=blueprint, colors=colors)
+            self.initialize_simulator(colors=colors)
 
-    def initialize_simulator(self, blueprint, colors):
-        simulator_message = SimulatorStructureMessage(blueprint=blueprint, colors=colors)
+    def initialize_simulator(self, colors):
+        simulator_message = SimulatorStructureMessage(blueprint=self.blueprint, colors=colors)
         self.simulator_communicator.initialize_communication_with_simulator()
         # self.simulator_communicator.send_communication(message=simulator_message, topic=b"STRUCTURE")
+
+    def print_structure_status(self):
+        print("\n\n\n")
+        print("-"*30)
+        print("Structure Status:")
+        print(f"\nGoals: {self.goals}")
+        print(f"\nBlocks: {self.blocks_to_move}")
+        print(f"\nCurrently Working: {self.currently_working}")
+        print(f"\nCurrently Claimed: {self.currently_claimed_set}")
+
+        print("\n\n")
+
+    def merge_paths(self):
+        values = list(self.divisions.values())
+        values.sort(key=lambda x: x.order)
+
+        self.item1 += 1
+        self.item2 += 1
+
+        path1 = values[self.item1].path_to_node
+        path2 = values[self.item2].path_to_node
+
+        # for point in path
+        merged_path = path1
+
+        merge = False
+        # MERGE = False
+        for node in path2:
+            # merge = False
+            for other_node in path1:
+                merge = False
+                if node.id == other_node.id:
+            # if node in path1:
+                # MERGE = True
+
+                    # index_in_path = path1.index(node)
+                    # node_in_path = path1[index_in_path]
+                    node_in_path = other_node
+
+                    if None in node_in_path.direction or None in node.direction:
+                        self.all_nodes[node.id] = (node, None)
+                        self.nodes_to_visit.put(node)
+                        merge = True
+                        break
+                    node_in_path.direction = node_in_path.direction.union(node.direction)
+                    node_in_path.children = node_in_path.children.union(node.children)
+                    # for direction in node_in_path.num_blocks:
+                    #     node_in_path.num_blocks[direction] += node.num_blocks[direction]
+                    node_in_path.num_blocks += node.num_blocks
+                    merge = True
+                    break
+            # if node in self.need_to_visit_again:
+                # MERGE = True
+            # if not merge:
+            #     for other_node in self.need_to_visit_again:
+            #         if node.id == other_node.id:
+            #             # index_in_path = self.need_to_visit_again.index(node)
+            #             # node_in_path = self.need_to_visit_again[index_in_path]
+            #             node_in_path = other_node
+            #
+            #
+            #             if None in node_in_path.direction or None in node.direction:
+            #                 self.all_nodes[node.id] = (node, None)
+            #                 self.nodes_to_visit.put(node)
+            #                 merge = True
+            #                 continue
+            #             node_in_path.direction = node_in_path.direction.union(node.direction)
+            #             node_in_path.children = node_in_path.children.union(node.children)
+            #             # for direction in node_in_path.num_blocks:
+            #             #     node_in_path.num_blocks[direction] += node.num_blocks[direction]
+            #             node_in_path.num_blocks += node.num_blocks
+
+            if not merge:
+                # else:
+                #     for other_node in self.need_to_visit_again:
+                #         if node.id == other_node.id:
+                #             # if node in path1:
+                #             # MERGE = True
+                #
+                #             # index_in_path = path1.index(node)
+                #             # node_in_path = path1[index_in_path]
+                #             node_in_path = other_node
+                #
+                #             if None in node_in_path.direction or None in node.direction:
+                #                 self.all_nodes[node.id] = (node, None)
+                #                 self.nodes_to_visit.put(node)
+                #                 merge = True
+                #                 continue
+                #             node_in_path.direction = node_in_path.direction.union(node.direction)
+                #             node_in_path.children = node_in_path.children.union(node.children)
+                #             # for direction in node_in_path.num_blocks:
+                #             #     node_in_path.num_blocks[direction] += node.num_blocks[direction]
+                #             node_in_path.num_blocks += node.num_blocks
+                #         else:
+                self.all_nodes[node.id] = (node, None)
+                self.nodes_to_visit.put(node)
+                merge = False
+
+        self.goals.add(values[self.item1])
+        self.goals.add(values[self.item2])
+
+        # self.goals.sort(key=lambda x: x.order)
+        self.goal_ids.add(values[self.item1].id)
+        self.goal_ids.add(values[self.item2].id)
+
+        # self.blocks_to_move = []
+        for goal in self.goals:
+            generate_blocks(goal, self.blocks_to_move)
+
+        # for node in self.need_to_visit_again:
+        #     if node in path1:
+        #         # MERGE = True
+        #
+        #         index_in_path = path1.index(node)
+        #         node_in_path = path1[index_in_path]
+        #
+        #         if None in node_in_path.direction or None in node.direction:
+        #             self.all_nodes[node.id] = (node, None)
+        #             self.nodes_to_visit.put(node)
+        #             continue
+        #         node_in_path.direction = node_in_path.direction.union(node.direction)
+        #         node_in_path.children = node_in_path.children.union(node.children)
+        #         # for direction in node_in_path.num_blocks:
+        #         #     node_in_path.num_blocks[direction] += node.num_blocks[direction]
+        #         node_in_path.num_blocks += node.num_blocks
+        #     else:
+        #         self.all_nodes[node.id] = (node, None)
+        #         self.nodes_to_visit.put(node)
+
+        # time.sleep(4) #TODO: Remove Sleep time here
+        for node in path1:
+            self.all_nodes[node.id] = (node, None)
+            self.nodes_to_visit.put(node)
+        # print(self.nodes_to_visit)
+
+        self.need_to_visit_again = []
+
+    def notify_children(self, node):
+        if node.children is None:
+            print("No children to notify, confintuuing")
+        else:
+            for child in node.children:
+                if child is None:
+                    print("No children to notify, continuing")
+                    continue
+                else:
+                    notify_node, robot = self.all_nodes[child]  #
+                    # print(f"Notifiying child node with id: {child} {robot.id}")
+                    self.currently_working.append(notify_node)
+
+                    # try:
+                    #     print(f"Removing blocks with node id: {node.id}")
+                    #     print(blocks_to_move)
+                    #     old_blocks = blocks_to_move
+                    #
+                    #     new_blocks = []
+                    #     for block in old_blocks:
+                    #         block.location = block.next_destination
+                    #         block.next_destination = (notify_node.pos[0], notify_node.pos[1], 1)
+                    #
+                    #         new_block = Block(location=block.location,
+                    #         next_destination=block.next_destination,
+                    #                           final_destination=block.final_destination, id=block.id)
+                    #         new_blocks.append(new_block)
+                    #
+                    #
+                    #     next_id = currently_working[1].id #TODO: REMOVE THIS AND GET THE ID THE RIGHT WAY
+                    #
+                    #     blocks_to_move = new_blocks
+                    #     # currently_claimed_set.remove
+                    #
+                    #     print(blocks_to_move)
+                    #     # print(blocks_to_move[notify_node.id])
+                    # except KeyError:
+                    #     print("Key error, unable to remove blocks")
+                    #     print(blocks_to_move)
+                    #     print(node.id)
+                    #     continue
+
+    def wait_for_task_completion(self):
+        message = None
+        finished = False
+
+        while not finished:
+            print("Waiting for robot to finish")
+            messages = self.robot_communicator.get_communication()
+            for update in messages:
+                topic, received_message = update
+                message = received_message.payload
+                # print(type(message))
+                # print(type(FerryBlocksStatusFinished))
+                # print(f"Is instance: {isinstance(message, FerryBlocksStatusFinished)}")
+
+                finished = isinstance(message, FerryBlocksStatusFinished)
+                if finished:
+                    break
+                # print(f"[Structure] got message(s) from robot {topic}-> {message}")
+                # print(received_message.robot_status)
+                # print(f"DOING WORK on node: {node.id}")
+            time.sleep(1)
+        print("\n\n\n\nRobot has finished")
+        time.sleep(3)
+
+    def build_structure(self):
+        self.divisions, self.wavefront_blueprint = self.buildingPlanner.create_divisions(division_size=5)
+        self.item1 = -1
+        self.item2 = 0
+        print(self.divisions)
+        self.need_to_visit_again = []
+        while self.item2 < len(self.divisions) - 1:
+
+            self.merge_paths()
+            # self.print_structure_status()
+            # order
+
+            robots = [
+                Robot(id=b'ROBOT_1', pos=(1.5, 1.5), claimed_division=1),
+                Robot(id=b'ROBOT_2', pos=(4.5, 1.5), claimed_division=2),
+                # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
+                # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
+            ]
+
+            # for i in need_to_visit_again:
+            #     self.nodes_to_visit.put(i)
+            #     need_to_visit_again.remove(i)
+
+            self.currently_claimed_set.clear() #TODO: May not want to clear list
+
+            for bot in range(len(robots)):
+                if self.nodes_to_visit.empty():
+                    break
+                else:
+                    node = self.nodes_to_visit.get()
+                    already_in = True
+                    while already_in:
+                        # print("Getting new")
+                        # print(f"{self.currently_claimed_set}")
+                        if len(self.currently_claimed_set) <= 0:
+                            break
+                        for i in self.currently_claimed_set:
+                            if i.id == node.id:
+                                # print("Node already inside claimed set, getting new one")
+                                self.need_to_visit_again.append(node)
+                                node = self.nodes_to_visit.get()
+                            else:
+                                # print("Found new node")
+                                already_in = False
+                                break
+                        if not already_in:
+                            break
+                    self.currently_claimed_set.append(node)
+
+            # print(currently_claimed_set)
+
+
+            assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)  # assign robots
+            # assign_robots_closest_point(robots, self.currently_claimed_set, None)
+            for bot in robots:  # update dictionary to include robot with claimed division
+                node, _ = self.all_nodes[bot.target.id]
+                self.all_nodes[bot.target.id] = (node, bot)
+
+            node1 = self.currently_claimed_set[0]
+            self.currently_working.append(node1)
+
+            ferry_blocks = []
+            print(len(self.currently_working))
+            while len(self.currently_working) > 0:
+                # print(repr(node), end="\n\n")
+                # TODO: TELL FIRST ROBOT TO START DOING WORK
+
+                for node in self.currently_working:
+
+                    # time.sleep(3)
+                    node, robot = self.all_nodes[node.id]
+
+                    if robot is None:
+                        raise Exception("Robot is none, line 288")
+                    # if len(node.children) > 1:
+                    #     blocks_to_move = get_blocks_to_move()
+
+                    # flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
+                    #
+                    # ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
+                    # ferry_blocks_id.reverse()
+                    #
+                    # if len(node.children) > 1:
+                    #     ferry_blocks = ferry_blocks_id[0:19]
+                    # else:
+                    #     ferry_blocks = ferry_blocks_id[0:9]
+                    # ferry_blocks.reverse()
+
+                    print(f"Setting up blocks for node: {node}")
+                    print(f"Goal nodes: {self.goals}")
+                    if node.id in self.goal_ids:
+                        filtered_blocks = list(filter(lambda x: x.final_destination == node.id, self.blocks_to_move))
+                        ferry_blocks = get_new_block_location(node, filtered_blocks, type="BUILD")
+                        # ferry_blocks = self.blocks_to_move
+                        # ferry_blocks.reverse()
+                        structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
+                            blocks_to_move=ferry_blocks))
+
+                        # self.blocks_to_move.
+                        for i in ferry_blocks:
+                            for j in self.blocks_to_move:
+                                if i.id == j.id:
+                                    self.blocks_to_move.remove(j)
+                            # self.blocks_to_move.remove(i)
+                    else:
+                        self.blocks_to_move = get_new_block_location(node, self.blocks_to_move, type="FERRY")
+                        ferry_blocks = self.blocks_to_move
+                        structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
+                            blocks_to_move=ferry_blocks))
+
+                    print(f"Got new block location: {self.blocks_to_move}")
+
+                    print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+
+                    # for blocks in ferry_blocks:
+                    #     blocks.assigned_node = node.id
+                    """
+                    if node.id in goal_ids:
+                        structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
+                            blocks_to_move=blocks_to_move[node.id]))
+
+                    else:
+                        flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
+
+                        ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
+                        ferry_blocks_id.reverse()
+                        ferry_blocks = ferry_blocks_id[0:2]
+                        ferry_blocks.reverse()
+
+                        structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
+                            blocks_to_move=ferry_blocks))
+
+                        print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+                    """
+                    print(f"Node in currently_working: {node}")
+                    print(f"\nDOING WORK on node: {node.id}")
+                    print(f"\nDOING WORK on node: {node.id}")
+                    print(f"\nDOING WORK on node: {node.id}")
+                    print(f"\nDOING WORK on node: {node.id}")
+
+                    self.wait_for_task_completion()
+
+                    # time.sleep(2)
+                    print("Robot has finished working on node")
+                    # Robot has finished working
+                    try:
+                        print("Getting new node")
+                        new_node = self.nodes_to_visit.get(timeout=2) #TODO: May need to check if id already in here
+                        print(f"New node: {new_node}")
+                        self.currently_claimed_set.append(new_node)
+                        # currently_claimed_set.remove(node)
+                        print("Done updating")
+                    except(Empty):
+                        print("Queue is empty, continuing")
+                        # continue
+
+                    print("\nAssigning robots to points")
+
+                    # TODO: Change assign_robots to deal with if num of points less than number of robots
+                    if len(self.currently_claimed_set) > len(robots):
+                        try:
+                            self.currently_claimed_set.remove(node)
+                        except ValueError:
+                            print("Unable to remove node from currenly claimed set, continuing...")
+                    #
+                    # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
+                    # print(f"Current claimed set: {currently_claimed_set}")
+                    assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
+                    # assign_robots_closest_point(robots, self.currently_claimed_set, None)
+                    time.sleep(5)
+                    print("Updating dictionary with new robot positions")
+                    for bot in robots:  # update dictionary to include robot with claimed division
+                        update_node, _ = self.all_nodes[bot.target.id]
+                        self.all_nodes[bot.target.id] = (update_node, bot)
+                    print("\n\n")
+
+                    # for node in currently_claimed_set:
+                    self.notify_children(node)
+
+                    # try:
+                        # self.currently_working.remove(node)
+                    for index, val in enumerate(self.currently_working):
+                        if val.id == node.id:
+                            self.currently_working.pop(index)
+                            break
+
+                    for index, val in enumerate(self.currently_claimed_set):
+                        if val.id == node.id:
+                            self.currently_claimed_set.pop(index)
+                            break
+
+                    for index, val in enumerate(self.goals):
+                        if val.id == node.id:
+                            self.goals.remove(val)
+                            break
+
+                    for index, val in enumerate(self.goal_ids):
+                        if val == node.id:
+                            self.goal_ids.remove(val)
+                            break
+                    # except ValueError:
+                    #     print("Unable to remove node from currently working")
+                    #     print(f"Currently Working: {self.currently_working}")
+                    #     print(f"Current Node: {node}")
+                    #     print(f"Currently Claimed: {self.currently_claimed_set}")
+                    # try:
+                    # self.goals.remove(node)
+                    # self.goal_ids.remove(node.id)
+
+                    # except:
+                    #     print("")
+
+
+
+def generate_blocks(division, list):
+    for blocks in list:
+        if blocks.final_destination == division.id: #TODO: Check to make sure this does not duplicate blocks
+            return
+    num_blocks_to_generate = division.num_blocks
+    goal_id = division.id
+    new_blocks = []
+    for i in range(num_blocks_to_generate):
+        new_blocks.append(Block(final_destination=goal_id))
+    list.extend(new_blocks)
+
+def get_new_block_location(node, blocks_to_move, type="BUILD"):
+    # node.direction = {'RIGHT'}
+
+    print("In Get new block location")
+    x_start, x_end = node.x_range
+    y_start, y_end = node.y_range
+    z_start, z_end = node.z_range
+
+    level = blueprint[x_start:x_end, y_start:y_end, z_start:z_end]
+    m, n, _ = level.shape
+    num_blocks = {
+                 "FRONT": 0,
+                 "RIGHT": 0,
+                 "BACK": 0,
+                 "LEFT": 0
+                 }
+
+
+    for direction in node.direction:
+        # if direction is None:
+        #     direction = ('RIGHT')
+        #     node.direction = direction
+        num_blocks[direction] = int(node.num_blocks/2)
+        # num_blocks[direction] = node.num_blocks[direction]
+        #TODO: Change so that this is not directly half, but the actual num of blocks for each division
+
+    x_offset = node.x_range[0]
+    y_offset = node.y_range[0]
+    z_offset = node.z_range[0]
+
+
+    if type == "BUILD" or None in node.direction:
+        rows = len(level)
+        columns = len(level[0])
+        layer, new_block_locations = spiral_sort_helper(rows, columns, blueprint[:, :],
+                                                        x_offset=x_offset,
+                                                        y_offset=y_offset,
+                                                        z_offset=z_offset,
+                                                        )
+    else:
+        print("Getting ferry block locations")
+        print(f"Num blocks to ferry: {num_blocks}")
+        print(f'Directions ferrying for: {node.direction}')
+
+        _, _, new_block_locations = determine_ferry_regions(level, num_rows=m, num_cols=n, direction=node.direction,
+                                                         ferry_region_size=3,
+                                                         x_offset=x_offset,
+                                                         y_offset=y_offset,
+                                                         z_offset=z_offset+1, #TODO: Remove this extra +1
+                                                         num_blocks=num_blocks
+                                                         )
+
+    print("Got new block location in get new block")
+    new_blocks = []
+    # new_blocks = blocks_to_move
+    for block, location in zip(blocks_to_move, new_block_locations):
+        # index = blocks_to_move.index(block)
+        # block = blocks_to_move[index]
+        # try:
+        #     location = new_block_locations[index]
+        # except IndexError:
+        #     print(f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}")
+        #     return new_blocks
+
+        id = deepcopy(block.id)
+        new_block = Block(final_destination=block.final_destination, id=id)
+        new_block.location = block.location
+        new_block.next_destination = block.next_destination
+
+        new_block.set_next_location(location)
+        # block.location = location
+        print(new_block, location)
+        # blocks_to_move[index] = block
+        new_blocks.append(new_block)
+
+    # print(new_blocks)
+    # blocks_to_move = new_blocks
+    print(f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}")
+
+    time.sleep(3)
+    return new_blocks
 
 
 
 if __name__ == '__main__':
 
-    structure = StructureMain()
+
 
     blueprint = np.array([
         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
@@ -270,485 +793,13 @@ if __name__ == '__main__':
     #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
     #      'Orange', 'Orange', 'Orange']]])
 
-    structure.initialize_communications(blueprint=blueprint, colors=colors)
-    # root = robot.create_behavior_tree()
-    ####################
-    # Rendering
-    ####################
-    # if args.render:
-    # py_trees.display.render_dot_tree(root, with_blackboard_variables=False)
-    #     sys.exit()
-    # if args.render_with_blackboard_variables:
-    #     py_trees.display.render_dot_tree(root, with_blackboard_variables=True)
-    #     sys.exit()
 
-    ####################
-    # Execute
-    ####################
-    # behaviour_tree = py_trees.trees.BehaviourTree(root)
-    #
-    # blocks_to_place = [Block(position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
-    #                    Block(position=(1, 1, 1, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
-    #                    Block(position=(2, 2, 2, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top"))]
-    #
-    # division = Division()
-    #
-    # move_store = FerryBlocksStore(blocks_to_remove=blocks_to_place, division=division)
-    #
-    # writer = py_trees.blackboard.Client(name="Writer")
-    # writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/block_has_been_placed", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/location_to_move_to", access=py_trees.common.Access.WRITE)
-    # writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
-    # #
-    # writer.set(name="state/blocks_to_move", value=None)
-    # writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
-    # writer.set(name="state/block_has_been_placed", value=True)
-    # writer.set(name="state/point_to_reach", value=False)
-    # writer.set(name="state/location_to_move_to", value=(7, 7, 7, "Top"))
-    #
-    # # behaviour_tree.add_pre_tick_handler(pre_tick_handler)
-    # # behaviour_tree.visitors.append(py_trees.visitors.DebugVisitor())
-    # # snapshot_visitor = py_trees.visitors.SnapshotVisitor()
-    # # behaviour_tree.add_post_tick_handler(functools.partial(post_tick_handler, snapshot_visitor))
-    # # behaviour_tree.visitors.append(snapshot_visitor)
-    # behaviour_tree.setup(timeout=15)
-    #
-    # ####################
-    # # Tick Tock
-    # ####################
-    #
-    # # py_trees.console.read_single_keypress()
-    # while True:
-    # # for unused_i in range(1, 50):
-    #     try:
-    #         behaviour_tree.tick()
-    #         print("Tree is ticking")
-    #         # if args.interactive:
-    #         #     py_trees.console.read_single_keypress()
-    #         # else:
-    #         time.sleep(1)
-    #     except KeyboardInterrupt:
-    #         break
-    #     except KeyError as e:
-    #         print(e)
-    #         continue
-    # print("\n")
+    blueprint = np.array([
+                             [[1] * 1] * 15,
+                         ] * 15)
 
+    structure = StructureMain(blueprint=blueprint)
+    structure.initialize_communications(colors=colors)
 
+    structure.build_structure()
 
-    # while True:
-    #     print("Ticking")
-    #     time.sleep(0.5)
-    #     if not structure.robot_queue.empty():
-    #         new_robot = structure.robot_queue.get()
-    #
-    #         new_robot_obj = Robot(id=new_robot, pos=None)
-    #
-    #         structure.known_robots[new_robot] = new_robot_obj
-    #
-    #         print(f"New robot added to storage: {new_robot_obj}")
-    #     if len(structure.known_robots) > 0:
-    #         random_robot = sample(list(structure.known_robots.values()), 1)[0]
-    #         print(f"Random robot: {random_robot}")
-    #
-    #         # print(f"[Structure] sending random robot a message -> HI {random_robot}")
-    #         structure.robot_communicator.send_communication(topic=random_robot.id, message=MoveToPointMessage(
-    #             destination=choice([(1.5, 1.5, 1, "Top"), (4.5, 1.5, 1, "Top"), (7.5, 1.5, 1, "Top"),
-    #                                  (1.5, 4.5, 1, "Top"), (4.5, 4.5, 1, "Top"), (5.5, 4.5, 1, "Top"),
-    #                                  (1.5, 7.5, 1, "Top"), (3.5, 7.5, 1, "Top"), (5.5, 7.5, 1, "Top"),
-    #                                  ])))
-    #         messages = structure.robot_communicator.get_communication()
-    #         for update in messages:
-    #             topic, message = update
-    #             print(f"[Structure] got message(s) from robot {topic}-> {messages}")
-    #             print(message.robot_status)
-    #             print(message.payload)
-    #
-    #             if isinstance(message.payload, RobotStatusUpdateMessagePayload):
-    #                 structure.known_robots[topic].pos = create_point_from_homogeneous_transform(
-    #                     message.payload.robot_base)
-    #                 print(create_point_from_homogeneous_transform(message.payload.robot_base))
-    #
-    #             structure.known_robots[topic].update_status(message.robot_status)
-
-    """
-        path1 = [Node(wavefront_order=2, id=1, child=2, direction="RIGHT", pos=(1.5, 1.5)),
-                 Node(3, 2, 5, "UP", pos=(4.5, 1.5)),
-                 Node(4, 5, 8, "UP", pos=(4.5, 4.5)),
-                 Node(5, 8, None, None, pos=(4.5, 7.5))]
-        path2 = [Node(2, 1, 2, "RIGHT", pos=(1.5, 1.5)), Node(3, 2, 5, "UP", pos=(4.5, 1.5)), Node(4, 5, 6, "RIGHT",
-                                                                                                   pos=(4.5, 4.5)),
-                 Node(5, 6, None, None, pos=(7.5, 4.5))]
-    
-        all_nodes = {}
-    
-        # for point in path
-        merged_path = path1
-        q = PriorityQueue()
-    
-        # MERGE = False
-        for node in path2:
-            if node in path1:
-                # MERGE = True
-    
-                index_in_path = path1.index(node)
-                node_in_path = path1[index_in_path]
-    
-                node_in_path.direction = node_in_path.direction.union(node.direction)
-                node_in_path.children = node_in_path.children.union(node.children)
-                node_in_path.num_blocks += node.num_blocks
-    
-            else:
-                all_nodes[node.id] = (node, None)
-                q.put(node)
-    
-        goals = [Node(5, 8, None, None, pos=(7.5, 1.5)), Node(5, 6, None, None, pos=(7.5, 4.5))]
-    
-        goals.sort(key=lambda x: x.order)
-        goal_ids = [8, 6]
-        # print(goals)
-    """
-
-    blueprint = [
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ]
-
-    feeding_location = (0, 0)
-
-    divisions = {
-        (0, 0): Node(wavefront_order=1, id=1, pos=(1, 1)),
-        (0, 1): Node(wavefront_order=2, id=2, pos=(4, 1)),
-        (0, 2): Node(wavefront_order=3, id=3, pos=(7, 1)),
-        (1, 0): Node(wavefront_order=2, id=4, pos=(1, 4)),
-        (1, 1): Node(wavefront_order=3, id=5, pos=(4, 4)),
-        (1, 2): Node(wavefront_order=4, id=6, pos=(7, 4)),
-        (2, 0): Node(wavefront_order=3, id=7, pos=(1, 7)),
-        (2, 1): Node(wavefront_order=4, id=8, pos=(4, 7)),
-        (2, 2): Node(wavefront_order=5, id=9, pos=(7, 7)),
-    }
-
-    wf = Wavefront(blueprint=blueprint, feeding_location=feeding_location, furthest_division=(len(blueprint),
-                                                                                              len(blueprint[0])),
-                   print=False)
-
-    for division in divisions:
-
-        node = divisions[division]
-        path = wf.get_path(start=feeding_location, goal=division)
-        path.append((division, None))
-        # print(f"Got path to division {node.id}: {division} -> {path}")
-
-        modified_path = []
-        next_point = None
-        for i in range(len(path)):
-            pos, direction = path[i]
-
-            next_point = None
-            if i < len(path) - 1:
-                next_point_location, _ = path[i + 1]
-                next_point = divisions[next_point_location].id
-
-            wavefront_order = divisions[pos].order
-            node_id = divisions[pos].id
-
-            actual_pos = divisions[pos].pos
-
-            new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point,
-                            direction=direction)
-
-            previous_point = node_id
-
-            modified_path.append(new_node)
-
-        old_node = divisions[division]
-        old_node.path_to_node = modified_path
-        divisions[pos] = old_node
-        # print(f"Modified path: {modified_path}")
-
-    # print("\n\n\n")
-    values = list(divisions.values())
-    values.sort(key=lambda x: x.order)
-    # print(f"Values: {values}")
-
-    values.pop(0)  # TODO: Need to add back in first one (feeding location)
-
-    item1 = 0
-    item2 = 1
-    while item2 < len(values)-1:
-        item1 = item1 + 1
-        item2 = item2 + 1
-
-        path1 = values[item1].path_to_node
-        path2 = values[item2].path_to_node
-
-        all_nodes = {}
-
-        # for point in path
-        merged_path = path1
-        q = PriorityQueue()
-
-        # MERGE = False
-        for node in path2:
-            if node in path1:
-                # MERGE = True
-
-                index_in_path = path1.index(node)
-                node_in_path = path1[index_in_path]
-
-                node_in_path.direction = node_in_path.direction.union(node.direction)
-                node_in_path.children = node_in_path.children.union(node.children)
-                node_in_path.num_blocks += node.num_blocks
-
-            else:
-                all_nodes[node.id] = (node, None)
-                q.put(node)
-
-        goals = [values[item1], values[item2]]
-
-        goals.sort(key=lambda x: x.order)
-        goal_ids = [values[item1].id, values[item2].id]
-
-
-        blocks_to_move = {4: [Block(location=(0, 5, 2), next_destination=(0, 5, 2), final_destination=(6, 3, 1)),
-                              Block(location=(1, 5, 2), next_destination=(1, 5, 2), final_destination=(6, 4, 1)),
-                              Block(location=(2, 5, 2), next_destination=(2, 5, 2), final_destination=(6, 5, 1)),
-                              Block(location=(0, 5, 1), next_destination=(0, 5, 1), final_destination=(7, 3, 1)),
-                              Block(location=(1, 5, 1), next_destination=(1, 5, 1), final_destination=(7, 4, 1)),
-                              Block(location=(2, 5, 1), next_destination=(2, 5, 1), final_destination=(7, 5, 1)),
-                              Block(location=(0, 4, 1), next_destination=(0, 4, 1), final_destination=(8, 3, 1)),
-                              Block(location=(1, 4, 1), next_destination=(1, 4, 1), final_destination=(8, 4, 1)),
-                              Block(location=(2, 4, 1), next_destination=(2, 4, 1), final_destination=(8, 5, 1)),
-                              ],
-
-                        2: [Block(location=(4, 0, 2), next_destination=(4, 0, 2), final_destination=(6, 0, 1)),
-                            Block(location=(4, 1, 2), next_destination=(4, 1, 2), final_destination=(6, 1, 1)),
-                            Block(location=(4, 2, 2), next_destination=(4, 2, 2), final_destination=(6, 2, 1)),
-                            Block(location=(3, 0, 1), next_destination=(3, 0, 1), final_destination=(7, 0, 1)),
-                            Block(location=(3, 1, 1), next_destination=(3, 1, 1), final_destination=(7, 1, 1)),
-                            Block(location=(3, 2, 1), next_destination=(3, 2, 1), final_destination=(7, 2, 1)),
-                            Block(location=(4, 0, 1), next_destination=(4, 0, 1), final_destination=(8, 0, 1)),
-                            Block(location=(4, 1, 1), next_destination=(4, 1, 1), final_destination=(8, 1, 1)),
-                            Block(location=(4, 2, 1), next_destination=(4, 2, 1), final_destination=(8, 2, 1)),
-                            ],
-
-                          1: [Block(location=(2, 0, 2), next_destination=(2, 0, 2), final_destination=(6, 0, 1)),
-                              Block(location=(2, 1, 2), next_destination=(2, 1, 2), final_destination=(6, 1, 1)),
-                              Block(location=(2, 2, 2), next_destination=(2, 2, 2), final_destination=(6, 2, 1)),
-                              Block(location=(1, 0, 1), next_destination=(1, 0, 1), final_destination=(7, 0, 1)),
-                              Block(location=(1, 1, 1), next_destination=(1, 1, 1), final_destination=(7, 1, 1)),
-                              Block(location=(1, 2, 1), next_destination=(1, 2, 1), final_destination=(7, 2, 1)),
-                              Block(location=(2, 0, 1), next_destination=(2, 0, 1), final_destination=(8, 0, 1)),
-                              Block(location=(2, 1, 1), next_destination=(2, 1, 1), final_destination=(8, 1, 1)),
-                              Block(location=(2, 2, 1), next_destination=(2, 2, 1), final_destination=(8, 2, 1)),
-                              ],
-
-                          3: [Block(location=(6, 0, 2), next_destination=(6, 0, 2), final_destination=(6, 0, 1)),
-                              Block(location=(6, 1, 2), next_destination=(6, 1, 2), final_destination=(6, 1, 1)),
-                              Block(location=(6, 2, 2), next_destination=(6, 2, 2), final_destination=(6, 2, 1)),
-                              Block(location=(5, 0, 1), next_destination=(5, 0, 1), final_destination=(7, 0, 1)),
-                              Block(location=(5, 1, 1), next_destination=(5, 1, 1), final_destination=(7, 1, 1)),
-                              Block(location=(5, 2, 1), next_destination=(5, 2, 1), final_destination=(7, 2, 1)),
-                              Block(location=(6, 0, 1), next_destination=(6, 0, 1), final_destination=(8, 0, 1)),
-                              Block(location=(6, 1, 1), next_destination=(6, 1, 1), final_destination=(8, 1, 1)),
-                              Block(location=(6, 2, 1), next_destination=(6, 2, 1), final_destination=(8, 2, 1)),
-                              ],
-                         }
-    
-        # all_blocks = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-        # for block in all_blocks:
-        #     structure.simulator_communicator.send_communication(message=BlockLocationMessage(block_id=block.id,
-        #                                                                                      location=block.location),
-        #                                                         topic=block.id)
-        
-
-        time.sleep(5)
-        for node in path1:
-            all_nodes[node.id] = (node, None)
-            q.put(node)
-
-        currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve order
-
-        robots = [
-            Robot(id=b'ROBOT_1', pos=(1.5, 1.5), claimed_division=1),
-            Robot(id=b'ROBOT_2', pos=(4.5, 1.5), claimed_division=2),
-            Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-            Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
-            # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-            # Robot(id=4, pos=(0, 2), claimed_division=3),
-            # Robot(id=3, pos=(1, 1), claimed_division=5),
-            # Robot(id=5, pos=(2, 2), claimed_division=9),
-        ]
-
-        # print(f"All nodes values: {list(all_nodes.values())}")
-        # assign_robots_closest_point(robots, all_nodes.values()[0])
-
-        for bot in range(len(robots)):
-            if q.empty():
-                break
-            else:
-                node = q.get()
-                currently_claimed_set.append(node)
-
-        # print(currently_claimed_set)
-
-        assign_robots_closest_point(robots, currently_claimed_set, structure.robot_communicator)  # assign robots
-        for bot in robots:  # update dictionary to include robot with claimed division
-            node, _ = all_nodes[bot.target.id]
-            all_nodes[bot.target.id] = (node, bot)
-
-        currently_working = []
-        node1 = currently_claimed_set[0]
-        currently_working.append(node1)
-
-        ferry_blocks = []
-        while len(currently_working) > 0:
-            # print(repr(node), end="\n\n")
-            # TODO: TELL FIRST ROBOT TO START DOING WORK
-
-            for node in currently_working:
-
-
-
-                time.sleep(5)
-                node, robot = all_nodes[node.id]
-
-                # flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-                #
-                # ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
-                # ferry_blocks_id.reverse()
-                #
-                # if len(node.children) > 1:
-                #     ferry_blocks = ferry_blocks_id[0:19]
-                # else:
-                #     ferry_blocks = ferry_blocks_id[0:9]
-                # ferry_blocks.reverse()
-
-                ferry_blocks = blocks_to_move[node.id]
-
-                structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                    blocks_to_move=ferry_blocks))
-
-                print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
-
-                for blocks in ferry_blocks:
-                    blocks.assigned_node = node.id
-                """
-                if node.id in goal_ids:
-                    structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-                        blocks_to_move=blocks_to_move[node.id]))
-    
-                else:
-                    flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-    
-                    ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
-                    ferry_blocks_id.reverse()
-                    ferry_blocks = ferry_blocks_id[0:2]
-                    ferry_blocks.reverse()
-    
-                    structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                        blocks_to_move=ferry_blocks))
-    
-                    print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
-                """
-                print(f"Node in currently_working: {node}")
-                print(f"\nDOING WORK on node: {node.id}")
-                print(f"\nDOING WORK on node: {node.id}")
-                print(f"\nDOING WORK on node: {node.id}")
-                print(f"\nDOING WORK on node: {node.id}")
-
-
-                message = None
-                finished = False
-
-                while not finished:
-                    print("Waiting for robot to finish")
-                    messages = structure.robot_communicator.get_communication()
-                    for update in messages:
-                        topic, received_message = update
-                        message = received_message.payload
-                        # print(type(message))
-                        # print(type(FerryBlocksStatusFinished))
-                        # print(f"Is instance: {isinstance(message, FerryBlocksStatusFinished)}")
-
-                        finished = isinstance(message, FerryBlocksStatusFinished)
-                        if finished:
-                            break
-                        # print(f"[Structure] got message(s) from robot {topic}-> {message}")
-                        # print(received_message.robot_status)
-                        # print(f"DOING WORK on node: {node.id}")
-                    time.sleep(1)
-
-                # time.sleep(2)
-                print("Robot has finished working on node")
-                # Robot has finished working
-                try:
-                    print("Getting new node")
-                    new_node = q.get(timeout=2)
-                    print(f"New node: {new_node}")
-                    currently_claimed_set.append(new_node)
-                    # currently_claimed_set.remove(node)
-                    print("Done updating")
-                except(Empty):
-                    print("Queue is empty, continuing")
-                    # continue
-
-                print("\nAssigning robots to points")
-
-                # TODO: Change assign_robots to deal with if num of points less than number of robots
-                if len(currently_claimed_set) > len(robots):
-                    currently_claimed_set.remove(node)
-                #
-                # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
-                # print(f"Current claimed set: {currently_claimed_set}")
-                assign_robots_closest_point(robots, currently_claimed_set, structure.robot_communicator)
-                time.sleep(5)
-                print("Updating dictionary with new robot positions")
-                for bot in robots:  # update dictionary to include robot with claimed division
-                    update_node, _ = all_nodes[bot.claimed_division.id]
-                    all_nodes[bot.claimed_division.id] = (update_node, bot)
-                print("\n\n")
-
-                # for node in currently_claimed_set:
-                for child in node.children:
-                    if child is None:
-                        print("No children to notify, continuing")
-                        continue
-                    else:
-                        notify_node, robot = all_nodes[child]  #
-                        print(f"Notifiying child node with id: {child} {robot.id}")
-                        currently_working.append(notify_node)
-
-                        try:
-                            print(f"Removing blocks with node id: {node.id}")
-                            print(blocks_to_move)
-                            old_blocks = blocks_to_move[node.id]
-
-                            new_blocks = []
-                            for block in old_blocks:
-                                block.next_destination = block.location
-                                block.location = (notify_node.pos[0], notify_node.pos[1])
-
-                                new_block = Block(location=block.location, next_destination=block.next_destination,
-                                                  final_destination=block.final_destination, id=block.id)
-                                new_blocks.append(new_block)
-
-
-                            next_id = currently_working[1].id #TODO: REMOVE THIS AND GET THE ID THE RIGHT WAY
-
-                            blocks_to_move[next_id] = new_blocks
-                            # currently_claimed_set.remove
-
-                            print(blocks_to_move)
-                            print(blocks_to_move[notify_node.id])
-                        except KeyError:
-                            print("Key error, unable to remove blocks")
-                            print(blocks_to_move)
-                            print(node.id)
-                            continue
-                currently_working.remove(node)

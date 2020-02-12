@@ -12,7 +12,7 @@ import components.robot.config as config
 from components.robot.communication.communicate_with_simulator import SimulatorCommunication
 from components.robot.communication.communicate_with_structure import StructureCommunication
 from components.robot.communication.messages import *
-from components.structure.behaviors.building.assign_robots_min_distance import Block
+from components.structure.behaviors.building.common_building import Block
 import py_trees
 import time
 import argparse
@@ -49,7 +49,7 @@ class RobotMain:
             print("SIMULATING")
             self.simulator_communicator = SimulatorCommunication(
                 send_messages_socket=self.simulator_send_messages_socket,
-                send_topics=b"SIMULATOR")
+                send_topics=self.id)
 
     def initialize_communications(self):
         """
@@ -131,21 +131,21 @@ if __name__ == '__main__':
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
 
 
-    blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
-            Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
-            Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
-            Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
-            Block(location=(3, 1, 2), next_destination=(7, 4, 1), final_destination=(7, 4, 1)),
-            Block(location=(3, 2, 2), next_destination=(7, 5, 1), final_destination=(7, 5, 1)),
-            Block(location=(3, 0, 3), next_destination=(8, 3, 1), final_destination=(8, 3, 1)),
-            Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
-            Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
-            ]
-    blocks.reverse()
-
-    writer.set(name="state/blocks_to_move", value=blocks)
+    # blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
+    #         Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
+    #         Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
+    #         Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
+    #         Block(location=(3, 1, 2), next_destination=(7, 4, 1), final_destination=(7, 4, 1)),
+    #         Block(location=(3, 2, 2), next_destination=(7, 5, 1), final_destination=(7, 5, 1)),
+    #         Block(location=(3, 0, 3), next_destination=(8, 3, 1), final_destination=(8, 3, 1)),
+    #         Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
+    #         Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
+    #         ]
+    # blocks.reverse()
+    #
+    writer.set(name="state/blocks_to_move", value=None)
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
-    writer.set(name="state/block_has_been_placed", value=True)
+    writer.set(name="state/block_has_been_placed", value=False)
     writer.set(name="state/point_to_reach", value=True)
     writer.set(name="state/location_to_move_to",
                value=choice([(1.5, 1.5, 1, "Top"), (4.5, 1.5, 1, "Top"), (7.5, 1.5, 1, "Top"),
@@ -194,7 +194,7 @@ if __name__ == '__main__':
             # base = choice([base1, base2, base3, base4, base5])
             # robot.simulator_communicator.send_communication(topic=robot.id, message=AnimationUpdateMessage(
             #     robot_base=base))
-            time.sleep(1)
+            # time.sleep(1)
             # writer.set(name="state/robot_status", value=RobotBehaviors.MOVE)
             # writer.set(name="state/block_has_been_placed", value=True)
             # writer.set(name="state/point_to_reach", value=False)
