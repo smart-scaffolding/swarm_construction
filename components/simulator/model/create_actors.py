@@ -67,7 +67,7 @@ def setup_pipeline_objs(colors, robot_id, points=False):
     return reader_list, actor_list, mapper_list
 
 
-def setup_structure_display(blueprint, pipeline, color):
+def setup_structure_display(blueprint, pipeline, color, block_file_location):
     """
     Internal function to initialise vtk objects.
     :return: reader_list, actor_list, mapper_list
@@ -83,14 +83,15 @@ def setup_structure_display(blueprint, pipeline, color):
         for j in range(len(blueprint[0])):
             for k in range(len(blueprint[0][0])):
                 if (blueprint[i][j][k]):
-                    reader_list = vtk.vtkSTLReader()
-                    loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
-                    # print(loc)
-                    reader_list.SetFileName(loc)
-                    mapper_list = vtk.vtkPolyDataMapper()
-                    mapper_list.SetInputConnection(reader_list.GetOutputPort())
+                    # reader_list = vtk.vtkSTLReader()
+                    # # loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
+                    # loc = block_file_location
+                    # # print(loc)
+                    # reader_list.SetFileName(loc)
+                    # mapper_list = vtk.vtkPolyDataMapper()
+                    # mapper_list.SetInputConnection(reader_list.GetOutputPort())
                     actor_list = vtk.vtkActor()
-                    actor_list.SetMapper(mapper_list)
+                    actor_list.SetMapper(block_file_location)
                     # color_index = random.randint(1, 3)
                     # if i == 0 or j == 0 or k == 0 or i ==(len(self.blueprint-1)) or j ==(len(self.blueprint[
                     #                                                                              0]-1)) or k ==(
@@ -109,22 +110,23 @@ def setup_structure_display(blueprint, pipeline, color):
                     actor_list.GetProperty().SetColor(my_color[0])  # (R,G,B)
                     # actor_list.GetProperty().SetColor(color[i][j][k])
                     actor_list.SetScale(0.013)
-                    actor_list.SetPosition((i, j, k))
+                    actor_list.SetPosition((i-1, j-1, k))
                     # print("SCALE: {}".format(actor_list.GetScale()))
                     # print("POSITION: {}".format(actor_list.GetPosition()))
                     pipeline.add_actor(actor_list)
-    return reader_list, mapper_list, actor_list
+    return None, None, actor_list
 
 
-def add_block(position):
-    reader_list = vtk.vtkSTLReader()
-    loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
-    # print(loc)
-    reader_list.SetFileName(loc)
-    mapper_list = vtk.vtkPolyDataMapper()
-    mapper_list.SetInputConnection(reader_list.GetOutputPort())
+def add_block(position, block_file_location):
+    # reader_list = vtk.vtkSTLReader()
+    # # loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
+    # loc = block_file_location
+    # # print(loc)
+    # reader_list.SetFileName(loc)
+    # mapper_list = vtk.vtkPolyDataMapper()
+    # mapper_list.SetInputConnection(reader_list.GetOutputPort())
     actor_list = vtk.vtkActor()
-    actor_list.SetMapper(mapper_list)
+    actor_list.SetMapper(block_file_location)
     color = vtk_named_colors(["Purple"])
 
     actor_list.GetProperty().SetColor(color[0])  # (R,G,B)
@@ -133,7 +135,7 @@ def add_block(position):
     # print("Adding block at pos: {}".format(position))
     # self.pipeline.add_actor(actor_list)
 
-    return actor_list, reader_list, mapper_list
+    return actor_list, None, None
 
 
 def display_path(path=[(0, 0, 0, "top"), (1, 0, 0, "top"), (2, 0, 0, "top"), (3, 0, 0, "top"), (4, 0, 0, "top"),

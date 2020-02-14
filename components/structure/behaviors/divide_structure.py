@@ -13,7 +13,7 @@ class BuildingPlanner:
         self.structure = None
         self.feeding_location = feeding_location
 
-    def create_divisions(self, division_size=3):
+    def create_divisions(self, division_size=3, level=0):
         #TODO: Change so does not need to be square
         x, y, z = self.blueprint.shape
         colors = np.array([[["DarkGreen"] * z] * y] * x)
@@ -36,7 +36,7 @@ class BuildingPlanner:
                     if xi + increment > x:
                         xi = x
 
-                    d = Division((p_xi, xi), (p_yi, yi), (0, 1),
+                    d = Division((p_xi, xi), (p_yi, yi), (level, level+1),
                                  num_blocks=np.sum(self.blueprint[p_xi:xi, p_yi:yi, 0:1]))
                     colors[p_xi:xi, p_yi:yi, 0:1] = next(vtk_colors)
                     self.divisions.append(d)

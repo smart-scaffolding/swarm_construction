@@ -17,7 +17,8 @@ from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.communication.messages import AnimationUpdateMessage
 import zlib
 import pickle
-
+from signal import signal, SIGINT
+from sys import exit
 
 POINTS = True
 ROBOTS = 1
@@ -31,18 +32,27 @@ ROBOTS = 1
 #     ])
 
 BLUEPRINT = np.array([
-                             [[1] * 1] * 15,
-                         ] * 15)
+                             [[1] * 1] * 12,
+                         ] * 12)
+
+
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
 
 COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
 # COLORS[0][1][0] = [vtk_named_colors(["Blue"])[0]]
-print(COLORS)
+# print(COLORS)
     # colors[0]4][1] = vtk_named_colors(["Blue"])
     # colors[0][4][4] = vtk_named_colors(["Blue"])
     # colors[0][4][7] = vtk_named_colors(["Blue"])
+
+
+loc = pkg_resources.resource_filename("components", '/'.join(('simulator', 'media', "block.stl")))
+reader_list = vtk.vtkSTLReader()
+reader_list.SetFileName(loc)
+block_file_location = vtk.vtkPolyDataMapper()
+block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
 class WorkerThread(threading.Thread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
@@ -64,13 +74,13 @@ class WorkerThread(threading.Thread):
                 [topic, message] = self.socket.recv_multipart()
                 message = zlib.decompress(message)
                 messagedata = pickle.loads(message)
-                print(f"[Worker thread]: {topic} {messagedata}")
+                # print(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
-                        print("[Worker thread]: Received new robot connection, adding to queue")
+                        # print("[Worker thread]: Received new robot connection, adding to queue")
                         self.robot_actors[topic] = Queue()
                         self.robot_actors[topic].put((topic, messagedata))
                         self.filter_q.put((topic, messagedata, self.robot_actors[topic])) # add new robot
@@ -78,12 +88,13 @@ class WorkerThread(threading.Thread):
 
                         # self.result_q.put((topic, messagedata))
                     else:
-                        print(f"[Worker thread] Putting message to be sent to calculator thread")
-                        print(messagedata.message)
+                        # print(f"[Worker thread] Putting message to be sent to calculator thread")
+                        # print(messagedata.message)
                         self.robot_actors[topic].put((topic, messagedata))
                         # self.result_q.put((topic, messagedata))
                 else:
-                    print(f"Got message from unknown source: {topic} -> {messagedata}")
+                    # print(f"Got message from unknown source: {topic} -> {messagedata}")
+                    continue
             except:
                 continue
 
@@ -327,22 +338,22 @@ class vtkTimerCallback():
                # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)
         while not self.block_q.empty():
             topic, message = self.block_q.get()
-            print(f"Block Message: {message.message}")
+            # print(f"Block Message: {message.message}")
             if isinstance(message.message, BlockLocationMessage):
                 # print("IS INSTANCE")
                 if topic in self.blocks:
-                    print("Moving block from existing location")
-                    print(self.blocks)
+                    # print("Moving block from existing location")
+                    # print(self.blocks)
                     location, actor = self.blocks[message.message.id]
                     actor.SetPosition(message.message.location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                     # self.pipeline.animate()
                 else:
-                    actor, _, _ = add_block(message.message.location)
+                    actor, _, _ = add_block(message.message.location, block_file_location=block_file_location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                     self.pipeline.add_actor(actor)
                     self.pipeline.animate()
-                    print("Added new block")
+                    # print("Added new block")
         iren = obj
         iren.GetRenderWindow().Render()
 
@@ -408,6 +419,16 @@ class Simulate:
             #     continue
         self.simulate()
 
+    def save_video_end_program(self, signal_received, frame):
+        # self.writer.End()
+        # print("Saved video")
+        # print("Saving video")
+        for thread in self.pool:
+            thread.join()
+        for thread in self.worker_pool:
+            thread.join()
+        exit(0)
+
     def simulate(self):
         # robot_actors = {}
 
@@ -428,6 +449,7 @@ class Simulate:
                                   self.param.get("floor_position"))
 
         self.pipeline.add_actor(cube_axes)
+
 
 
 
@@ -476,12 +498,13 @@ class Simulate:
         self.pipeline.iren.AddObserver('TimerEvent', cb.execute)
         timerId = self.pipeline.iren.CreateRepeatingTimer(10)
         start = time.time()
-        print(start)
+        # print(start)
 
+        # '/Users/calebwagner/SmartScaffoldingMQP_Code/zmq_vtk/components/simulator/media/block.stl'
         # print(f"DISPLAYING STRUCTURE {BLUEPRINT} {COLORS}")
-        setup_structure_display(blueprint=BLUEPRINT, pipeline=self.pipeline, color=COLORS)
+        setup_structure_display(blueprint=BLUEPRINT, pipeline=self.pipeline, color=COLORS, block_file_location=block_file_location)
 
-        print(time.time()-start)
+        # print(time.time()-start)
 
         # self.pipeline.add_actor(structure_actor)
         # if display_path:
@@ -504,26 +527,45 @@ class Simulate:
         # for thread in self.forward_kinematics_workers:
         #     thread.start()
 
-        pool = [WorkerThread(dir_q=self.dir_q, result_q=self.result_q, filter_q=self.new_actors, socket=socket,
+        self.pool = [WorkerThread(dir_q=self.dir_q, result_q=self.result_q, filter_q=self.new_actors, socket=socket,
                              pipeline=self.pipeline, block_q=self.block_q)]
 
         # Start all threads
-        for thread in pool:
+        for thread in self.pool:
             thread.start()
             print("Started worker thread")
 
+
+        signal(SIGINT, self.save_video_end_program)
         try:
             # renderWindowInteractor.Start()
+            # self.windowToImageFilter = vtk.vtkWindowToImageFilter()
+            # self.windowToImageFilter.SetInput(self.pipeline.ren_win)
+            # self.windowToImageFilter.SetInputBufferTypeToRGB()
+            # self.windowToImageFilter.ReadFrontBufferOff()
+            # # self.windowToImageFilter.Update()
+            #
+            # self.writer = vtk.vtkOggTheoraWriter()
+            # self.writer.SetInputConnection(self.windowToImageFilter.GetOutputPort())
+            # self.writer.SetFileName("movie.ogv")
+            # self.writer.Start()
             self.pipeline.animate()
+            # self.windowToImageFilter.Modified()
+            # self.writer.Write()
         except KeyboardInterrupt:
+            print("Exiting")
             pass
+
         finally:
-            for thread in pool:
+            # self.writer.End()
+            print("Saving video")
+            for thread in self.pool:
                 thread.join()
             for thread in self.worker_pool:
                 thread.join()
             # for thread in self.forward_kinematics_workers:
             #     thread.join()
+
 
 def axesUniversal():
     axes_uni = vtk.vtkAxesActor()

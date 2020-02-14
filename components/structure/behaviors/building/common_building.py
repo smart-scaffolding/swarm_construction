@@ -102,7 +102,7 @@ class Block:
 
     def set_next_location(self, new_location):
         if self.location is None:
-            self.location = new_location
+            self.location = (0, 0, 1)
         else:
             self.location = self.next_destination
         self.next_destination = new_location
@@ -187,7 +187,7 @@ def spiral_sort():
     return sorted_blueprint[::-1]
 
 
-def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0):
+def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, block_placed=1):
     sorted_array = []
     new_positions = []
     k = 0
@@ -203,17 +203,19 @@ def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0):
 
         for i in range(l, n):
             # print(a[k][i], end=" ")
-            sorted_array.append(a[k][i])
-            print(f"{a[k][i]}: ({k},{i})")
-            new_positions.append((k+x_offset, i+y_offset, level+z_offset))
+            if a[k][i] == block_placed:
+                sorted_array.append(a[k][i])
+                print(f"{a[k][i]}: ({k},{i})")
+                new_positions.append((k+x_offset, i+y_offset, level+z_offset))
         k += 1
 
 
         for i in range(k, m):
             # print(a[i][n - 1], end=" ")
-            sorted_array.append(a[i][n-1])
-            print(f"{a[i][n-1]}: ({i},{n-1})")
-            new_positions.append((i+x_offset, n-1+y_offset, level+z_offset))
+            if a[i][n-1] == block_placed:
+                sorted_array.append(a[i][n-1])
+                print(f"{a[i][n-1]}: ({i},{n-1})")
+                new_positions.append((i+x_offset, n-1+y_offset, level+z_offset))
 
         n -= 1
 
@@ -221,20 +223,36 @@ def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0):
 
             for i in range(n - 1, (l - 1), -1):
                 # print(a[m - 1][i], end=" ")
-                sorted_array.append(a[m-1][i])
-                print(f"{a[m-1][i]}: ({m-1},{i})")
-                new_positions.append((m-1+x_offset, i+y_offset, level+z_offset))
+                if a[m-1][i] == block_placed:
+                    sorted_array.append(a[m-1][i])
+                    print(f"{a[m-1][i]}: ({m-1},{i})")
+                    new_positions.append((m-1+x_offset, i+y_offset, level+z_offset))
             m -= 1
 
         if (l < n):
             for i in range(m - 1, k - 1, -1):
                 # print(a[i][l], end=" ")
-                sorted_array.append(a[i][l])
-                print(f"{a[i][l]}: ({i},{l})")
-                new_positions.append((i+x_offset, l+y_offset, level+z_offset))
+                if a[i][l] == block_placed:
+                    sorted_array.append(a[i][l])
+                    print(f"{a[i][l]}: ({i},{l})")
+                    new_positions.append((i+x_offset, l+y_offset, level+z_offset))
             l += 1
     return sorted_array, new_positions
 
 if __name__ == '__main__':
-    _, positions = spiral_sort_helper(15, 15, np.ones((15, 15)))
+    blueprint2 = np.array([
+                              [[1] * 1] * 10,
+                          ] * 10)
+
+    blueprint2[0, :, :] = 0
+    blueprint2[1, :, :] = 0
+    blueprint2[-1, :, :] = 0
+    blueprint2[-2, :, :] = 0
+    blueprint2[:, 0, :] = 0
+    blueprint2[:, 1, :] = 0
+    blueprint2[:, -1, :] = 0
+    blueprint2[:, -2, :] = 0
+
+    m, n, _ = blueprint2.shape
+    array, positions = spiral_sort_helper(m, n, blueprint2[:, :, 0])
     print(positions)

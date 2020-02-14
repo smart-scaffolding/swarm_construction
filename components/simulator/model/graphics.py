@@ -381,7 +381,7 @@ def MakeAxesActor(scale, xyzLabels):
     axes.GetZAxisCaptionActor2D().GetCaptionTextProperty().ShallowCopy(tprop)
     return axes
 
-def setup_structure_display(blueprint, sort=None):
+def setup_structure_display(blueprint, block_file_location, sort=None, ):
     """
     Internal function to initialise vtk objects.
     :return: reader_list, actor_list, mapper_list
@@ -403,14 +403,14 @@ def setup_structure_display(blueprint, sort=None):
     #         for k in range(len(blueprint[0][0])):
         for block in division:
                 if(block.hasBlock):
-                    reader_list = vtk.vtkSTLReader()
-                    loc = pkg_resources.resource_filename("simulator", '/'.join(('media', "block.stl")))
-                    # print(loc)
-                    reader_list.SetFileName(loc)
-                    mapper_list = vtk.vtkPolyDataMapper()
-                    mapper_list.SetInputConnection(reader_list.GetOutputPort())
+                    # reader_list = vtk.vtkSTLReader()
+                    # loc = block_file_location
+                    # # print(loc)
+                    # reader_list.SetFileName(loc)
+                    # mapper_list = vtk.vtkPolyDataMapper()
+                    # mapper_list.SetInputConnection(reader_list.GetOutputPort())
                     actor_list = vtk.vtkActor()
-                    actor_list.SetMapper(mapper_list)
+                    actor_list.SetMapper(block_file_location)
                     # color_index = random.randint(1, 3)
                     # if i == 0 or j == 0 or k == 0 or i ==(len(blueprint-1)) or j ==(len(blueprint[
                     #                                                                              0]-1)) or k ==(

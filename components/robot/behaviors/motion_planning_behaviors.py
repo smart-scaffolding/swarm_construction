@@ -39,9 +39,9 @@ def remove_block(robot, block_to_pick_up, simulator_communicator):
                                                                          message=BlockLocationMessage(
                 block_id=block_to_pick_up.id, location=block_to_pick_up.location))
 
-        time.sleep(1)
+        time.sleep(0.05)
         print(f"Robot has removed up block {block_to_pick_up}")
-        time.sleep(0.5)
+        time.sleep(0.05)
         return True
     except KeyboardInterrupt:
         pass
@@ -57,7 +57,7 @@ def place_block(robot, simulator_communicator, location_to_set_block, block):
     """
     try:
         print(f"Robot is placing block at location {location_to_set_block}")
-        time.sleep(1)
+        time.sleep(0.1)
         if config.SIMULATE:
             simulator_communicator.robot_communicator.send_communication(message=
                                                                          PlacedBlockUpdateMessagePayload(
@@ -71,7 +71,7 @@ def place_block(robot, simulator_communicator, location_to_set_block, block):
                 block_id=block.id, location=block.next_destination))
             # Change base not to none
         print(f"Robot has placed block at: {location_to_set_block}")
-        time.sleep(0.5)
+        time.sleep(0.1)
         return True
     except KeyboardInterrupt:
         pass
@@ -121,7 +121,7 @@ def get_path_to_point(robot, destination, simulator_communicator, old_path=None)
     :return:
     """
     print("Getting a path to return")
-    time.sleep(0.3)
+    time.sleep(0.05)
     print("Path found")
     # if config.SIMULATE:
     #     simulator_communicator.robot_communicator.send_communication(message="Got path")
