@@ -10,7 +10,7 @@ import pkg_resources
 from random import uniform
 
 
-def setup_pipeline_objs(colors, robot_id, points=False):
+def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=False):
     """
     Internal function to initialise vtk objects.
     :return: reader_list, actor_list, mapper_list
@@ -63,6 +63,18 @@ def setup_pipeline_objs(colors, robot_id, points=False):
         actor_list[i].SetMapper(mapper_list[i])
         actor_list[i].GetProperty().SetColor(colors[i])  # (R,G,B)
         actor_list[i].SetScale(0.013)
+
+    if block_on_end_effector:
+        reader_list.append(vtk.vtkSTLReader())
+        loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "robot_block.stl")))
+        # print(loc)
+        reader_list[-1].SetFileName(loc)
+        mapper_list.append(vtk.vtkPolyDataMapper())
+        mapper_list[-1].SetInputConnection(reader_list[i].GetOutputPort())
+        actor_list.append(vtk.vtkActor())
+        actor_list[-1].SetMapper(mapper_list[-1])
+        actor_list[-1].GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))  # (R,G,B)
+        actor_list[-1].SetScale(0.013)
 
     return reader_list, actor_list, mapper_list
 

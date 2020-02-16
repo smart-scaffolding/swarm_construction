@@ -11,7 +11,7 @@ from components.simulator.model.model import Inchworm
 from components.simulator.model.graphics import *
 from components.simulator.model.create_actors import *
 # from components.simulator.model.graphics import *
-from components.simulator.common.common import create_homogeneous_transform_from_point
+from components.simulator.common.common import create_homogeneous_transform_from_point, create_point_from_homogeneous_transform
 from components.simulator.common.transforms import np2vtk
 from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.communication.messages import AnimationUpdateMessage
@@ -20,7 +20,7 @@ import pickle
 from signal import signal, SIGINT
 from sys import exit
 
-POINTS = True
+POINTS = False
 ROBOTS = 1
 # BLUEPRINT = np.array([
 #         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
@@ -53,6 +53,13 @@ reader_list = vtk.vtkSTLReader()
 reader_list.SetFileName(loc)
 block_file_location = vtk.vtkPolyDataMapper()
 block_file_location.SetInputConnection(reader_list.GetOutputPort())
+
+
+move_block_loc = pkg_resources.resource_filename("components", '/'.join(('simulator', 'media', "robot_block.stl")))
+reader_list = vtk.vtkSTLReader()
+reader_list.SetFileName(move_block_loc)
+move_block_file_location = vtk.vtkPolyDataMapper()
+move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
 class WorkerThread(threading.Thread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
@@ -125,6 +132,7 @@ class CalculatorThread(WorkerThread):
                     # if isinstance(message.message, AnimationUpdateMessage): #TODO: Add this line back in
                     base = message.message.robot_base
                     trajectory = message.message.trajectory
+                    path = message.message.path
 
 
                 # base = np.matrix([[1, 0, 0, 0.5],
@@ -183,8 +191,9 @@ class CalculatorThread(WorkerThread):
                     # multiple_trajectories = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=1)
                     #
                     # for trajectory in multiple_trajectories:
-                    transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True)
-                    self.result_q.put((actor, robot_actors))
+                    transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True,
+                                                          standing_on_block=True, num_links=5)
+                    self.result_q.put((actor, robot_actors, path))
 
 
                 """
@@ -221,8 +230,9 @@ class CalculatorThread(WorkerThread):
                     # base = choice([base1, base2, base3, base4, base5])
                     transform = np2vtk(new_position)
 
-
-                    self.result_q.put((actor, [transform]))
+                    path = message.message.path
+                    print(f"Path: {path}")
+                    self.result_q.put((actor, [transform], path))
 
             # except:
             #     continue
@@ -248,6 +258,7 @@ class vtkTimerCallback():
         self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
         self.blocks = {}
         self.block_q = block_q
+        self.previous_path = []
 
 
     def add_robot_to_sim(self, robot, result_queue):
@@ -258,7 +269,8 @@ class vtkTimerCallback():
 
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
-        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS)
+        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS,
+                                                block_on_end_effector=True)
         for link in robot_actor:
             self.pipeline.add_actor(link)
 
@@ -313,7 +325,7 @@ class vtkTimerCallback():
             if not robot_queue.empty():
         # if not self.queue.empty():
         #     for i in range(5):
-               robot_id, transforms = robot_queue.get()
+               robot_id, transforms, path = robot_queue.get()
                # print(f"Callback: Moving position of robot: {robot_id}")
                # print(f"Known actors in callback: {self.robot_actors}")
 
@@ -323,9 +335,26 @@ class vtkTimerCallback():
                    ROBOT
                    """
                    if not POINTS:
-                       print("Updating robot with new transforms")
-                       actors[index].SetUserMatrix(transforms[index])
-                       actors[index].SetScale(0.013)
+                       # print(index)
+                       if index == 4:
+                           # actors[-1] = cubeForPath((0, 0, 0, 'top'))
+                           # self.pipeline.add_actor(actors[-1])
+
+                           new_block_tool, _, _ = add_block((0, 0, 0),
+                                                       block_file_location=move_block_file_location)
+                           self.pipeline.remove_actor(actors[-1])
+                           actors.append(new_block_tool)
+                           self.pipeline.add_actor(new_block_tool)
+                           new_block_tool.SetUserMatrix(transforms[index])
+                           new_block_tool.SetScale(0.013)
+                           # print("Updating block end position")
+                           self.pipeline.ren.AddActor(new_block_tool)
+
+                       elif index <=3:
+                           print("Updating robot with new transforms")
+                           actors[index].SetUserMatrix(transforms[index])
+                           actors[index].SetScale(0.013)
+
 
                    """
                    POINT
@@ -333,6 +362,17 @@ class vtkTimerCallback():
                    if POINTS:
                        assembly = actors[index]
                        assembly.SetUserMatrix(transforms[index])
+
+               if path:
+                    print(f"Path in Callback: {path}")
+                    print(f"Previous path: {self.previous_path}")
+                    for i in self.previous_path:
+                        self.pipeline.remove_actor(i)
+                        self.previous_path.remove(i)
+
+                    for point in path:
+                        self.previous_path.append(self.pipeline.add_actor(cubeForPath(point)))
+                    self.pipeline.animate()
 
                # x, y, z = edit_actor.GetPosition()
                # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)

@@ -16,18 +16,18 @@ context = zmq.Context()
 socket = context.socket(zmq.PUB)
 # socket.bind(f"tcp://*:{port}")
 # socket.bind("tcp://127.0.0.1:5559")
-socket.connect("tcp://130.215.217.37:5559")
+socket.connect("tcp://127.0.0.1:5559")
 
 
 while True:
     # topic = random.randrange(10001,10010)
     # topic = 10001
     # topics = [b"ROBOT_1", b"ROBOT_2", b"ROBOT_3"]
-    # topics = [b"ROBOT_1"]
+    topics = [b"ROBOT_1"]
     # topics = [b"BLOCK_1", b"BLOCK_2", b"BLOCK_3"]
-    # topic = choice(topics)
+    topic = choice(topics)
     # topic = b"BLOCK_" + str(randint(0, 10)).encode()
-    topic = b"ROBOT_1"
+    # topic = b"ROBOT_1"
     # messagedata =
 
     # locations = [(0, 0, 1), (0, 1, 1), (1, 0, 1), (1, 1, 1)]
@@ -71,23 +71,28 @@ while True:
 
     base = choice([base, base1, base2, base3, base4, base5])
 
-    trajectory1 = np.array([[0, 0, 0, 0]])
-    trajectory2 = np.array([[0, 0, np.pi/2, 0]])
-    trajectory3 = np.array([[0, 0, 0, np.pi/2]])
-    trajectory4 = np.array([[0, 0, np.pi/2, np.pi/2]])
-    trajectory5 = np.array([[0, np.pi/2, 0, 0]])
+    # base = base1
+    trajectory1 = np.array([[0, 0, 0, 0, 0]])
+    trajectory2 = np.array([[np.pi/2, 0, np.pi/2, 0, 0]])
+    trajectory3 = np.array([[0, 0, 0, np.pi/2, 0]])
+    trajectory4 = np.array([[np.pi, 0, np.pi/2, np.pi/2, 0]])
+    trajectory5 = np.array([[2*np.pi, np.pi/2, 0, 0, 0]])
 
+    trajectory_choice = choice([trajectory2, trajectory3, trajectory4, trajectory5])
+    trajectories = np.linspace(trajectory1, trajectory_choice, 60)
+    for i in trajectories:
 
-    trajectory_choice = choice([trajectory1, trajectory2, trajectory3, trajectory4, trajectory5])
-    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory_choice)
-    message_obj = MessageWrapper(topic=topic, message=messagedata)
-    p = pickle.dumps(message_obj, protocol=-1)
-    z = zlib.compress(p)
-    print(f"{topic} {z}")
-    # socket.send_string(f"{topic} {messagedata}")
-    socket.send_multipart([topic, z])
-    time.sleep(3)
+        # trajectory_choice = choice([trajectory1, trajectory2, trajectory3, trajectory4, trajectory5])
+        messagedata = AnimationUpdateMessage(robot_base=base, trajectory=i)
+        message_obj = MessageWrapper(topic=topic, message=messagedata)
+        p = pickle.dumps(message_obj, protocol=-1)
+        z = zlib.compress(p)
+        print(f"{topic} {z}")
+        # socket.send_string(f"{topic} {messagedata}")
+        socket.send_multipart([topic, z])
+        # time.sleep(3)
 
+    time.sleep(1)
     # messagedata = WaitMessage()
     #
     # message_obj = MessageWrapper(topic=topic, message=messagedata)
@@ -114,14 +119,14 @@ while True:
     # time.sleep(10)
 
 
-context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.connect("tcp://130.215.217.37:5559")
-
-def send_to_simulator(base, trajectory, topic=b"ROBOT_1"):
-    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
-    message_obj = MessageWrapper(topic=topic, message=messagedata)
-    p = pickle.dumps(message_obj, protocol=-1)
-    z = zlib.compress(p)
-    print(f"{topic} {z}")
-    socket.send_multipart([topic, z])
+# context = zmq.Context()
+# socket = context.socket(zmq.PUB)
+# socket.connect("tcp://130.215.217.37:5559")
+#
+# def send_to_simulator(base, trajectory, topic=b"ROBOT_1"):
+#     messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
+#     message_obj = MessageWrapper(topic=topic, message=messagedata)
+#     p = pickle.dumps(message_obj, protocol=-1)
+#     z = zlib.compress(p)
+#     print(f"{topic} {z}")
+#     socket.send_multipart([topic, z])

@@ -99,7 +99,7 @@ class SerialLink:
 
 
 
-    def fkine(self, stance, unit='rad', apply_stance=False, num_links=4):
+    def fkine(self, stance, unit='rad', apply_stance=False, num_links=4, standing_on_block=False):
         """
         Calculates forward kinematics for a list of joint angles.
         :param stance: stance is list of joint angles.
@@ -145,6 +145,9 @@ class SerialLink:
 
                 t = t * self.links[i].A(angles)
             if apply_stance:
+                # if i == 5:
+                #     final_point = create_point_from_homogeneous_transform(t)
+                #     t *= create_homogeneous_transform_from_point((final_point[0]-20, final_point[1]-20, final_point))
                 actors.append(transforms.np2vtk(t))
                 #
                 # actor_list[i].SetUserMatrix(transforms.np2vtk(t))
@@ -152,6 +155,9 @@ class SerialLink:
 
 
         t = t * self.tool
+
+        if standing_on_block:
+            actors.append(transforms.np2vtk(t))
 
         return t, actors
 

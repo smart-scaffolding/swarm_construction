@@ -256,7 +256,7 @@ def cubeForPath(point):
     if direction == "top":
         cube_source.SetXLength(0.25)
         cube_source.SetYLength(0.25)
-        cube_source.SetZLength(1.1)
+        cube_source.SetZLength(1.1) #1.1
         face_x_plus = colors.GetColor3ub('DarkGreen')
         face_x_minus = colors.GetColor3ub('DarkGreen')
         face_y_plus = colors.GetColor3ub('DarkGreen')
@@ -330,9 +330,9 @@ def cubeForPath(point):
     cube_actor.SetMapper(cube_mapper)
 
     # Assemble the colored cube and annotated cube texts into a composite prop.
-    prop_assembly = vtk.vtkPropAssembly()
-    prop_assembly.AddPart(cube_actor)
-    return prop_assembly
+    # prop_assembly = vtk.vtkPropAssembly()
+    # prop_assembly.AddPart(cube_actor)
+    return cube_actor
 
 def circleForTrajectory(point, direction, index=None):
     colors = vtk.vtkNamedColors()
