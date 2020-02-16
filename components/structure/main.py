@@ -377,151 +377,156 @@ class StructureMain:
                 # print(repr(node), end="\n\n")
                 # TODO: TELL FIRST ROBOT TO START DOING WORK
 
+                num_robots_assigned = 0
                 for node in self.currently_working:
+                    if num_robots_assigned > len(robots):
+                        continue
 
                     # time.sleep(3)
-                    node, robot = self.all_nodes[node.id]
+                    else:
+                        num_robots_assigned += 1
+                        node, robot = self.all_nodes[node.id]
 
-                    if robot is None:
-                        raise Exception("Robot is none, line 288")
-                    # if len(node.children) > 1:
-                    #     blocks_to_move = get_blocks_to_move()
+                        if robot is None:
+                            raise Exception("Robot is none, line 288")
+                        # if len(node.children) > 1:
+                        #     blocks_to_move = get_blocks_to_move()
 
-                    # flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-                    #
-                    # ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
-                    # ferry_blocks_id.reverse()
-                    #
-                    # if len(node.children) > 1:
-                    #     ferry_blocks = ferry_blocks_id[0:19]
-                    # else:
-                    #     ferry_blocks = ferry_blocks_id[0:9]
-                    # ferry_blocks.reverse()
-
-                    print(f"Setting up blocks for node: {node}")
-                    print(f"Goal nodes: {self.goals}")
-                    if node.id in self.goal_ids:
-                        filtered_blocks = list(filter(lambda x: x.final_destination == node.id, self.blocks_to_move))
-                        ferry_blocks = self.get_new_block_location(node, filtered_blocks, type="BUILD")
-                        # ferry_blocks = self.blocks_to_move
+                        # flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
+                        #
+                        # ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
+                        # ferry_blocks_id.reverse()
+                        #
+                        # if len(node.children) > 1:
+                        #     ferry_blocks = ferry_blocks_id[0:19]
+                        # else:
+                        #     ferry_blocks = ferry_blocks_id[0:9]
                         # ferry_blocks.reverse()
-                        structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-                            blocks_to_move=ferry_blocks))
 
-                        # self.blocks_to_move.
-                        for i in ferry_blocks:
-                            for j in self.blocks_to_move:
-                                if i.id == j.id:
-                                    self.blocks_to_move.remove(j)
-                            # self.blocks_to_move.remove(i)
-                    else:
-                        self.blocks_to_move = self.get_new_block_location(node, self.blocks_to_move, type="FERRY")
-                        ferry_blocks = self.blocks_to_move
-                        structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                            blocks_to_move=ferry_blocks))
+                        print(f"Setting up blocks for node: {node}")
+                        print(f"Goal nodes: {self.goals}")
+                        if node.id in self.goal_ids:
+                            filtered_blocks = list(filter(lambda x: x.final_destination == node.id, self.blocks_to_move))
+                            ferry_blocks = self.get_new_block_location(node, filtered_blocks, type="BUILD")
+                            # ferry_blocks = self.blocks_to_move
+                            # ferry_blocks.reverse()
+                            structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
+                                blocks_to_move=ferry_blocks))
 
-                    print(f"Got new block location: {self.blocks_to_move}")
+                            # self.blocks_to_move.
+                            for i in ferry_blocks:
+                                for j in self.blocks_to_move:
+                                    if i.id == j.id:
+                                        self.blocks_to_move.remove(j)
+                                # self.blocks_to_move.remove(i)
+                        else:
+                            self.blocks_to_move = self.get_new_block_location(node, self.blocks_to_move, type="FERRY")
+                            ferry_blocks = self.blocks_to_move
+                            structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
+                                blocks_to_move=ferry_blocks))
 
-                    print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
-
-                    # for blocks in ferry_blocks:
-                    #     blocks.assigned_node = node.id
-                    """
-                    if node.id in goal_ids:
-                        structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-                            blocks_to_move=blocks_to_move[node.id]))
-
-                    else:
-                        flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
-
-                        ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
-                        ferry_blocks_id.reverse()
-                        ferry_blocks = ferry_blocks_id[0:2]
-                        ferry_blocks.reverse()
-
-                        structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                            blocks_to_move=ferry_blocks))
+                        print(f"Got new block location: {self.blocks_to_move}")
 
                         print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
-                    """
-                    print(f"Node in currently_working: {node}")
-                    print(f"\nDOING WORK on node: {node.id}")
-                    print(f"\nDOING WORK on node: {node.id}")
-                    print(f"\nDOING WORK on node: {node.id}")
-                    print(f"\nDOING WORK on node: {node.id}")
 
-                    self.wait_for_task_completion()
+                        # for blocks in ferry_blocks:
+                        #     blocks.assigned_node = node.id
+                        """
+                        if node.id in goal_ids:
+                            structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
+                                blocks_to_move=blocks_to_move[node.id]))
+    
+                        else:
+                            flattened = [val for sublist in list(blocks_to_move.values()) for val in sublist]
+    
+                            ferry_blocks_id = list(filter(lambda x: x.assigned_node == node.id, flattened))
+                            ferry_blocks_id.reverse()
+                            ferry_blocks = ferry_blocks_id[0:2]
+                            ferry_blocks.reverse()
+    
+                            structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
+                                blocks_to_move=ferry_blocks))
+    
+                            print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+                        """
+                        print(f"Node in currently_working: {node}")
+                        print(f"\nDOING WORK on node: {node.id}")
+                        print(f"\nDOING WORK on node: {node.id}")
+                        print(f"\nDOING WORK on node: {node.id}")
+                        print(f"\nDOING WORK on node: {node.id}")
 
-                    # time.sleep(2)
-                    print("Robot has finished working on node")
-                    # Robot has finished working
+                self.wait_for_task_completion()
+
+                # time.sleep(2)
+                print("Robot has finished working on node")
+                # Robot has finished working
+                try:
+                    print("Getting new node")
+                    new_node = self.nodes_to_visit.get(timeout=1) #TODO: May need to check if id already in here
+                    print(f"New node: {new_node}")
+                    self.currently_claimed_set.append(new_node)
+                    # currently_claimed_set.remove(node)
+                    print("Done updating")
+                except(Empty):
+                    print("Queue is empty, continuing")
+                    # continue
+
+                print("\nAssigning robots to points")
+
+                # TODO: Change assign_robots to deal with if num of points less than number of robots
+                if len(self.currently_claimed_set) > len(robots):
                     try:
-                        print("Getting new node")
-                        new_node = self.nodes_to_visit.get(timeout=1) #TODO: May need to check if id already in here
-                        print(f"New node: {new_node}")
-                        self.currently_claimed_set.append(new_node)
-                        # currently_claimed_set.remove(node)
-                        print("Done updating")
-                    except(Empty):
-                        print("Queue is empty, continuing")
-                        # continue
+                        self.currently_claimed_set.remove(node)
+                    except ValueError:
+                        print("Unable to remove node from currenly claimed set, continuing...")
+                #
+                # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
+                # print(f"Current claimed set: {currently_claimed_set}")
+                assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
+                # assign_robots_closest_point(robots, self.currently_claimed_set, None)
+                time.sleep(2)
+                print("Updating dictionary with new robot positions")
+                for bot in robots:  # update dictionary to include robot with claimed division
+                    update_node, _ = self.all_nodes[bot.target.id]
+                    self.all_nodes[bot.target.id] = (update_node, bot)
+                print("\n\n")
 
-                    print("\nAssigning robots to points")
+                # for node in currently_claimed_set:
+                self.notify_children(node)
 
-                    # TODO: Change assign_robots to deal with if num of points less than number of robots
-                    if len(self.currently_claimed_set) > len(robots):
-                        try:
-                            self.currently_claimed_set.remove(node)
-                        except ValueError:
-                            print("Unable to remove node from currenly claimed set, continuing...")
-                    #
-                    # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
-                    # print(f"Current claimed set: {currently_claimed_set}")
-                    assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
-                    # assign_robots_closest_point(robots, self.currently_claimed_set, None)
-                    time.sleep(2)
-                    print("Updating dictionary with new robot positions")
-                    for bot in robots:  # update dictionary to include robot with claimed division
-                        update_node, _ = self.all_nodes[bot.target.id]
-                        self.all_nodes[bot.target.id] = (update_node, bot)
-                    print("\n\n")
+                # try:
+                    # self.currently_working.remove(node)
+                for index, val in enumerate(self.currently_working):
+                    if val.id == node.id:
+                        self.currently_working.pop(index)
+                        break
 
-                    # for node in currently_claimed_set:
-                    self.notify_children(node)
+                # for index, val in enumerate(self.currently_claimed_set):
+                #     if val.id == node.id:
+                #         self.currently_claimed_set.pop(index)
+                #         break
 
-                    # try:
-                        # self.currently_working.remove(node)
-                    for index, val in enumerate(self.currently_working):
-                        if val.id == node.id:
-                            self.currently_working.pop(index)
-                            break
+                for index, val in enumerate(self.goals):
+                    if val.id == node.id:
+                        self.goals.remove(val)
+                        break
 
-                    # for index, val in enumerate(self.currently_claimed_set):
-                    #     if val.id == node.id:
-                    #         self.currently_claimed_set.pop(index)
-                    #         break
+                for index, val in enumerate(self.goal_ids):
+                    if val == node.id:
+                        self.goal_ids.remove(val)
+                        self.already_visited_ids.append(val)
+                        break
+                # except ValueError:
+                #     print("Unable to remove node from currently working")
+                #     print(f"Currently Working: {self.currently_working}")
+                #     print(f"Current Node: {node}")
+                #     print(f"Currently Claimed: {self.currently_claimed_set}")
+                # try:
+                # self.goals.remove(node)
+                # self.goal_ids.remove(node.id)
 
-                    for index, val in enumerate(self.goals):
-                        if val.id == node.id:
-                            self.goals.remove(val)
-                            break
-
-                    for index, val in enumerate(self.goal_ids):
-                        if val == node.id:
-                            self.goal_ids.remove(val)
-                            self.already_visited_ids.append(val)
-                            break
-                    # except ValueError:
-                    #     print("Unable to remove node from currently working")
-                    #     print(f"Currently Working: {self.currently_working}")
-                    #     print(f"Current Node: {node}")
-                    #     print(f"Currently Claimed: {self.currently_claimed_set}")
-                    # try:
-                    # self.goals.remove(node)
-                    # self.goal_ids.remove(node.id)
-
-                    # except:
-                    #     print("")
+                # except:
+                #     print("")
 
 
 
