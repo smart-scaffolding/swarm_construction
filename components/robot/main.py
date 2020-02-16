@@ -12,6 +12,7 @@ import components.robot.config as config
 from components.robot.communication.communicate_with_simulator import SimulatorCommunication
 from components.robot.communication.communicate_with_structure import StructureCommunication
 from components.robot.communication.messages import *
+from components.robot.pathplanning.searches.face_star import BlockFace
 from components.structure.behaviors.building.common_building import Block
 import py_trees
 import time
@@ -148,13 +149,14 @@ if __name__ == '__main__':
     writer.set(name="state/block_has_been_placed", value=False)
     writer.set(name="state/point_to_reach", value=True)
     writer.set(name="state/location_to_move_to",
-               value=choice([(1.5, 1.5, 1, "Top"), (4.5, 1.5, 1, "Top"), (7.5, 1.5, 1, "Top"),
-                             (1.5, 4.5, 1, "Top"), (4.5, 4.5, 1, "Top"), (5.5, 4.5, 1, "Top"),
-                             (1.5, 7.5, 1, "Top"), (3.5, 7.5, 1, "Top"), (5.5, 7.5, 1, "Top"),
-                             ]))
+               value=(10, 0, 0, "top"))
 
+    choice([(1, 1, 0, "top"), (4, 1, 0, "top"), (7, 1, 0, "top"),
+            (1, 4, 0, "top"), (4, 4, 0, "top"), (5, 4, 0, "top"),
+            (1, 7, 0, "top"), (3, 7, 0, "top"), (5, 7, 0, "top"),
+            ])
 
-    writer.set(name="state/current_position", value=np.array([0, 0, 0]))
+    writer.set(name="state/current_position", value=BlockFace(0, 0, 0, 'top'))
 
 
     behaviour_tree.setup(timeout=15)

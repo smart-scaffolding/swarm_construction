@@ -312,7 +312,7 @@ if __name__ == '__main__':
     ])
 
     startFaceDebug = BlockFace(1,2,0,'top')
-    endFaceDebug = BlockFace(5,2,3,'top')
+    endFaceDebug = BlockFace(1,2,0,'top')
 
     faceStarDebug = FaceStar(bp2, armReach)
     # faceStarDebug.display_blueprint()

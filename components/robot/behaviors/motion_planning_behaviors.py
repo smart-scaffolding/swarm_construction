@@ -12,6 +12,7 @@ from components.robot.communication.messages import AnimationUpdateMessage, Stat
     StatusUpdateMessage, PlacedBlockUpdateMessagePayload, BlockLocationMessage
 from components.robot.common.states import RobotBehaviors
 from components.robot.common.common import create_homogeneous_transform_from_point
+from components.robot.pathplanning.searches.face_star import FaceStar, BlockFace
 import numpy as np
 from random import choice
 
@@ -111,7 +112,7 @@ def ik_solver(pipe_connection, robot, simulator_communicator, percentage_done=0)
 
 
 
-def get_path_to_point(robot, destination, simulator_communicator, old_path=None):
+def get_path_to_point(robot, current_position, destination, simulator_communicator, old_path=None):
     """
     Returns a path to the specified point
 
@@ -121,14 +122,55 @@ def get_path_to_point(robot, destination, simulator_communicator, old_path=None)
     :return:
     """
     print("Getting a path to return")
-    time.sleep(0.05)
+    # time.sleep(0.05)
     print("Path found")
     # if config.SIMULATE:
     #     simulator_communicator.robot_communicator.send_communication(message="Got path")
+    armReach = [2.38, 1.58]
 
+    # armReach = [1.5, 1.5]
+
+    # armReach = [1.5, 1.5]
+    blueprint = np.array([
+                             [[1] * 1] * 12,
+                         ] * 12)
+
+    faceStarPlanner = FaceStar(blueprint, armReach)
+    # start_face = choice([BlockFace(1, 1, 0, "top"), BlockFace(4, 1, 0, "top"), BlockFace(7, 1, 0, "top"),
+    #         BlockFace(1, 4, 0, "top"), BlockFace(4, 4, 0, "top"), BlockFace(5, 4, 0, "top"),
+    #         BlockFace(1, 7, 0, "top"), BlockFace(3, 7, 0, "top"), BlockFace(5, 7, 0, "top"),
+    #         ])
+    try:
+        direction = destination[3]
+    except IndexError:
+        direction = 'top'
+
+    point = list(destination)
+    if direction == "top" or direction == "bottom":
+        point[0] = round(point[0])
+        point[1] = round(point[1])
+        point[2] = point[2]-1
+    if direction == "left" or direction == "right":
+        point[0] = point[0] + 1.37  # -1.37
+        point[1] = point[1] - 0.5
+        point[2] = point[2] + 0.87  # -.87
+    if direction == "front" or direction == "back":
+        point[0] = point[0] - 0.5
+        point[1] = point[1] - 1
+        point[2] = point[2] - 0.5
+    print(f"Going to point: {point}")
+    try:
+        path = faceStarPlanner.get_path(start=current_position, goal=BlockFace(point[0], point[1],
+                                                                                        point[2],
+                                                                                        direction))
+    except Exception:
+        print(f"Path planner unable to find path to {point}")
 
 
     # return [choice([(1, 0, 0, "Top"), (2, 0, 0, "Top"), (3, 0, 0, "Top"), (4, 0, 0, "Top")])]
+    # path.pop(0)
+    # print(f"Path: {path}")
+    # return path
     return []
 
 class RemoveBlock(py_trees.behaviour.Behaviour):
@@ -336,7 +378,8 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         FAILURE: Robot has failed to reach point
     """
 
-    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="NavigateToPoint"):
+    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="NavigateToPoint",
+                 current_position_key="current_position"):
         """
 
         :param robot:
@@ -352,14 +395,17 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.blackboard = self.attach_blackboard_client("Navigation", "navigation")
         self.state = self.attach_blackboard_client("State", "state")
         self.key = key
+        self.current_position_key = current_position_key
         self.blackboard.register_key(key=self.key, access=py_trees.common.Access.READ)
         self.state.register_key(key=self.key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=current_position_key, access=py_trees.common.Access.WRITE)
 
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
     def setup(self):
         self.parent_connection, self.child_connection = multiprocessing.Pipe()
+
         self.ik_planner = multiprocessing.Process(target=ik_solver, args=(self.child_connection, self.robot,
                                                                           self.simulator_communicator))
         atexit.register(self.ik_planner.terminate)
@@ -368,8 +414,12 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
     def initialise(self):
         self.reached_point = (True, None)
         self.point_to_reach = self.blackboard.get(self.key)
+
+        self.current_position = self.state.get(self.current_position_key)
+        print(f"[{self.name.upper()}]: Current Position: ({self.current_position.xPos}, {self.current_position.yPos}, {self.current_position.zPos}, {self.current_position.face})")
         print(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
-        self.path = get_path_to_point(self.robot, self.point_to_reach, self.robot_communicator, self.point_to_reach)
+        self.path = get_path_to_point(self.robot, self.current_position, self.point_to_reach, self.robot_communicator,
+                                      self.point_to_reach)
         # print(self.blackboard)
 
     def update(self):
@@ -381,18 +431,18 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         #     return py_trees.common.Status.FAILURE
 
         self.percentage_completion = 0
-        if self.path and self.reached_point[0]:
-            self.next_point = self.path.pop()
+        if len(self.path) > 0 and self.reached_point[0]:
+            self.next_point = self.path.pop(0)
             self.parent_connection.send(self.next_point)
-            base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
-            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                              message=AnimationUpdateMessage(
-                                                                                  robot_base=base))
-            self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                          message=StatusUpdateMessage(
-                                                                              status=RobotBehaviors.MOVE,
-                                                                              payload=StatusUpdateMessagePayload(
-                                                                                robot_base=base)))
+            # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
+            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+            #                                                                   message=AnimationUpdateMessage(
+            #                                                                       robot_base=base))
+            # self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+            #                                                               message=StatusUpdateMessage(
+            #                                                                   status=RobotBehaviors.MOVE,
+            #                                                                   payload=StatusUpdateMessagePayload(
+            #                                                                     robot_base=base)))
             print(f"Next point moving to: {self.next_point}")
         if self.parent_connection.poll():
             self.percentage_completion = self.parent_connection.recv().pop()
@@ -406,11 +456,18 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 never be interrupted. Otherwise, robot could be stopped with foot hanging
                 in midair.
                 """
+                point = np.array(self.next_point[0:3])
+                try:
+                    z = point[2] + 1
+                except IndexError:
+                    z = 4
 
-                base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
+                # TODO: Fix last point
+                base = create_homogeneous_transform_from_point((point[0] + 0.5, point[1] + 0.5, z))
+                # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
                 self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                      message=AnimationUpdateMessage(
-                    robot_base=base))
+                    robot_base=base, path=self.path))
 
                 self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                               message=StatusUpdateMessage(
@@ -419,24 +476,38 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                                                                                       robot_base=base)))
                 self.percentage_completion = self.parent_connection.recv().pop()
                 self.reached_point = (False, self.next_point)
+                self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
+                    1], self.next_point[2], self.next_point[3]))
             if self.percentage_completion == 100:
                 print(f"[{self.name.upper()}]: Reached point: {self.next_point}")
                 self.reached_point = (True, self.next_point)
+                # self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
+                #     1], self.next_point[2], self.next_point[3]))
         else:
             self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
             # finish
-            point = np.array(self.point_to_reach[0:3])
             try:
-                z = point[2]
+                point = np.array(self.next_point[0:3])
+                direction = self.next_point[3]
+            except AttributeError:
+                point = np.array(self.point_to_reach[0:3])
+                try:
+                    direction = self.point_to_reach[3]
+                except IndexError:
+                    direction = "top"
+            try:
+                z = point[2] + 1
             except IndexError:
-                z = 2
+                z = 4
 
             #TODO: Fix last point
-            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
-            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                              message=AnimationUpdateMessage(
-                                                                                  robot_base=base))
-        if len(self.path) == 0 and self.reached_point[0]:
+            # base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
+            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+            #                                                                   message=AnimationUpdateMessage(
+            #                                                                       robot_base=base))
+            self.state.set(name=self.current_position_key, value=BlockFace(point[0], point[
+                1], point[2], direction))
+        if len(self.path) <= 0 and self.reached_point[0]:
             new_status = py_trees.common.Status.SUCCESS
 
         # new_status = py_trees.common.Status.SUCCESS
