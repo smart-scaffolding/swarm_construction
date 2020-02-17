@@ -1,4 +1,4 @@
-Project Title
+Swarm Construction: Robot Module
 =============
 
 The robot module is used to both simulate and control the Inchworm robot for the purposes of Swarm Construction.
