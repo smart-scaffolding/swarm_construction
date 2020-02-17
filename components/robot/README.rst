@@ -42,6 +42,7 @@ you cloned the entire repository:
 After all of the dependencies have been installed, run the following command to get a robot up and running:
 
 ::
+
     python main.py -i ROBOT_#
 
 where the -i command is used to specify the ID of the robot. Note that the id must be in the form ROBOT_. For

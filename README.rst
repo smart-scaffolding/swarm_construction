@@ -43,9 +43,10 @@ you cloned the entire repository:
     pip install -r requirements.txt
 
 After all of the dependencies have been installed, run the following command from the components/robot directory to
-get a robot up and running:
+get a robot up and running
 
 ::
+
     python main.py -i ROBOT_#
 
 where the -i command is used to specify the ID of the robot. Note that the id must be in the form ROBOT_. For
@@ -56,12 +57,14 @@ After all of the dependencies have been installed, run the following command fro
 get the simulator up and running:
 
 ::
+
     python main.py
 
 After all of the dependencies have been installed, run the following command from the components/robot directory to
 get the home block (structure) up and running and begin building:
 
 ::
+
     python main.py
 
 It should also be noted that config.py file specifies all of the configuration parameters for the module. These

@@ -42,6 +42,7 @@ you cloned the entire repository:
 After all of the dependencies have been installed, run the following command to get a robot up and running:
 
 ::
+
     python main.py
 
 It should also be noted that config.py file specifies all of the configuration parameters for the module. These
