@@ -3,7 +3,7 @@ from components.structure.communication.messages import MoveToPointMessage
 
 import numpy as np
 def distance(me, other):
-    dist = (other[0] - me[0])**2 + (other[1] - me[1])
+    dist = (other[0] - me[0])**2 + (other[1] - me[1])**2
     return dist
 
 def robots_distances_to_locations(robots, points):

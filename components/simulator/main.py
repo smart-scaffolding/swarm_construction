@@ -638,11 +638,11 @@ if __name__ == '__main__':
 
     # socket1 = context.socket(zmq.SUB)
     print("Collecting updates from simulator...")
-    socket.bind("tcp://127.0.0.1:5559")
+    socket.bind("tcp://0.0.0.0:5559")
     # socket1.connect(f"tcp://localhost:{port}")
 
-    if len(sys.argv) > 2:
-        socket.connect(f"tcp://localhost:{port1}")
+    # if len(sys.argv) > 2:
+    #     socket.connect(f"tcp://localhost:{port1}")
         # socket1.connect(f"tcp://localhost:{port1}")
 
     # Subscribe to zipcode, default is NYC, 10001
