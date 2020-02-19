@@ -42,8 +42,10 @@ class Inchworm(SerialLink):
 
         if base is None:
             base = tr.trotx(-90, unit='deg')
-        else:
-            assert ishomog(base, (4, 4))
+        # else:
+            # print(base)
+            # assert ishomog(base, (4, 4)) #TODO: May want to renable this
+
         file_names = setup_file_names(4)
         # colors = graphics.vtk_named_colors(["Red", "DarkGreen", "Blue", "Cyan"])
         colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])

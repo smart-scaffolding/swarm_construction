@@ -19,7 +19,7 @@ from random import choice
 ##############################################################################
 # Classes
 ##############################################################################
-def remove_block(robot, block_to_pick_up, simulator_communicator):
+def remove_block(robot, block_to_pick_up, simulator_communicator, blueprint):
     """
     Action used to remove a block from the structure at the specified location
 
@@ -47,7 +47,7 @@ def remove_block(robot, block_to_pick_up, simulator_communicator):
     except KeyboardInterrupt:
         pass
 
-def place_block(robot, simulator_communicator, location_to_set_block, block):
+def place_block(robot, simulator_communicator, location_to_set_block, block, blueprint):
     """
     Action used to place a block on the structure at the specified location
 
@@ -72,12 +72,13 @@ def place_block(robot, simulator_communicator, location_to_set_block, block):
                 block_id=block.id, location=block.next_destination))
             # Change base not to none
         print(f"Robot has placed block at: {location_to_set_block}")
+
         time.sleep(0.1)
         return True
     except KeyboardInterrupt:
         pass
 
-def ik_solver(pipe_connection, robot, simulator_communicator, percentage_done=0):
+def ik_solver(pipe_connection, robot, simulator_communicator, blueprint, percentage_done=0):
     """
     Action used to solve for inverse kinematics
 
@@ -91,7 +92,7 @@ def ik_solver(pipe_connection, robot, simulator_communicator, percentage_done=0)
     idle = True
     percentage_complete = percentage_done
     try:
-        while(True):
+        while True:
             if pipe_connection.poll():
                 pipe_connection.recv()
                 percentage_complete = 0
@@ -112,7 +113,7 @@ def ik_solver(pipe_connection, robot, simulator_communicator, percentage_done=0)
 
 
 
-def get_path_to_point(robot, current_position, destination, simulator_communicator, old_path=None):
+def get_path_to_point(robot, current_position, destination, simulator_communicator, blueprint, old_path=None):
     """
     Returns a path to the specified point
 
@@ -189,7 +190,7 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         FAILURE: Robot has failed at removing a block
     """
 
-    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="RemoveBlock",
+    def __init__(self, robot, key, robot_communicator, simulator_communicator, blueprint, name="RemoveBlock",
                  ):
         """
 
@@ -204,7 +205,7 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.blackboard = self.attach_blackboard_client("State", "remove_block")
         self.key = key
-
+        self.blueprint = blueprint
         # self.keys = {
         #     "remove_block_key": remove_block_key,
         # }
@@ -238,7 +239,8 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         #     self.percentage_completion = self.parent_connection.recv().pop()
         #     if self.percentage_completion == 100:
         #         new_status = py_trees.common.Status.SUCCESS
-        remove_block_action = remove_block(self.robot, self.block_to_remove, self.simulator_communicator)
+        remove_block_action = remove_block(self.robot, self.block_to_remove, self.simulator_communicator,
+                                           blueprint=self.blueprint)
         new_status = py_trees.common.Status.SUCCESS if remove_block_action is True else \
             py_trees.common.Status.FAILURE
         if new_status == py_trees.common.Status.SUCCESS:
@@ -270,7 +272,7 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         FAILURE: Robot has failed at placing a block
     """
 
-    def __init__(self, robot, key, robot_communicator, simulator_communicator,
+    def __init__(self, robot, key, robot_communicator, simulator_communicator, blueprint,
                  state_key="state/block_has_been_placed",
                  place_block_key="place_block/location_to_place_block",
                  remove_block_key="remove_block/block_to_remove",
@@ -287,6 +289,7 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key=str(key), access=py_trees.common.Access.READ)
         self.blackboard.register_key(key=remove_block_key, access=py_trees.common.Access.READ)
 
+        self.blueprint = blueprint
         self.state = self.attach_blackboard_client()
         self.state.register_key(key=state_key, access=py_trees.common.Access.WRITE)
         self.keys = {
@@ -334,7 +337,8 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         #     if self.percentage_completion == 100:
         #         new_status = py_trees.common.Status.SUCCESS
         place_block_action = place_block(robot=self.robot, location_to_set_block=self.location_to_place_block,
-                                         simulator_communicator=self.simulator_communicator, block=self.move_block)
+                                         simulator_communicator=self.simulator_communicator, block=self.move_block,
+                                         blueprint=self.blueprint)
         new_status = py_trees.common.Status.SUCCESS if place_block_action is True else \
             py_trees.common.Status.FAILURE
         if new_status == py_trees.common.Status.SUCCESS:
@@ -378,7 +382,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         FAILURE: Robot has failed to reach point
     """
 
-    def __init__(self, robot, key, robot_communicator, simulator_communicator, name="NavigateToPoint",
+    def __init__(self, robot, key, robot_communicator, simulator_communicator, blueprint, name="NavigateToPoint",
                  current_position_key="current_position"):
         """
 
@@ -399,7 +403,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key=self.key, access=py_trees.common.Access.READ)
         self.state.register_key(key=self.key, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=current_position_key, access=py_trees.common.Access.WRITE)
-
+        self.blueprint = blueprint
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
@@ -407,7 +411,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.parent_connection, self.child_connection = multiprocessing.Pipe()
 
         self.ik_planner = multiprocessing.Process(target=ik_solver, args=(self.child_connection, self.robot,
-                                                                          self.simulator_communicator))
+                                                                          self.simulator_communicator, self.blueprint))
         atexit.register(self.ik_planner.terminate)
         self.ik_planner.start()
 
@@ -467,7 +471,8 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
                 self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                      message=AnimationUpdateMessage(
-                    robot_base=base, path=self.path))
+                    robot_base=base, path=self.path, trajectory=np.array([[1.61095456e-15,  6.18966422e+01,
+                                                                           -1.23793284e+02, -2.80564688e+01]])*np.pi/180))
 
                 self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
                                                                               message=StatusUpdateMessage(
@@ -478,11 +483,13 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 self.reached_point = (False, self.next_point)
                 self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
                     1], self.next_point[2], self.next_point[3]))
+                print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
             if self.percentage_completion == 100:
                 print(f"[{self.name.upper()}]: Reached point: {self.next_point}")
                 self.reached_point = (True, self.next_point)
-                # self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
-                #     1], self.next_point[2], self.next_point[3]))
+                self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
+                    1], self.next_point[2], self.next_point[3]))
+                print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
         else:
             self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
             # finish
@@ -501,12 +508,21 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 z = 4
 
             #TODO: Fix last point
-            # base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
+            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
             # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
             #                                                                   message=AnimationUpdateMessage(
             #                                                                       robot_base=base))
+
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base, path=self.path,
+                                                                                  trajectory=np.array(
+                                                                                      [[1.61095456e-15, 6.18966422e+01,
+                                                                                        -1.23793284e+02,
+                                                                                        -2.80564688e+01]])*np.pi/180))
             self.state.set(name=self.current_position_key, value=BlockFace(point[0], point[
                 1], point[2], direction))
+            print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
         if len(self.path) <= 0 and self.reached_point[0]:
             new_status = py_trees.common.Status.SUCCESS
 
@@ -529,7 +545,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         """
         self.logger.debug("%s.terminate()[%s->%s]" % (self.__class__.__name__, self.status, new_status))
 
-def create_root(robot, robot_communicator, simulator_communicator, set_variables=False):
+def create_root(robot, robot_communicator, simulator_communicator, blueprint, set_variables=False):
     """
     Create the behavior tree made up of the following behaviors:
 
@@ -542,13 +558,14 @@ def create_root(robot, robot_communicator, simulator_communicator, set_variables
     """
 
     task_one = NavigateToPoint(name="MoveToBlockToRemove", key="point_to_reach", robot=robot,
-                               robot_communicator=robot_communicator, simulator_communicator=simulator_communicator)
+                               robot_communicator=robot_communicator, simulator_communicator=simulator_communicator,
+                               blueprint=blueprint)
     task_two = RemoveBlock(name="RemoveBlock", key="block_to_remove", robot=robot,
-                           robot_communicator=robot_communicator, simulator_communicator=simulator_communicator)
+                           robot_communicator=robot_communicator, simulator_communicator=simulator_communicator, blueprint=blueprint)
     task_three = NavigateToPoint(name="MoveToPlaceBlock", key="point_to_reach_2", robot=robot,
-                                 robot_communicator=robot_communicator, simulator_communicator=simulator_communicator)
+                                 robot_communicator=robot_communicator, simulator_communicator=simulator_communicator, blueprint=blueprint)
     task_four = PlaceBlock(name="PlaceBlock", key="location_to_place_block", robot=robot,
-                           robot_communicator=robot_communicator, simulator_communicator=simulator_communicator)
+                           robot_communicator=robot_communicator, simulator_communicator=simulator_communicator, blueprint=blueprint)
 
     piwylo = py_trees.idioms.pick_up_where_you_left_off(
         name="Pick Up\nWhere You\nLeft Off",
@@ -626,16 +643,17 @@ def main():
             break
     print("\n")
 
-def get_motion_planning_behaviors_tree(robot_communicator, simulator_communicator, robot):
+def get_motion_planning_behaviors_tree(robot_communicator, simulator_communicator, robot, blueprint):
     """
 
     :param robot_communicator: Object to send messages to structure
     :param simulator_communicator: Object to send messages to simulator
     :return:
     """
-    return create_root(robot_communicator=robot_communicator, simulator_communicator=simulator_communicator, robot=robot)
+    return create_root(robot_communicator=robot_communicator, simulator_communicator=simulator_communicator,
+                       robot=robot, blueprint=blueprint)
 
-def get_move_to_point_tree(robot_communicator, simulator_communicator, robot):
+def get_move_to_point_tree(robot_communicator, simulator_communicator, robot, blueprint):
     """
 
     :param robot_communicator: Object to send messages to structure
@@ -644,7 +662,8 @@ def get_move_to_point_tree(robot_communicator, simulator_communicator, robot):
     """
 
     task_one = NavigateToPoint(name="MoveToBlockToRemove", key="point_to_reach", robot=robot,
-                               robot_communicator=robot_communicator, simulator_communicator=simulator_communicator)
+                               robot_communicator=robot_communicator, simulator_communicator=simulator_communicator,
+                               blueprint=blueprint)
     piwylo = py_trees.idioms.pick_up_where_you_left_off(
         name="Pick Up\nWhere You\nLeft Off",
         tasks=[task_one]

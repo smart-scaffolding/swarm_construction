@@ -6,7 +6,8 @@ from zmq.eventloop import ioloop, zmqstream
 import components.structure.config as config
 # from queue import Queue
 # import threading
-
+import zlib
+import pickle
 from multiprocessing import Process, Queue
 
 
@@ -35,7 +36,8 @@ class HeartBeater():
         self.pongstream.on_recv(self.handle_pong)
 
         self.hearts = set()
-        self.responses = set()
+        self.robots_alive = set()
+        self.responses = dict()
         self.lifetime = 0
         self.tic = time.time()
 
@@ -51,26 +53,31 @@ class HeartBeater():
         self.lifetime += toc-self.tic
         self.tic = toc
 
-        goodhearts = self.hearts.intersection(self.responses)
+        goodhearts = self.hearts.intersection(self.robots_alive)
         heartfailures = self.hearts.difference(goodhearts)
-        newhearts = self.responses.difference(goodhearts)
+        newhearts = self.robots_alive.difference(goodhearts)
 
         if len(newhearts) > 0:
             self.handle_new_heart(newhearts)
         if len(heartfailures) > 0:
             self.handle_heart_failure(heartfailures)
-        self.responses = set()
-
+        # self.responses = set()
+        self.robots_alive = set()
         print("%i beating hearts: %s"%(len(self.hearts),self.hearts))
+        for heart in self.hearts:
+            print(f"Position of {heart} -> {self.responses[heart].position}")
         self.pingstream.send(str(self.lifetime).encode())
 
     def handle_new_heart(self, heart):
         while len(heart) > 0:
             new_heart = heart.pop()
-            print(f"Detected new heart {str(new_heart)}")
-            self.hearts.add(new_heart)
-            self.robot_queue.put(new_heart)
-            print("New heart added to queue")
+            try:
+                print(f"Detected new heart {str(new_heart)}")
+                self.hearts.add(new_heart)
+                self.robot_queue[new_heart] = self.responses[new_heart]
+                print("New heart added to queue")
+            except AttributeError:
+                print("Received bad heart message, unable to parse")
 
     def handle_heart_failure(self, heart):
         while len(heart) > 0:
@@ -79,6 +86,7 @@ class HeartBeater():
             if heart_failure == b'SIMULATOR':
                 print("The simulator has disconnected")
             elif "ROBOT" in str(heart_failure):
+                self.robot_queue.pop(heart_failure, None)
                 print(f"A robot has been disconnected, {heart_failure}")
             else:
                 print(f"Heart {str(heart_failure)} failed, no longer connected")
@@ -88,7 +96,15 @@ class HeartBeater():
         "if heart is beating"
         # print("Handle pong")
         if msg[1] == str(self.lifetime).encode():
-            self.responses.add(msg[0])
+            new_heart = zlib.decompress(msg[0])
+            new_heart = pickle.loads(new_heart)
+            try:
+                self.robots_alive.add(new_heart.id)
+                self.responses[new_heart.id] = new_heart
+            except AttributeError:
+                print("Received bad heart message, unable to parse")
+
+
         else:
             print(f"Bad heartbeat (possibly old?): {msg[1]}")
 

@@ -15,7 +15,7 @@ from random import sample, choice
 import time
 # from queue import Queue
 # import asyncio
-from multiprocessing import Queue
+from multiprocessing import Queue, Manager
 import numpy as np
 from math import sqrt
 from components.structure.behaviors.divide_structure import BuildingPlanner
@@ -29,7 +29,8 @@ configuration = None
 class StructureMain:
     def __init__(self, blueprint, division_size=5):
         self.configuration = config
-        self.robot_queue = Queue()
+        self.manager = Manager()
+        self.robot_queue = self.manager.dict()
         self.known_robots = {}
         self.blueprint = blueprint
         self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=(0, 0))
@@ -879,4 +880,14 @@ if __name__ == '__main__':
         blueprint = blueprints[i]
         structure.reset_building_planner(blueprint)
         structure.build_structure(level=i)
+
+    # while True:
+    #     print("-"*30)
+    #     try:
+    #         for robot in structure.robot_queue:
+    #             print(f"Robot: {robot} Position: {structure.robot_queue[robot].position}")
+    #     except RuntimeError:
+    #         continue
+    #     print("-" * 30)
+    #     time.sleep(1)
 

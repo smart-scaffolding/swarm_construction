@@ -32,9 +32,13 @@ ROBOTS = 1
 #     ])
 
 BLUEPRINT = np.array([
-                             [[1] * 1] * 12,
-                         ] * 12)
-
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+    [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+    [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+])
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -81,7 +85,7 @@ class WorkerThread(threading.Thread):
                 [topic, message] = self.socket.recv_multipart()
                 message = zlib.decompress(message)
                 messagedata = pickle.loads(message)
-                # print(f"[Worker thread]: {topic} {messagedata}")
+                print(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
                     # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
@@ -192,8 +196,13 @@ class CalculatorThread(WorkerThread):
                     #
                     # for trajectory in multiple_trajectories:
                     transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True,
-                                                          standing_on_block=True, num_links=5)
-                    self.result_q.put((actor, robot_actors, path))
+                                                          standing_on_block=False, num_links=4)
+                    text_position = np.eye(4)
+                    text_position[0, 3] = base[0, 3] + 1
+                    text_position[1, 3] = base[1, 3]
+                    text_position[2, 3] = base[2, 3] + 2
+                    text_position = np2vtk(text_position)
+                    self.result_q.put((actor, robot_actors, text_position, path))
 
 
                 """
@@ -232,7 +241,7 @@ class CalculatorThread(WorkerThread):
 
                     path = message.message.path
                     print(f"Path: {path}")
-                    self.result_q.put((actor, [transform], path))
+                    self.result_q.put((actor, [transform], None, path))
 
             # except:
             #     continue
@@ -269,14 +278,17 @@ class vtkTimerCallback():
 
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
-        _, robot_actor, _ = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS,
-                                                block_on_end_effector=True)
+        robot_actor, rendered_id = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS,
+                                                block_on_end_effector=False)
         for link in robot_actor:
             self.pipeline.add_actor(link)
 
+        if rendered_id:
+            self.pipeline.add_actor(rendered_id)
+
         print("Should be seeing new robot, as it was just added")
 
-        self.robot_actors[robot] = (robot_actor, new_robot, result_queue)
+        self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
         # print(f"Robot added to known robots: {self.robot_actors}")
         self.pipeline.animate()
 
@@ -321,16 +333,19 @@ class vtkTimerCallback():
            self.add_robot_to_sim(topic, result_q)
 
         for robot in self.robot_actors:
-            actors, model, robot_queue = self.robot_actors[robot]
+            actors, model, robot_queue, rendered_id = self.robot_actors[robot]
             if not robot_queue.empty():
         # if not self.queue.empty():
         #     for i in range(5):
-               robot_id, transforms, path = robot_queue.get()
+               robot_id, transforms, text_position, path = robot_queue.get()
+
+
                # print(f"Callback: Moving position of robot: {robot_id}")
                # print(f"Known actors in callback: {self.robot_actors}")
 
                for index in range(len(transforms)):
-
+                   assembly = vtk.vtkAssembly()
+                   assembly.GetParts()
                    """
                    ROBOT
                    """
@@ -350,8 +365,12 @@ class vtkTimerCallback():
                            # print("Updating block end position")
                            self.pipeline.ren.AddActor(new_block_tool)
 
+
                        elif index <=3:
-                           print("Updating robot with new transforms")
+                           if index == 0:
+                               # base = transforms[index].GetData()
+                               rendered_id.SetUserMatrix(text_position)
+                           # print("Updating robot with new transforms")
                            actors[index].SetUserMatrix(transforms[index])
                            actors[index].SetScale(0.013)
 

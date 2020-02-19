@@ -44,7 +44,7 @@ class SerialLink:
         if base is None:
             self.base = np.asmatrix(np.eye(4, 4))
         else:
-            assert (type(base) is np.matrix) and (base.shape == (4, 4))
+            # assert (type(base) is np.matrix) and (base.shape == (4, 4)) #TODO: may want to renable this
             self.base = base
         if tool is None:
             self.tool = np.asmatrix(np.eye(4, 4))

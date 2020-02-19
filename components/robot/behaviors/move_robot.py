@@ -74,14 +74,14 @@ class MoveToNewLocation(py_trees.behaviour.Behaviour):
             self.blackboard.set(name=self.keys["navigation_first_key"], value=self.destination)
         return new_status
 
-def create_move_robot_root(robot_communicator, simulator_communicator, robot):
+def create_move_robot_root(robot_communicator, simulator_communicator, robot, blueprint):
     # move_action = py_trees.decorators.RunningIsFailure(child=FerryBlocks(name="Ferry", status_identifier="FERRY"))
     move_action = py_trees.decorators.RunningIsFailure(child=MoveToNewLocation(name="Move",
                                                                                status_identifier=RobotBehaviors.MOVE,
                                                                                robot_communicator=robot_communicator))
 
     move_to_point_behavior = get_move_to_point_tree(robot_communicator=robot_communicator,
-                                                    simulator_communicator=simulator_communicator, robot=robot)
+                                                    simulator_communicator=simulator_communicator, robot=robot, blueprint=blueprint)
     root = py_trees.composites.Selector(name="Root")
 
     move = py_trees.composites.Selector(name="Move to point")

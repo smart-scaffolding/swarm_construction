@@ -135,7 +135,7 @@ class Build(MoveBlocks):
     pass
 
 
-def create_move_blocks_root(robot_communicator, robot, simulator_communicator=None, ferry=True):
+def create_move_blocks_root(robot_communicator, robot, blueprint, simulator_communicator=None, ferry=True):
     if ferry:
         move_action = py_trees.decorators.RunningIsFailure(child=FerryBlocks(name="Ferry",
                                                                              status_identifier=RobotBehaviors.FERRY,
@@ -149,7 +149,7 @@ def create_move_blocks_root(robot_communicator, robot, simulator_communicator=No
 
     motion_planning_behaviors = get_motion_planning_behaviors_tree(robot_communicator=robot_communicator,
                                                                    simulator_communicator=simulator_communicator,
-                                                                   robot=robot)
+                                                                   robot=robot, blueprint=blueprint)
     root = py_trees.composites.Selector(name="Root")
 
     move = py_trees.composites.Selector(name="Move Blocks Motion Planning")

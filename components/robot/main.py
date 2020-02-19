@@ -32,14 +32,19 @@ class RobotMain:
             self.heartbeat_connection_out = config.communication["heartbeat_connection_out"]
             if self.configuration.TESTING:
                 args = command_line_argument_parser().parse_args()
+                print(args)
                 self.id = str(args.robot_id).encode('UTF-8')
+                self.position = str(args.position).encode('UTF-8')
+                self.position = self.position.decode().strip(" []").split(",")
+                self.position = [float(x) for x in self.position]
                 print(self.id)
+                print(self.position)
             if self.configuration.SIMULATE:
                 self.simulator_send_messages_socket = config.communication["simulator_send_messages_port"]
             self.receive_messages_socket = config.communication["receive_messages_port"]
             self.send_messages_socket = config.communication["send_messages_port"]
         except:
-            raise Exception("Must define all parameters in configuration file")
+            raise AttributeError("Must define all parameters in configuration file")
 
         self.structure_communicator = StructureCommunication(receive_messages_socket=self.receive_messages_socket,
                                                              send_messages_socket=self.send_messages_socket,
@@ -65,7 +70,7 @@ class RobotMain:
             self.simulator_communicator.initialize_communication_with_simulator()
 
 
-    def create_behavior_tree(self):
+    def create_behavior_tree(self, blueprint):
         """
 
         :return:
@@ -77,13 +82,13 @@ class RobotMain:
         simulator_communicator = RobotCommunicator(robot_communicator=self.simulator_communicator, robot_id=self.id)
 
         ferry_behavior = create_move_blocks_root(ferry=True, robot_communicator=communicator,
-                                                 simulator_communicator=simulator_communicator, robot=self.id)
+                                                 simulator_communicator=simulator_communicator, robot=self.id, blueprint=blueprint)
         build_behavior = create_move_blocks_root(ferry=False, robot_communicator=communicator,
-                                                 simulator_communicator=simulator_communicator, robot=self.id)
+                                                 simulator_communicator=simulator_communicator, robot=self.id, blueprint=blueprint)
         wait_behavior = create__waiting_root(robot_communicator=communicator)
         move_behavior = create_move_robot_root(robot_communicator=communicator,
-                                               simulator_communicator=simulator_communicator, robot=self.id)
-        update_behavior = create_update_behavior_root(robot_communicator=communicator)
+                                               simulator_communicator=simulator_communicator, robot=self.id, blueprint=blueprint)
+        update_behavior = create_update_behavior_root(robot_communicator=communicator, blueprint=blueprint)
 
         behaviors.add_children([move_behavior, ferry_behavior, build_behavior, wait_behavior])
 
@@ -102,14 +107,14 @@ def command_line_argument_parser():
     parser.add_argument('-r', '--receive', type=int, help='Select port to receive values')
     parser.add_argument('-s', '--send', type=int, help='Select port to send values')
     parser.add_argument('-i', '--robot_id', type=str, help='Robot id')
+    parser.add_argument('-p', '--position', nargs='+', type=float, help='Position of robot as tuple (x, y, z)')
     return parser
 
 
 if __name__ == '__main__':
 
     robot = RobotMain()
-    robot.initialize_communications()
-    root = robot.create_behavior_tree()
+    root = robot.create_behavior_tree(blueprint=None)
 
     behaviour_tree = py_trees.trees.BehaviourTree(root)
     #
@@ -156,10 +161,17 @@ if __name__ == '__main__':
             (1, 7, 0, "top"), (3, 7, 0, "top"), (5, 7, 0, "top"),
             ])
 
-    writer.set(name="state/current_position", value=BlockFace(0, 0, 0, 'top'))
+
+    writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
+                                                              'top'))
 
 
     behaviour_tree.setup(timeout=15)
+
+
+
+    robot.initialize_communications()
+
     #
     # ####################
     # # Tick Tock

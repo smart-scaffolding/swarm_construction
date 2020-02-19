@@ -6,6 +6,7 @@ import py_trees
 import time
 from components.robot.communication.messages import StatusUpdateMessage
 from components.robot.common.states import RobotBehaviors
+from components.robot.pathplanning.searches.face_star import BlockFace
 ##############################################################################
 # Classes
 ##############################################################################
@@ -20,8 +21,10 @@ class Wait(py_trees.behaviour.Behaviour):
         self.status_identifier = status_identifier
         self.keys = {
             "robot_state": robot_state,
+            "current_position": "current_position"
         }
         self.state.register_key(key=robot_state, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key="current_position", access=py_trees.common.Access.WRITE)
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
@@ -32,6 +35,7 @@ class Wait(py_trees.behaviour.Behaviour):
     def update(self):
         new_status = py_trees.common.Status.RUNNING
 
+        self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom'))
 
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")

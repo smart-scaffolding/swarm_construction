@@ -44,7 +44,7 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
         assembly.AddPart(text_actor)
 
 
-        return [], [assembly], []
+        return [assembly], []
     stl_files = setup_file_names(4)
     print("STL FILES: {}".format(stl_files))
     reader_list = [0] * len(stl_files)
@@ -76,7 +76,23 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
         actor_list[-1].GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))  # (R,G,B)
         actor_list[-1].SetScale(0.013)
 
-    return reader_list, actor_list, mapper_list
+    text = vtk.vtkVectorText()
+    text.SetText(robot_id)
+    text_mapper = vtk.vtkPolyDataMapper()
+    text_mapper.SetInputConnection(text.GetOutputPort())
+    text_actor = vtk.vtkActor()
+    text_actor.SetMapper(text_mapper)
+    text_actor.GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
+    text_actor.AddPosition(0, 0, 1)
+    text_actor.RotateX(60)
+    text_actor.SetScale(0.5)
+
+    # assembly = vtk.vtkAssembly()
+    # for actor in actor_list:
+    #     assembly.AddPart(actor)
+    # assembly.AddPart(text_actor)
+
+    return actor_list, text_actor
 
 
 def setup_structure_display(blueprint, pipeline, color, block_file_location):
@@ -122,7 +138,7 @@ def setup_structure_display(blueprint, pipeline, color, block_file_location):
                     actor_list.GetProperty().SetColor(my_color[0])  # (R,G,B)
                     # actor_list.GetProperty().SetColor(color[i][j][k])
                     actor_list.SetScale(0.013)
-                    actor_list.SetPosition((i-1, j-1, k))
+                    actor_list.SetPosition((i, j, k))
                     # print("SCALE: {}".format(actor_list.GetScale()))
                     # print("POSITION: {}".format(actor_list.GetPosition()))
                     pipeline.add_actor(actor_list)

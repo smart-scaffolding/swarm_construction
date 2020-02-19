@@ -78,3 +78,8 @@ class MessageWrapper:
     def __init__(self, topic, message):
         self.topic = topic
         self.message = message
+
+class HeartBeat:
+    def __init__(self, id, position):
+        self.id = id
+        self.position = position

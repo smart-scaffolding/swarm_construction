@@ -20,6 +20,9 @@ class BlockFace:
         self.face = face
         self.blockWidth = blockWidth
 
+    def return_tuple(self):
+        return (self.xPos, self.yPos, self.zPos)
+
     def get_face_coordinate(self):
         coordinate = [self.xPos, self.yPos, self.zPos]
         if self.face == 'front':

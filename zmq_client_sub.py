@@ -85,13 +85,13 @@ total_value = 0
 while True:
     [topic, message] = socket.recv_multipart()
     # print(topic)
-    # print(message)
-    message = zlib.decompress(message)
-    message = pickle.loads(message)
+    print(message)
+    # message = zlib.decompress(message)
+    # message = pickle.loads(message)
 
     # print(message)
-    print(message.topic)
-    print(message.message)
+    # print(message.topic)
+    # print(message.message)
     print("-"*20)
     print("\n")
     # print(message.message.message_id)

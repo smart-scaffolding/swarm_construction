@@ -381,55 +381,55 @@ def MakeAxesActor(scale, xyzLabels):
     axes.GetZAxisCaptionActor2D().GetCaptionTextProperty().ShallowCopy(tprop)
     return axes
 
-def setup_structure_display(blueprint, block_file_location, sort=None, ):
-    """
-    Internal function to initialise vtk objects.
-    :return: reader_list, actor_list, mapper_list
-    """
-    # reader_list = np.zeros(self.blueprint.size)
-    # actor_list = np.zeros(self.blueprint.size)
-    # print("Actor List: {}".format(actor_list))
-    #
-    # mapper_list = np.zeros(self.blueprint.size)
-    # for i in range(len(self.stl_files)):
-
-    actors = []
-    # if sort is not None:
-    #     blueprint = sort(blueprint)
-    print(blueprint.shape)
-    for division_index in range(blueprint.shape[1]):
-        division = blueprint[:, division_index]
-    #     for j in range(len(blueprint[0])):
-    #         for k in range(len(blueprint[0][0])):
-        for block in division:
-                if(block.hasBlock):
-                    # reader_list = vtk.vtkSTLReader()
-                    # loc = block_file_location
-                    # # print(loc)
-                    # reader_list.SetFileName(loc)
-                    # mapper_list = vtk.vtkPolyDataMapper()
-                    # mapper_list.SetInputConnection(reader_list.GetOutputPort())
-                    actor_list = vtk.vtkActor()
-                    actor_list.SetMapper(block_file_location)
-                    # color_index = random.randint(1, 3)
-                    # if i == 0 or j == 0 or k == 0 or i ==(len(blueprint-1)) or j ==(len(blueprint[
-                    #                                                                              0]-1)) or k ==(
-                    #         len(blueprint[0][0]-1)):
-                    #     color_index = 1
-                    # if color_index == 1:
-                    #     color = vtk_named_colors(["DarkGreen"])
-                    # elif color_index == 2:
-                    #     color = vtk_named_colors(["Red"])
-                    # else:
-                    color = vtk_named_colors(["DarkGreen"])
-                    #
-                    actor_list.GetProperty().SetColor(color[0])  # (R,G,B)
-                    actor_list.SetScale(0.013)
-                    actor_list.SetPosition(block.position)
-                    # print("SCALE: {}".format(actor_list.GetScale()))
-                    # print("POSITION: {}".format(actor_list.GetPosition()))
-                    actors.append(actor_list)
-    return actors
+# def setup_structure_display(blueprint, block_file_location, sort=None, ):
+#     """
+#     Internal function to initialise vtk objects.
+#     :return: reader_list, actor_list, mapper_list
+#     """
+#     # reader_list = np.zeros(self.blueprint.size)
+#     # actor_list = np.zeros(self.blueprint.size)
+#     # print("Actor List: {}".format(actor_list))
+#     #
+#     # mapper_list = np.zeros(self.blueprint.size)
+#     # for i in range(len(self.stl_files)):
+#
+#     actors = []
+#     # if sort is not None:
+#     #     blueprint = sort(blueprint)
+#     print(blueprint.shape)
+#     for division_index in range(blueprint.shape[1]):
+#         division = blueprint[:, division_index]
+#     #     for j in range(len(blueprint[0])):
+#     #         for k in range(len(blueprint[0][0])):
+#         for block in division:
+#                 if(block.hasBlock):
+#                     # reader_list = vtk.vtkSTLReader()
+#                     # loc = block_file_location
+#                     # # print(loc)
+#                     # reader_list.SetFileName(loc)
+#                     # mapper_list = vtk.vtkPolyDataMapper()
+#                     # mapper_list.SetInputConnection(reader_list.GetOutputPort())
+#                     actor_list = vtk.vtkActor()
+#                     actor_list.SetMapper(block_file_location)
+#                     # color_index = random.randint(1, 3)
+#                     # if i == 0 or j == 0 or k == 0 or i ==(len(blueprint-1)) or j ==(len(blueprint[
+#                     #                                                                              0]-1)) or k ==(
+#                     #         len(blueprint[0][0]-1)):
+#                     #     color_index = 1
+#                     # if color_index == 1:
+#                     #     color = vtk_named_colors(["DarkGreen"])
+#                     # elif color_index == 2:
+#                     #     color = vtk_named_colors(["Red"])
+#                     # else:
+#                     color = vtk_named_colors(["DarkGreen"])
+#                     #
+#                     actor_list.GetProperty().SetColor(color[0])  # (R,G,B)
+#                     actor_list.SetScale(0.013)
+#                     actor_list.SetPosition(block.position)
+#                     # print("SCALE: {}".format(actor_list.GetScale()))
+#                     # print("POSITION: {}".format(actor_list.GetPosition()))
+#                     actors.append(actor_list)
+#     return actors
 
 class AnimationUpdate:
     def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):

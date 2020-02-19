@@ -17,13 +17,13 @@ socket = context.socket(zmq.PUB)
 # socket.bind(f"tcp://*:{port}")
 # socket.bind("tcp://127.0.0.1:5559")
 socket.connect("tcp://127.0.0.1:5559")
-
+#
 
 while True:
     # topic = random.randrange(10001,10010)
     # topic = 10001
-    # topics = [b"ROBOT_1", b"ROBOT_2", b"ROBOT_3"]
-    topics = [b"ROBOT_1"]
+    topics = [b"ROBOT_1", b"ROBOT_2", b"ROBOT_3"]
+    # topics = [b"ROBOT_1"]
     # topics = [b"BLOCK_1", b"BLOCK_2", b"BLOCK_3"]
     topic = choice(topics)
     # topic = b"BLOCK_" + str(randint(0, 10)).encode()
@@ -121,7 +121,7 @@ while True:
 
 # context = zmq.Context()
 # socket = context.socket(zmq.PUB)
-# socket.connect("tcp://130.215.217.37:5559")
+# socket.connect("tcp://127.0.0.1:5559")
 #
 # def send_to_simulator(base, trajectory, topic=b"ROBOT_1"):
 #     messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)

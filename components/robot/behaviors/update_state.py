@@ -12,6 +12,7 @@ from components.robot.common.states import RobotBehaviors
 
 class UpdateState(py_trees.behaviour.Behaviour):
     def __init__(self, name, status_identifier, robot_communicator,
+                 blueprint,
                  navigation_first_key="navigation/point_to_reach",
                  place_block_key="place_block/location_to_place_block",
                  navigation_second_key="navigation/point_to_reach_2",
@@ -20,7 +21,8 @@ class UpdateState(py_trees.behaviour.Behaviour):
                  robot_state="robot_status",
                  block_placed_state="block_has_been_placed",
                  location_to_move_to_key="location_to_move_to",
-                 destination_reached="point_to_reach"
+                 destination_reached="point_to_reach",
+
                  ):
         super().__init__(name=name)
         self.state = self.attach_blackboard_client("State", "state")
@@ -55,6 +57,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.communicator = robot_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
 
+        self.blueprint=blueprint
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
     def initialise(self):
@@ -113,11 +116,11 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["destination_reached"], value=False)
 
 
-def create_update_behavior_root(robot_communicator):
+def create_update_behavior_root(robot_communicator, blueprint):
     # wait_action = py_trees.decorators.RunningIsFailure(child=Wait(name="Wait", status_identifier="WAIT"))
 
     update_state = UpdateState(name="Update state", status_identifier=RobotBehaviors.UPDATE,
-                               robot_communicator=robot_communicator)
+                               robot_communicator=robot_communicator, blueprint=blueprint)
 
     root = py_trees.composites.Selector(name="Root")
 
