@@ -142,7 +142,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
             # TODO: refactor the code
             # Temporary fix for base flipping
             if baseID == 'D':
-                ik_angles[0] = ik_angles[0] - 180
+                # ik_angles[0] = ik_angles[0] - 180
                 base = robot.DEE_POSE
 
             forward_1.append(ik_angles[0])
@@ -179,7 +179,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         # print(f'angle_update {angle_update}')
         # angle_update = ik_angles
         robot.update_angles(angle_update, unit="deg")
-        print(f'angles: {ik_angles}')
+        # print(f'angles: {ik_angles}')
         send_to_simulator(base=base, trajectory=ik_angles)
 
     forward_1 = np.asmatrix(forward_1)
@@ -439,7 +439,10 @@ def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, t
 
 def send_to_simulator(base, trajectory, topic=TOPIC):
     # base *= trotz(theta=np.pi/2)
+    # print(f'before converted to pi: {trajectory}')
+    trajectory[0] = trajectory[0] - 90
     trajectory = trajectory*np.pi/180
+    # print(f'after converted to pi: {trajectory}')
     messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
     message_obj = MessageWrapper(topic=topic, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
