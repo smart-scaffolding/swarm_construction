@@ -84,7 +84,7 @@ def main():
     # endFace= BlockFace(3, 2, 5, "left")
     endFace = BlockFace(1, 0, 0, 'top')
 
-    ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.25,
+    ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.20,
                                                                          startFace=startFace,
                                                                     endFace=endFace, blueprint=blueprint,
                                                                                 )
@@ -119,11 +119,15 @@ def main():
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
 
     if baseID == 'A':
-        basePos = robot.DEE_POSE[:3,3]
-    else:
+        currentEEPos = robot.DEE_POSE[:3,3]
         basePos = robot.AEE_POSE[:3,3]
+    else:
+        currentEEPos = robot.AEE_POSE[:3,3]
+        basePos = robot.DEE_POSE[:3,3]
 
-    setPoints, _ = get_quintic_trajectory(points=np.array([basePos,point]), set_points=num_steps)
+    check_if_point_reachable(robot, basePos, point)
+
+    setPoints, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
 
     forward_1 = []
     forward_2 = []
@@ -220,8 +224,8 @@ def follow_path(robot, num_steps, offset, startFace, endFace, blueprint, secondP
     if not use_face_star:
         # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (3, 2, 5, "left"), (3, 2, 4,"left"), (3, 2, 6, "left"), (3, 2, 5, "left") ]
         # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (2, 2, 2, "top")]
-        # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"),(2, 1, 0, "top"), (5, 0, 0, "top"), (1, 1, 0, "top"), (0, 2, 0, "top")]
-        path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
+        path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"),(2, 1, 0, "top"), (5, 0, 0, "top"), (1, 1, 0, "top"), (0, 2, 0, "top")]
+        # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
         # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
     armReach = [2.38, 1.58]
 
@@ -435,6 +439,13 @@ def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, t
 
 
     return ee_pos
+
+
+def check_if_point_reachable(robot, base, goal):
+    delta = goal - base
+    dist = np.sqrt(delta[0]**2+delta[1]**2+delta[2]**2)
+    if dist > (robot.links[1].length + robot.links[2].length) * 0.95:
+        raise ValueError(f'Robot cannot reach from base {base} to goal {goal}')
 
 
 def send_to_simulator(base, trajectory, topic=TOPIC):

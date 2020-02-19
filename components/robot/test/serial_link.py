@@ -473,12 +473,15 @@ class SerialLink:
         if self.DEBUG:
             print(f'(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}')
         # Robot Parameters
-        L1 = 4.125  # L1 in inches
-        L2 = 6.43  # L2 in inches
-        blockWidth = 3
+        # L1 = 4.125  # L1 in inches
+        # L2 = 6.43  # L2 in inches
+        # blockWidth = 3
+        L1 = self.links[0].length
+        L2 = self.links[1].length
 
         relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID)
-        x, y, z, dummy = relativePos * blockWidth  # dummy value should always 1
+        # x, y, z, dummy = relativePos * blockWidth  # dummy value should always 1
+        x, y, z, dummy = relativePos  # dummy value should always 1
 
         if self.DEBUG:
             print(f'x y z: {x} {y} {z}')
