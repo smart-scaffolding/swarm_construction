@@ -27,13 +27,13 @@ configuration = None
 
 
 class StructureMain:
-    def __init__(self, blueprint, division_size=5):
+    def __init__(self, blueprint, division_size=5, ferry_region_size=3, feeding_location=(0, 0)):
         self.configuration = config
-        self.manager = Manager()
-        self.robot_queue = self.manager.dict()
+        # self.manager = Manager()
+        self.robot_queue = Queue()
         self.known_robots = {}
         self.blueprint = blueprint
-        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=(0, 0))
+        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=feeding_location)
 
         self.goals = set()
         self.goal_ids = set()
@@ -44,6 +44,8 @@ class StructureMain:
         self.currently_working = []
         self.already_visited_ids = []
         self.division_size = division_size
+        self.ferry_region_size = ferry_region_size
+
         try:
             # self.id = Config.ROBOT_ID.encode('UTF-8')
             # self.heartbeat_connection_in = Config.communication["heartbeat_connection_in"]
@@ -594,7 +596,7 @@ class StructureMain:
             _, _, new_block_locations = determine_ferry_regions(level, num_rows=m,
                                                                 num_cols=n,
                                                                 direction=node.direction,
-                                                             ferry_region_size=3,
+                                                             ferry_region_size=self.ferry_region_size,
                                                              x_offset=x_offset,
                                                              y_offset=y_offset,
                                                              z_offset=z_offset+1, #TODO: Remove this extra +1
@@ -830,15 +832,13 @@ if __name__ == '__main__':
     #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
     #      'Orange', 'Orange', 'Orange']]])
 
-
-
     blueprint1 = np.array([
-                             [[1] * 1] * 10,
-                         ] * 10)
+                              [[1] * 1] * 10,
+                          ] * 10)
 
     blueprint2 = np.array([
-                             [[1] * 1] * 10,
-                         ] * 10)
+                              [[1] * 1] * 10,
+                          ] * 10)
 
     blueprint2[0, :, :] = 0
     blueprint2[1, :, :] = 0
@@ -869,16 +869,17 @@ if __name__ == '__main__':
     blueprint3[:, -2, :] = 0
     blueprint3[:, -3, :] = 0
     blueprint3[:, -4, :] = 0
-
     blueprints = [blueprint1, blueprint2, blueprint3]
 
-    structure = StructureMain(blueprint=blueprints[0])
+
+    division_size = 5
+    structure = StructureMain(blueprint=blueprints[0], division_size=division_size)
     structure.initialize_communications(colors=colors)
 
     for i in range(3):
         print(f"STARTING LEVEL: {i}")
         blueprint = blueprints[i]
-        structure.reset_building_planner(blueprint)
+        structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)
 
     # while True:
