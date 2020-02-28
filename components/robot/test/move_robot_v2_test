@@ -36,17 +36,24 @@ accuracy = 1e-7
 threshold = 1
 # num_way_points = 2
 use_face_star = False
-num_steps = 50
+num_steps = 2
+velocity_offset = 5
+
+SIMULATE = True
 
 # Serial variables
-USE_SERIAL = False
-SERIAL = None
-PORT='/dev/cu.usbmodem14201'
+SERIAL = True
+if SERIAL:
+    PORT='/dev/cu.usbmodem14201'
+else:
+    PORT=None
+
 BAUD = 9600
 TIMEOUT = 3.0
 JOINT_ANGLE_PKT_SIZE = 8
+DELAY = 0.5
 
-robot_ee_starting_point = (2.5, 1.5, 1)
+robot_ee_starting_point = (2.5, 0.5, 1)
 
 def main():
     blueprint = np.array([
@@ -71,7 +78,7 @@ def main():
     ])
 
     base = np.matrix([[1, 0, 0, 0.5],
-                      [0, 1, 0, 1.5],
+                      [0, 1, 0, 0.5],
                       [0, 0, 1, 1.],
                       [0, 0, 0, 1]])
 
@@ -92,32 +99,57 @@ def main():
                                                                     endFace=endFace, blueprint=blueprint,
                                                                                 )
 
-    robot = model.Inchworm(base=base, blueprint=blueprint)
+    robot = model.Inchworm(base=base, blueprint=blueprint, port=PORT)
 
-    print("Path Length: {}".format(len(path[0][1:][0])))
-    print("Path: {}".format(path))
-    print("Num Steps: {}".format(num_steps))
+    flip_angles = True
+    first_serial_message = True
+    for index, angle in enumerate(ik_motion):
+        # print(f"Angle: {angle}")
 
-    robot_orientation = ["top"] * (len(path[0][1:][0]))
+        angle = angle.tolist()[0]
+        # robot.map_angles_to_robot(angle)
+        if index % (num_steps) == 0:
+            print("\nFIRST POINT REACHED")
 
-    if use_face_star:
-        robot_orientation = ["top"] * (len(path[0][1:][0])) * 2
-    modified_path = path[0][1:][0]
-    for index, position in enumerate(modified_path):
-        direction = position[-1]
-        if index == 0:
-            robot_orientation[index] = "top"
-        else:
-            previous_direction = modified_path[index - 1][-1]
-            if previous_direction == direction:
-                robot_orientation[index] = direction
-            else:
-                robot_orientation[index] = previous_direction
+        if index % (num_steps * 2) == 0:
+            print("\n SECOND STEP REACHED")
+        if index % (num_steps * 3) == 0:
+            print("\n THIRD STEP REACHED")
+            flip_angles = True if flip_angles == False else False
+            # if SERIAL:
+            #     if first_serial_message:
+            #         if flip_angles:
+            #             robot.send_to_robot(angle, delay=DELAY, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         else:
+            #             robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #
+            #         first_serial_message = False
+            #         time.sleep(2)
+            #
+            #     if flip_angles:
+            #         time.sleep(2)
+            #         robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         time.sleep(1)
+            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         time.sleep(45)
+            #     else:
+            #         time.sleep(2)
+            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         time.sleep(1)
+            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+            #         time.sleep(45)
+            print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
 
-    print("Robot Orientation: {}".format(robot_orientation))
+        if flip_angles:
+            temp = angle[1]
+            angle[1] = 180 / 2 + angle[3]
+            angle[3] = temp - 180 / 2
 
-    # robot.animate(stances=ik_motion, frame_rate=30, unit='deg', num_steps=num_steps*3, orientation=robot_orientation,
-    #               showPath=True, showPlacedBlock=True, update=animation_update)
+        if SERIAL:
+            robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset,
+                                delay=DELAY)
 
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
 
@@ -132,12 +164,9 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     setPoints, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
 
-    # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos,point]), average_velocity=3.0,
-    #                                                  frequency=100)
+    # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos, point]), average_velocity=3.0,
+    #                                                  frequency=50)
 
-    print(f"Setpoints: {setPoints}")
-    print(f"Current EEPos: {currentEEPos}")
-    print(f"Point: {point}")
     forward_1 = []
     forward_2 = []
     forward_3 = []
@@ -145,42 +174,23 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     base = robot.AEE_POSE
 
     for point in setPoints:
-        try:
-            # ik_angles = robot.ikineConstrained(direction, p=point, flipped=flip_angles, accuracy=accuracy) * 180 / np.pi ## converted to degrees
-            # print(ik_angles)
-            gamma = temp_direction_to_gamma_convertion(direction)
-            ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
-            ik_angles = map_angles_from_robot_to_simulation(ik_angles)
+        # ik_angles = robot.ikineConstrained(direction, p=point, flipped=flip_angles, accuracy=accuracy) * 180 / np.pi ## converted to degrees
+        # print(ik_angles)
+        gamma = temp_direction_to_gamma_convertion(direction)
+        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
+        ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
-            # TODO: refactor the code
-            # Temporary fix for base flipping
-            if baseID == 'D':
-                # ik_angles[0] = ik_angles[0] - 180
-                base = robot.DEE_POSE
+        # TODO: refactor the code
+        # Temporary fix for base flipping
+        if baseID == 'D':
+            # ik_angles[0] = ik_angles[0] - 180
+            base = robot.DEE_POSE
 
-            forward_1.append(ik_angles[0])
-            forward_2.append(ik_angles[1])
-            forward_3.append(ik_angles[2])
-            forward_4.append(ik_angles[3])
-            # print(f'each ik_angle {ik_angles}')
-
-        except ValueError as e:
-            if accuracy >= threshold:
-                print("\n\n")
-                print("\t\t" + "*"*50)
-                print("\t\tUNABLE TO REACH POINT")
-                print("\t\t" + "*"*50)
-                print("\t\tRobot Base: {}".format(np.transpose(create_point_from_homogeneous_transform(robot.base))))
-                print("\t\tRobot EE Pos: {}".format(robot.end_effector_position()))
-                print("\t\tRobot Angles: {}".format(robot.get_current_joint_config(unit="deg")))
-                print("\t\tGoing to Point: {} \t Face: {}".format(point, direction))
-                print("\t\t" + "*"*50)
-                print("\n\n")
-                time.sleep(0.1)
-                raise e
-            else:
-                print("IK Accuracy Too High, Lowering Value To: {}".format(accuracy))
-                return move_to_point(direction, point, robot, num_steps, baseID, previous_angles, accuracy * 10)
+        forward_1.append(ik_angles[0])
+        forward_2.append(ik_angles[1])
+        forward_3.append(ik_angles[2])
+        forward_4.append(ik_angles[3])
+        # print(f'each ik_angle {ik_angles}')
 
         if previous_angles is None:
             previous_angles = [1] * robot.length
@@ -193,7 +203,8 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         # angle_update = ik_angles
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
-        send_to_simulator(base=base, trajectory=ik_angles)
+        if SIMULATE:
+            send_to_simulator(base=base, trajectory=ik_angles)
 
     forward_1 = np.asmatrix(forward_1)
     forward_2 = np.asmatrix(forward_2)
@@ -231,20 +242,17 @@ def temp_direction_to_gamma_convertion(direction):
 def follow_path(robot, num_steps, offset, startFace, endFace, blueprint, secondPosition=None):
 
     if not use_face_star:
-        path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (3, 2, 5, "left"), (3, 2, 4,"left"), (3, 2, 6, "left"), (3, 2, 5, "left") ]
+        # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (3, 2, 5, "left"), (3, 2, 4,"left"), (3, 2, 6, "left"), (3, 2, 5, "left") ]
         # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (2, 2, 2, "top")]
         # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"),(2, 1, 0, "top"), (5, 0, 0, "top"), (1, 1, 0, "top"), (0, 2, 0, "top")]
-        # path = [(2, 1, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1,
-        #                                                                                                    "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
+        # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
         # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
-        # path = [(3, 1, 1, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), ]
-        path = [ (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"),  (5, 1, 3, "top"), (4, 1, 2,
-                                                                                                           "top")]
-
+        # path = [(3, 0, 1, "top"), (1, 0, 0, "top"), (4, 0, 1, "top")]
+        path = [(3, 0, 1, "top")]
         # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0, "top"), (5, 0, 0, "top"), (3, 0, 0,
         #                                                                                                    "top")]
-
-
+        # path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+        #                                                                                                    "top")]
     armReach = [2.38, 1.58]
 
     if use_face_star:
