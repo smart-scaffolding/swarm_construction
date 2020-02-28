@@ -255,7 +255,16 @@ class SerialLink:
         # return len(self.links)
         return 4
 
-    def send_to_robot(self, angle, delay=2.0, open_gripper=False):
+    def get_velocity_controller_term(self, index, total_num_points, offset):
+        lower_vel_bound = (total_num_points / 3) - offset
+        upper_vel_bound = total_num_points / 3
+        num_via_points = total_num_points / 3
+        if index % num_via_points >= lower_vel_bound and index % num_via_points <= upper_vel_bound:
+            return 0
+        return 1
+
+
+    def send_to_robot(self, angle, index, total_num_points, velocity_offset=2, delay=2.0, open_gripper="00"):
         """
         NOTE: Expects all angles to be in degrees
         Sends a single angle to robot and then delays for a certain amount of time
@@ -263,11 +272,12 @@ class SerialLink:
         :param angle: Expects angles in degrees
         :param delay: delay after sending to robot
         """
-        targetAngles = self.map_angles_to_robot(angle, open_gripper)
+        velocity_controller_term = self.get_velocity_controller_term(index, total_num_points, velocity_offset)
+        targetAngles = self.map_angles_to_robot(angle, open_gripper, velocity_controller_term)
         self.serial.write(targetAngles)
         time.sleep(delay)
 
-    def map_angles_to_robot(self, q, open_gripper=False):
+    def map_angles_to_robot(self, q, open_gripper="00", velocity_controller_term=0):
         """
         Creates a mapping between the angles used by the higher level code and the actual robot angles
 
@@ -279,11 +289,13 @@ class SerialLink:
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
         print("Final Angles: {}".format(qTemp[1:]))
 
-        gripper = "0002"
-        if open_gripper:
-            gripper = "0002"
+        # gripper = "0002"
+        # if open_gripper:
+        gripper = str(velocity_controller_term) + "0" + open_gripper
 
-        targetAngles = f'{q[1]:4.2f} '.zfill(8) + f'{q[2]:4.2f} '.zfill(8) + f'{q[3]:4.2f} '.zfill(8) + gripper
+        targetAngles = f'{qTemp[1]:4.2f} '.zfill(8) + f'{qTemp[2]:4.2f} '.zfill(8) + f'{qTemp[3]:4.2f} '.zfill(8) + \
+                       gripper + '\n'
+        print(targetAngles)
         return str.encode(targetAngles)
 
     def gripper_control_commands(self, engage_gripper, disengage_gripper, flip_pid, toggle_gripper):

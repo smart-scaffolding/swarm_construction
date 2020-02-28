@@ -130,7 +130,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     check_if_point_reachable(robot, basePos, point)
 
-    setPoints, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
+    setPoints, _, _, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
 
     # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos,point]), average_velocity=3.0,
     #                                                  frequency=100)

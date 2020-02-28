@@ -46,7 +46,11 @@ def create_quintic_trajectory(initial_conditions, setpoints):
         time ** 3 + coefficients[4] * time ** 4 + coefficients[5] * time ** 5
 
     # quintic = coefficients[1] * time
-    return quintic
+
+    quintic_vel = coefficients[1] + 2*coefficients[2] * time + 3*coefficients[3] * \
+        time ** 2 + 4*coefficients[4] * time ** 3 + 5*coefficients[5] * time ** 4
+
+    return quintic, quintic_vel
 
 def get_quintic_trajectory(points, set_points=30, start_time=0, end_time=1):
     x = points[:, 0]
@@ -56,6 +60,10 @@ def get_quintic_trajectory(points, set_points=30, start_time=0, end_time=1):
     x_points = []
     y_points = []
     z_points = []
+
+    x_points_derivative = []
+    y_points_derivative = []
+    z_points_derivative = []
 
     for i in range(1, len(x)):
         values_x = np.array(
@@ -94,24 +102,44 @@ def get_quintic_trajectory(points, set_points=30, start_time=0, end_time=1):
                 0,  # final acceleration
             ]).transpose()
 
+        traj_x, traj_vel_x = create_quintic_trajectory(values_x, set_points)
 
-        x_points.append(create_quintic_trajectory(values_x, set_points))
-        y_points.append(create_quintic_trajectory(values_y, set_points))
-        z_points.append(create_quintic_trajectory(values_z, set_points))
+        traj_y, traj_vel_y = create_quintic_trajectory(values_y, set_points)
+
+        traj_z, traj_vel_z = create_quintic_trajectory(values_z, set_points)
+
+        x_points.append(traj_x)
+        y_points.append(traj_y)
+        z_points.append(traj_z)
+
+        x_points_derivative.append(traj_vel_x)
+        y_points_derivative.append(traj_vel_y)
+        z_points_derivative.append(traj_vel_z)
 
     final_values = []
     for x_l, y_l, z_l in zip(x_points, y_points, z_points):
         for x, y, z in zip(x_l, y_l, z_l):
             final_values.append((x, y, z))
 
-    return final_values, [x_points, y_points, z_points]
+    print(final_values)
+
+    final_values_vel = []
+    for x_l, y_l, z_l in zip(x_points_derivative, y_points_derivative, z_points_derivative):
+        for x, y, z in zip(x_l, y_l, z_l):
+            final_values_vel.append((x, y, z))
+    return final_values, [x_points, y_points, z_points], final_values_vel, [x_points_derivative, y_points_derivative,
+                                                                            z_points_derivative]
 
 def plot_quintic(initial_points, set_points=30):
-    points, values = get_quintic_trajectory(initial_points, set_points=set_points)
     import matplotlib.pyplot as plt
+    points, values, vel, vel_val = get_quintic_trajectory(initial_points, set_points=set_points)
     plt.plot(values[0][0], label="X values")
     plt.plot(values[1][0], label="Y values")
     plt.plot(values[2][0], label="Z values")
+
+    plt.plot(vel_val[0][0], label="X vel")
+    plt.plot(vel_val[1][0], label="Y vel")
+    plt.plot(vel_val[2][0], label="Z vel")
     plt.ylabel('Position')
     plt.xlabel('Time')
     plt.title("Quintic Trajectory Generator")
