@@ -1,6 +1,3 @@
-# Created by: Josh Carrigg Hodson, Aditya Dua, Chee Ho Chan
-# 1 June, 2017
-""" This file contains all of the transforms functions that will be used within the toolbox"""
 import math
 import numpy as np
 from scipy.linalg import expm

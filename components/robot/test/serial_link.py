@@ -4,14 +4,6 @@ import math
 from math import pi
 import numpy as np
 import vtk
-# from . import transforms
-# from .graphics import VtkPipeline
-# from .graphics import axesCube
-# from .graphics import axesCubeFloor
-# from .graphics import vtk_named_colors
-# from .graphics import cubeForPath, circleForTrajectory
-# from .graphics import MakeAxesActor
-# from .graphics import vtk_named_colors
 import pkg_resources
 from scipy.optimize import minimize
 # import robopy.base.transforms as tr

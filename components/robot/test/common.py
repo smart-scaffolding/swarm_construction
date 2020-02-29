@@ -1,4 +1,3 @@
-"""Common Module contains code shared by robotics and machine vision toolboxes"""
 import numpy as np
 from components.robot.test import check_args
 import numpy.testing as npt

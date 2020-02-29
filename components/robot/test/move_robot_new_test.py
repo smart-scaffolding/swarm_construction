@@ -58,10 +58,7 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
 
-    ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.20,
-                                                                         startFace=startFace,
-                                                                    endFace=endFace, blueprint=blueprint,
-                                                                                path=path)
+    ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.20, path=path)
 
     robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
 
@@ -191,11 +188,7 @@ def temp_direction_to_gamma_convertion(direction):
     else:
         return 0
 
-def follow_path(robot, num_steps, offset, startFace, endFace, blueprint, path, secondPosition=None):
-
-
-    armReach = [2.38, 1.58]
-
+def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
     global_path = []
     global_path.append((num_steps, path))

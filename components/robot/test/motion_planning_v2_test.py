@@ -78,14 +78,14 @@ def main():
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     # startFace = BlockFace(1, 0, 0, 'top')
-    startFace = BlockFace(5, 1, 3, 'top')
+    startFace = BlockFace(5, 1, 3, 'top', 'D')
     # endFace = BlockFace(5, 2, 3, 'top')
     # endFace = BlockFace(5, 1, 3, 'top')
     # endFace = BlockFace(5, 0, 0, 'top')
     # endFace = BlockFace(3, 2, 6, "top")
     # endFace = BlockFace(3, 2, 3, "top")
     # endFace= BlockFace(3, 2, 5, "left")
-    endFace = BlockFace(1, 0, 0, 'top')
+    endFace = BlockFace(1, 0, 0, 'top', 'D')
 
     ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.20,
                                                                          startFace=startFace,

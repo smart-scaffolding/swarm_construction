@@ -1,6 +1,3 @@
-# Created by: Aditya Dua
-# 13 June, 2017
-
 import numpy as np
 from components.robot.test import check_args
 from abc import ABC, abstractmethod

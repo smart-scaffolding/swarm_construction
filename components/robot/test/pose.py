@@ -1,17 +1,9 @@
-# Created by: Aditya Dua
-# 13 June, 2017
-# Pose module has class implementations of SO2, SO3, SE2 and SE3 type matrices
-
 import numpy as np
 import math
 from components.robot.test import check_args
 from components.robot.test.super_pose import SuperPose
 from random import uniform, randint
 from components.robot.test import transforms
-# import vtk
-# from . import graphics
-# from .graphics import VtkPipeline
-
 
 # TODO Implement argument checking for all poses
 # -----------------------------------------------------------------------------------------

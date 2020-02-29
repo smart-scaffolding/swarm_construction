@@ -1,7 +1,3 @@
-"""test_args module contains test for input arguments.
-It checks if input argument passed by user is valid or not.
-If any invalid data is found,
-the called function in test_args returns false"""
 import numpy as np
 from components.robot.test import pose
 from components.robot.test import super_pose
