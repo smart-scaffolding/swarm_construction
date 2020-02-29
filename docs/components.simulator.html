@@ -71,7 +71,7 @@
           
         </div>
 
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="robot_trajectory_serial_demo navigation">
           
             
             
@@ -84,7 +84,7 @@
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-components.simulator.config">components.simulator.config module</a></li>
-<li><a class="reference internal" href="#module-components.simulator.main">components.simulator.main module</a></li>
+<li><a class="reference internal" href="#module-components.simulator.robot_trajectory_serial_demo">components.simulator.robot_trajectory_serial_demo module</a></li>
 <li><a class="reference internal" href="#module-components.simulator">Module contents</a></li>
 </ul>
 </li>
@@ -195,15 +195,15 @@
 <div class="section" id="module-components.simulator.config">
 <span id="components-simulator-config-module"></span><h2>components.simulator.config module<a class="headerlink" href="#module-components.simulator.config" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-components.simulator.main">
-<span id="components-simulator-main-module"></span><h2>components.simulator.main module<a class="headerlink" href="#module-components.simulator.main" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-components.simulator.robot_trajectory_serial_demo">
+<span id="components-simulator-robot_trajectory_serial_demo-module"></span><h2>components.simulator.robot_trajectory_serial_demo module<a class="headerlink" href="#module-components.simulator.robot_trajectory_serial_demo" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="components.simulator.main.CalculatorThread">
-<em class="property">class </em><code class="descclassname">components.simulator.main.</code><code class="descname">CalculatorThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>result_q</em>, <em>filter_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.CalculatorThread" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#components.simulator.main.WorkerThread" title="components.simulator.main.WorkerThread"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.simulator.main.WorkerThread</span></code></a></p>
+<dt id="components.simulator.robot_trajectory_serial_demo.CalculatorThread">
+<em class="property">class </em><code class="descclassname">components.simulator.robot_trajectory_serial_demo.</code><code class="descname">CalculatorThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>result_q</em>, <em>filter_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.CalculatorThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#components.simulator.robot_trajectory_serial_demo.WorkerThread" title="components.simulator.robot_trajectory_serial_demo.WorkerThread"><code class="xref py py-class docutils literal notranslate"><span class="pre">components.simulator.robot_trajectory_serial_demo.WorkerThread</span></code></a></p>
 <dl class="method">
-<dt id="components.simulator.main.CalculatorThread.run">
-<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.CalculatorThread.run" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.CalculatorThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.CalculatorThread.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method representing the thread’s activity.</p>
 <p>You may override this method in a subclass. The standard run() method
 invokes the callable object passed to the object’s constructor as the
@@ -214,28 +214,28 @@ from the args and kwargs arguments, respectively.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="components.simulator.main.Simulate">
-<em class="property">class </em><code class="descclassname">components.simulator.main.</code><code class="descname">Simulate</code><span class="sig-paren">(</span><em>robot_update</em>, <em>dir_q</em>, <em>result_q</em>, <em>new_actors</em>, <em>socket</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.Simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.Simulate">
+<em class="property">class </em><code class="descclassname">components.simulator.robot_trajectory_serial_demo.</code><code class="descname">Simulate</code><span class="sig-paren">(</span><em>robot_update</em>, <em>dir_q</em>, <em>result_q</em>, <em>new_actors</em>, <em>socket</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.Simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
-<dt id="components.simulator.main.Simulate.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.Simulate.simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.Simulate.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.Simulate.simulate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="components.simulator.main.Simulate.wait_for_structure_initialization">
-<code class="descname">wait_for_structure_initialization</code><span class="sig-paren">(</span><em>blueprint=None</em>, <em>colors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.Simulate.wait_for_structure_initialization" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.Simulate.wait_for_structure_initialization">
+<code class="descname">wait_for_structure_initialization</code><span class="sig-paren">(</span><em>blueprint=None</em>, <em>colors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.Simulate.wait_for_structure_initialization" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="components.simulator.main.WorkerThread">
-<em class="property">class </em><code class="descclassname">components.simulator.main.</code><code class="descname">WorkerThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>result_q</em>, <em>filter_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.WorkerThread" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.WorkerThread">
+<em class="property">class </em><code class="descclassname">components.simulator.robot_trajectory_serial_demo.</code><code class="descname">WorkerThread</code><span class="sig-paren">(</span><em>dir_q</em>, <em>result_q</em>, <em>filter_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.WorkerThread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
 <dl class="method">
-<dt id="components.simulator.main.WorkerThread.join">
-<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.WorkerThread.join" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.WorkerThread.join">
+<code class="descname">join</code><span class="sig-paren">(</span><em>timeout=None</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.WorkerThread.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait until the thread terminates.</p>
 <p>This blocks the calling thread until the thread whose join() method is
 called terminates – either normally or through an unhandled exception
@@ -255,8 +255,8 @@ exception.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="components.simulator.main.WorkerThread.run">
-<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.WorkerThread.run" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.WorkerThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.WorkerThread.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method representing the thread’s activity.</p>
 <p>You may override this method in a subclass. The standard run() method
 invokes the callable object passed to the object’s constructor as the
@@ -267,27 +267,27 @@ from the args and kwargs arguments, respectively.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="components.simulator.main.axesUniversal">
-<code class="descclassname">components.simulator.main.</code><code class="descname">axesUniversal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.axesUniversal" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.axesUniversal">
+<code class="descclassname">components.simulator.robot_trajectory_serial_demo.</code><code class="descname">axesUniversal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.axesUniversal" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
-<dt id="components.simulator.main.vtkTimerCallback">
-<em class="property">class </em><code class="descclassname">components.simulator.main.</code><code class="descname">vtkTimerCallback</code><span class="sig-paren">(</span><em>renderer</em>, <em>renderWindow</em>, <em>queue</em>, <em>new_actors</em>, <em>dir_q</em>, <em>result_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.vtkTimerCallback" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.vtkTimerCallback">
+<em class="property">class </em><code class="descclassname">components.simulator.robot_trajectory_serial_demo.</code><code class="descname">vtkTimerCallback</code><span class="sig-paren">(</span><em>renderer</em>, <em>renderWindow</em>, <em>queue</em>, <em>new_actors</em>, <em>dir_q</em>, <em>result_q</em>, <em>socket</em>, <em>pipeline</em>, <em>block_q</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.vtkTimerCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
-<dt id="components.simulator.main.vtkTimerCallback.add_robot_to_sim">
-<code class="descname">add_robot_to_sim</code><span class="sig-paren">(</span><em>robot</em>, <em>result_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.vtkTimerCallback.add_robot_to_sim" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.add_robot_to_sim">
+<code class="descname">add_robot_to_sim</code><span class="sig-paren">(</span><em>robot</em>, <em>result_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.add_robot_to_sim" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="components.simulator.main.vtkTimerCallback.create_new_thread">
-<code class="descname">create_new_thread</code><span class="sig-paren">(</span><em>queue</em>, <em>result_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.vtkTimerCallback.create_new_thread" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.create_new_thread">
+<code class="descname">create_new_thread</code><span class="sig-paren">(</span><em>queue</em>, <em>result_queue</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.create_new_thread" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="components.simulator.main.vtkTimerCallback.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>obj</em>, <em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.main.vtkTimerCallback.execute" title="Permalink to this definition">¶</a></dt>
+<dt id="components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>obj</em>, <em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#components.simulator.robot_trajectory_serial_demo.vtkTimerCallback.execute" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

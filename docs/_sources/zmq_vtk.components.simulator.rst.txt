@@ -21,10 +21,10 @@ zmq\_vtk.components.simulator.config module
     :undoc-members:
     :show-inheritance:
 
-zmq\_vtk.components.simulator.main module
+zmq\_vtk.components.simulator.robot_trajectory_serial_demo module
 -----------------------------------------
 
-.. automodule:: zmq_vtk.components.simulator.main
+.. automodule:: zmq_vtk.components.simulator.robot_trajectory_serial_demo
     :members:
     :undoc-members:
     :show-inheritance:

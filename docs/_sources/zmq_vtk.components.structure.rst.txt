@@ -22,10 +22,10 @@ zmq\_vtk.components.structure.config module
     :undoc-members:
     :show-inheritance:
 
-zmq\_vtk.components.structure.main module
+zmq\_vtk.components.structure.robot_trajectory_serial_demo module
 -----------------------------------------
 
-.. automodule:: zmq_vtk.components.structure.main
+.. automodule:: zmq_vtk.components.structure.robot_trajectory_serial_demo
     :members:
     :undoc-members:
     :show-inheritance:

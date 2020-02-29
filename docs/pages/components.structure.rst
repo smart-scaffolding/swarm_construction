@@ -22,10 +22,10 @@ components.structure.config module
     :undoc-members:
     :show-inheritance:
 
-components.structure.main module
+components.structure.robot_trajectory_serial_demo module
 --------------------------------
 
-.. automodule:: components.structure.main
+.. automodule:: components.structure.robot_trajectory_serial_demo
     :members:
     :undoc-members:
     :show-inheritance:

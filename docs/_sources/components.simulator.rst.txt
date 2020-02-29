@@ -21,10 +21,10 @@ components.simulator.config module
     :undoc-members:
     :show-inheritance:
 
-components.simulator.main module
+components.simulator.robot_trajectory_serial_demo module
 --------------------------------
 
-.. automodule:: components.simulator.main
+.. automodule:: components.simulator.robot_trajectory_serial_demo
     :members:
     :undoc-members:
     :show-inheritance:
