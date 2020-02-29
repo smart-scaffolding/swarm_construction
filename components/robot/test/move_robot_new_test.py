@@ -1,8 +1,6 @@
 import components.robot.test.model as model
 import numpy as np
 import math
-# from robopy.base.quintic_trajectory_planner import *
-# from robopy.base.common import create_point_from_homogeneous_transform, flip_base, round_end_effector_position
 import time
 from components.robot.test.common import create_point_from_homogeneous_transform, flip_base, round_end_effector_position
 from components.robot.test.quintic_trajectory_planner import *
@@ -15,91 +13,57 @@ import zmq
 import zlib
 import pickle
 
-
-class AnimationUpdate:
-    def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
-        self.robot = robot
-        self.robot_base = robot_base
-        self.index = index
-        self.direction = direction
-        self.trajectory = trajectory
-        self.path = path
-        self.placedObstacle = placedObstacle
-        self.obstacle = obstacle
+accuracy = 1e-7
+threshold = 1
+use_face_star = False
+SIMULATE = True
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.connect("tcp://127.0.0.1:5559")
 TOPIC = b"ROBOT_1"
 
-accuracy = 1e-7
-threshold = 1
-# num_way_points = 2
-use_face_star = False
-num_steps = 2
-velocity_offset = 5
-
-SIMULATE = True
-
-# Serial variables
-SERIAL = True
-if SERIAL:
-    PORT='/dev/cu.usbmodem14201'
-else:
-    PORT=None
-
-BAUD = 9600
-TIMEOUT = 3.0
 JOINT_ANGLE_PKT_SIZE = 8
-DELAY = 0.5
 
-robot_ee_starting_point = (2.5, 0.5, 1)
+robot_ee_starting_point = (2.5, 1.5, 1)
 
-def main():
-    blueprint = np.array([
-        [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 1]],
-        [[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[1, 0, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[1, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[1, 1, 1], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-        [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    ])
+blueprint = np.array([
+    [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 1]],
+    [[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[1, 0, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[1, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[1, 1, 1], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+])
 
-    #playground
-    blueprint = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
+# playground
+blueprint = np.array([
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+    [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+    [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+])
 
-    base = np.matrix([[1, 0, 0, 0.5],
-                      [0, 1, 0, 0.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+base = np.matrix([[1, 0, 0, 0.5],
+                  [0, 1, 0, 0.5],
+                  [0, 0, 1, 1.],
+                  [0, 0, 0, 1]])
 
+def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, blueprint=blueprint, base=base,
+                                 velocity_offset=0, use_grippers=False):
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
-    # startFace = BlockFace(1, 0, 0, 'top')
-    startFace = BlockFace(5, 1, 3, 'top')
-    # endFace = BlockFace(5, 2, 3, 'top')
-    # endFace = BlockFace(5, 1, 3, 'top')
-    # endFace = BlockFace(5, 0, 0, 'top')
-    # endFace = BlockFace(3, 2, 6, "top")
-    # endFace = BlockFace(3, 2, 3, "top")
-    # endFace= BlockFace(3, 2, 5, "left")
-    endFace = BlockFace(1, 0, 0, 'top')
 
     ik_motion, path, directions, animation_update = follow_path(robot, num_steps, offset=1.20,
                                                                          startFace=startFace,
                                                                     endFace=endFace, blueprint=blueprint,
-                                                                                )
+                                                                                path=path)
 
-    robot = model.Inchworm(base=base, blueprint=blueprint, port=PORT)
+    robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
 
     flip_angles = True
     first_serial_message = True
@@ -116,30 +80,30 @@ def main():
         if index % (num_steps * 3) == 0:
             print("\n THIRD STEP REACHED")
             flip_angles = True if flip_angles == False else False
-            # if SERIAL:
-            #     if first_serial_message:
-            #         if flip_angles:
-            #             robot.send_to_robot(angle, delay=DELAY, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         else:
-            #             robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #
-            #         first_serial_message = False
-            #         time.sleep(2)
-            #
-            #     if flip_angles:
-            #         time.sleep(2)
-            #         robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         time.sleep(1)
-            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         time.sleep(45)
-            #     else:
-            #         time.sleep(2)
-            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         time.sleep(1)
-            #         robot.send_to_robot(angle, delay=DELAY, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-            #         time.sleep(45)
+            if serial and use_grippers:
+                if first_serial_message:
+                    if flip_angles:
+                        robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    else:
+                        robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+
+                    first_serial_message = False
+                    time.sleep(2)
+
+                if flip_angles:
+                    time.sleep(2)
+                    robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    time.sleep(1)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    time.sleep(45)
+                else:
+                    time.sleep(2)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    time.sleep(1)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    time.sleep(45)
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
 
         if flip_angles:
@@ -148,8 +112,8 @@ def main():
             angle[3] = temp - 180 / 2
 
         if SERIAL:
-            robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset,
-                                delay=DELAY)
+            robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=0,
+                                delay=timeout)
 
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
 
@@ -174,8 +138,6 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     base = robot.AEE_POSE
 
     for point in setPoints:
-        # ik_angles = robot.ikineConstrained(direction, p=point, flipped=flip_angles, accuracy=accuracy) * 180 / np.pi ## converted to degrees
-        # print(ik_angles)
         gamma = temp_direction_to_gamma_convertion(direction)
         ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
@@ -195,12 +157,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         if previous_angles is None:
             previous_angles = [1] * robot.length
 
-        # if flip_angles:
-        #     ik_test = np.concatenate((forward_1, forward_4, forward_3, forward_2), axis=1)
-        # angle_update = ik_angles[-1].flatten().tolist()[0]
         angle_update = ik_angles
-        # print(f'angle_update {angle_update}')
-        # angle_update = ik_angles
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
         if SIMULATE:
@@ -210,11 +167,6 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     forward_2 = np.asmatrix(forward_2)
     forward_3 = np.asmatrix(forward_3)
     forward_4 = np.asmatrix(forward_4)
-
-    # print(f'forward_1 {forward_1}')
-    # print(f'forward_2 {forward_2}')
-    # print(f'forward_3 {forward_3}')
-    # print(f'forward_4 {forward_4}')
 
     ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
     return ik_angles.T
@@ -239,25 +191,12 @@ def temp_direction_to_gamma_convertion(direction):
     else:
         return 0
 
-def follow_path(robot, num_steps, offset, startFace, endFace, blueprint, secondPosition=None):
+def follow_path(robot, num_steps, offset, startFace, endFace, blueprint, path, secondPosition=None):
 
-    if not use_face_star:
-        # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (3, 2, 5, "left"), (3, 2, 4,"left"), (3, 2, 6, "left"), (3, 2, 5, "left") ]
-        # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (2, 2, 2, "top")]
-        # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"),(2, 1, 0, "top"), (5, 0, 0, "top"), (1, 1, 0, "top"), (0, 2, 0, "top")]
-        # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
-        # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2, "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
-        # path = [(3, 0, 1, "top"), (1, 0, 0, "top"), (4, 0, 1, "top")]
-        path = [(3, 0, 1, "top")]
-        # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0, "top"), (5, 0, 0, "top"), (3, 0, 0,
-        #                                                                                                    "top")]
-        # path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
-        #                                                                                                    "top")]
+
     armReach = [2.38, 1.58]
 
-    if use_face_star:
-        faceStarPlanner = FaceStar(startFace, endFace, blueprint, armReach)
-        path = faceStarPlanner.get_path()
+
     global_path = []
     global_path.append((num_steps, path))
 
@@ -490,4 +429,76 @@ def send_to_simulator(base, trajectory, topic=TOPIC):
 
 
 if __name__ == '__main__':
-    main()
+    SERIAL = None
+
+    # if SERIAL:
+    #     PORT = '/dev/cu.usbmodem14201'
+    # else:
+    #     PORT = None
+
+    PORT = '/dev/cu.usbmodem14201'
+    BAUD = 9600
+    TIMEOUT = 3.0
+    NUM_STEPS = 50
+    path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (3, 2, 5, "left"),
+            (3, 2, 4, "left"), (3, 2, 6, "left"), (3, 2, 5, "left")]
+    # path = [(1, 2, 0, "top"), (0, 2, 0, "top"), (3, 2, 3, "left"), (3, 2, 2, "left"), (2, 2, 2, "top")]
+    # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"),(2, 1, 0, "top"), (5, 0, 0, "top"), (1, 1, 0,
+    # "top"), (0, 2, 0, "top")]
+    # path = [(2, 1, 0, "top"), (1, 1, 0, "top"), (3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1,
+    #                                                                                                    "top"), (5,
+    #                                                                                                    1, 3,
+    #                                                                                                    "top"), (4,
+    #                                                                                                    1, 2,
+    #                                                                                                    "top"), (3,
+    #                                                                                                    2, 3,
+    #                                                                                                    "top"), (5,
+    #                                                                                                    2, 3, "top")]
+    # path = [(2, 0, 0, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+    # "top"), (3, 2, 3, "top"), (5, 2, 3, "top")]
+    # path = [(3, 1, 1, "top"), (1, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), ]
+    path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+                                                                                                       "top")]
+
+    # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0, "top"), (5, 0, 0, "top"), (3, 0, 0,
+    #                                                                                                    "top")]
+
+    blueprint = np.array([
+        [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 1]],
+        [[1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[1, 0, 0], [1, 1, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[1, 0, 0], [1, 0, 0], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[1, 1, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[1, 1, 1], [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    ])
+
+    # playground
+    blueprint = np.array([
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    ])
+
+    base = np.matrix([[1, 0, 0, 0.5],
+                      [0, 1, 0, 0.5],
+                      [0, 0, 1, 1.],
+                      [0, 0, 0, 1]])
+
+    robot_trajectory_serial_demo(num_steps=NUM_STEPS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
+                                 path=path, blueprint=blueprint, base=base)
+
+class AnimationUpdate:
+    def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
+        self.robot = robot
+        self.robot_base = robot_base
+        self.index = index
+        self.direction = direction
+        self.trajectory = trajectory
+        self.path = path
+        self.placedObstacle = placedObstacle
+        self.obstacle = obstacle

@@ -13,11 +13,12 @@ class Block(object):
 
 class BlockFace:
 
-    def __init__(self, xPos, yPos, zPos, face, blockWidth=0.49):
+    def __init__(self, xPos, yPos, zPos, face, ee_on_face, blockWidth=0.49):
         self.xPos = xPos
         self.yPos = yPos
         self.zPos = zPos
         self.face = face
+        self.ee_on_face = ee_on_face
         self.blockWidth = blockWidth
 
     def return_tuple(self):

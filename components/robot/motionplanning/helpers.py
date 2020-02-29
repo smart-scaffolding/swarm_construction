@@ -1,0 +1,95 @@
+import numpy as np
+
+def update_path(save_path, new_motion_1, new_motion_2, new_motion_3):
+    if save_path is None:
+        return np.concatenate((new_motion_1, new_motion_2, new_motion_3))
+    return np.concatenate((save_path, new_motion_1, new_motion_2, new_motion_3))
+
+def update_path_single(save_path, new_motion_1):
+    return np.concatenate((save_path, new_motion_1))
+
+def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, type=None):
+
+    if direction == "top" or previous_direction == "top":
+        ee_pos[2] = float(ee_pos[2]) + offset
+
+    if direction == "bottom":
+        ee_pos[2] = float(ee_pos[2]) - offset
+
+    if direction == "front":
+        ee_pos[1] = float(ee_pos[1]) - offset
+
+    if direction == "back":
+        ee_pos[1] = float(ee_pos[1]) + offset
+
+    if direction == "left":
+        if type == "ee_up" and previous_direction == "left":
+            ee_pos[0] = float(ee_pos[0]) - (offset*2)
+            ee_pos[2] = ee_pos[2] - 1.37
+        else:
+            ee_pos[0] = float(ee_pos[0]) - (offset*0.5)
+    if direction == "right":
+        ee_pos[0] = float(ee_pos[0]) + offset
+
+
+    return ee_pos
+
+
+def check_if_point_reachable(robot, base, goal):
+    delta = goal - base
+    dist = np.sqrt(delta[0]**2+delta[1]**2+delta[2]**2)
+    if dist > (robot.links[1].length + robot.links[2].length) * 0.95:
+        print(f"Delta: {delta}")
+        print(f"Dist: {dist}")
+        print(f"Links: {robot.links[1].length + robot.links[2].length}")
+        raise ValueError(f'Robot cannot reach from base {base} to goal {goal}')
+
+def map_angles_from_robot_to_simulation(angles):
+    angles = angles * 180 / np.pi
+    angles = np.array([angles[0], 90-angles[1], -1*angles[2], -1*angles[3]])
+    # angles = np.array([0,90-27,-124,0])
+    return angles
+
+def temp_direction_to_gamma_convertion(direction):
+    if direction == "top":
+        return -np.pi/2
+    elif direction =="bottom":
+        return np.pi/2
+    elif direction == "left":
+        return 0
+    elif direction =="right":
+        return 0
+    elif direction == "front":
+        return 0
+    else:
+        return 0
+
+
+class AnimationUpdate:
+    def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
+        self.robot = robot
+        self.robot_base = robot_base
+        self.index = index
+        self.direction = direction
+        self.trajectory = trajectory
+        self.path = path
+        self.placedObstacle = placedObstacle
+        self.obstacle = obstacle
+
+
+def send_to_simulator(base, trajectory, topic=b"ROBOT_1"):
+    import zmq
+    from components.robot.communication.messages import AnimationUpdateMessage, MessageWrapper
+    import pickle
+    import zlib
+    context = zmq.Context()
+    socket = context.socket(zmq.PUB)
+    socket.connect("tcp://127.0.0.1:5559")
+    trajectory[0] = trajectory[0] - 90
+    trajectory = trajectory*np.pi/180
+    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
+    message_obj = MessageWrapper(topic=topic, message=messagedata)
+    p = pickle.dumps(message_obj, protocol=-1)
+    z = zlib.compress(p)
+    socket.send_multipart([topic, z])
+    # time.sleep(0.01)

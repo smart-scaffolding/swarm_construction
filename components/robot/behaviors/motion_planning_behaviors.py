@@ -14,6 +14,12 @@ from components.robot.common.states import RobotBehaviors
 from components.robot.common.common import create_homogeneous_transform_from_point
 from components.robot.pathplanning.searches.face_star import FaceStar, BlockFace
 import numpy as np
+from components.robot.motionplanning.helpers import *
+from components.robot.motionplanning.common import create_point_from_homogeneous_transform, flip_base, round_end_effector_position
+from components.robot.motionplanning.trajectory.quintic_trajectory_planner import get_quintic_trajectory
+from components.robot.motionplanning.trajectory.minimum_jerk_trajectory_planner import get_minimum_jerk_trajectory
+
+
 from random import choice
 
 ##############################################################################
@@ -78,38 +84,289 @@ def place_block(robot, simulator_communicator, location_to_set_block, block, blu
     except KeyboardInterrupt:
         pass
 
-def ik_solver(pipe_connection, robot, simulator_communicator, blueprint, percentage_done=0):
-    """
-    Action used to solve for inverse kinematics
+def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None):
 
-    :param pipe_connection: Process connection to receive messages from parent process
-    :param robot: Robot object
-    :param simulator_communicator: Object to send messages to simulator
-    :param percentage_done: Percentage of ik solved
-    :return:
-    """
+    if baseID == 'A':
+        currentEEPos = robot.DEE_POSE[:3,3]
+        basePos = robot.AEE_POSE[:3,3]
+    else:
+        currentEEPos = robot.AEE_POSE[:3,3]
+        basePos = robot.DEE_POSE[:3,3]
 
-    idle = True
-    percentage_complete = percentage_done
-    try:
-        while True:
-            if pipe_connection.poll():
-                pipe_connection.recv()
-                percentage_complete = 0
-                idle = False
-            if not idle:
-                percentage_complete += 10
-                pipe_connection.send([percentage_complete])
-                if percentage_complete == 100:
-                    idle = True
-                    # break
-            if config.SIMULATE:
-                simulator_communicator.robot_communicator.send_communication("Moving")
-            # print(f"IK solver: completion done {percentage_complete}")
-            time.sleep(0.01)
-        return True
-    except KeyboardInterrupt:
-        pass
+    check_if_point_reachable(robot, basePos, point)
+
+    setPoints, _, _, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
+
+    # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos,point]), average_velocity=3.0,
+    #                                                  frequency=100)
+
+    # print(f"Setpoints: {setPoints}")
+    print(f"Current EEPos: {currentEEPos}")
+    print(f"Point: {point}")
+    print(f"Base Pos: {basePos}")
+    forward_1 = []
+    forward_2 = []
+    forward_3 = []
+    forward_4 = []
+    base = robot.AEE_POSE
+
+    if baseID == 'D':
+        base = robot.DEE_POSE
+        print(f"A link pos: {robot.AEE_POSE}")
+
+
+    for point in setPoints:
+        # ik_angles = robot.ikineConstrained(direction, p=point, flipped=flip_angles, accuracy=accuracy) * 180 / np.pi ## converted to degrees
+        # print(ik_angles)
+        gamma = temp_direction_to_gamma_convertion(direction)
+        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
+        ik_angles = map_angles_from_robot_to_simulation(ik_angles)
+
+
+        forward_1.append(ik_angles[0])
+        forward_2.append(ik_angles[1])
+        forward_3.append(ik_angles[2])
+        forward_4.append(ik_angles[3])
+        # print(f'each ik_angle {ik_angles}')
+
+
+        if previous_angles is None:
+            previous_angles = [1] * robot.length
+
+        # if flip_angles:
+        #     ik_test = np.concatenate((forward_1, forward_4, forward_3, forward_2), axis=1)
+        # angle_update = ik_angles[-1].flatten().tolist()[0]
+        angle_update = ik_angles
+        # print(f'angle_update {angle_update}')
+        # angle_update = ik_angles
+        robot.update_angles(angle_update, unit="deg")
+        # print(f'angles: {ik_angles}')
+        send_to_simulator(base=base, trajectory=ik_angles)
+        robot.base = base
+
+    forward_1 = np.asmatrix(forward_1)
+    forward_2 = np.asmatrix(forward_2)
+    forward_3 = np.asmatrix(forward_3)
+    forward_4 = np.asmatrix(forward_4)
+
+    # print(f'forward_1 {forward_1}')
+    # print(f'forward_2 {forward_2}')
+    # print(f'forward_3 {forward_3}')
+    # print(f'forward_4 {forward_4}')
+
+    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
+    return ik_angles.T
+
+
+def follow_path(robot, path, num_steps=50, offset=1.2, secondPosition=None):
+
+    global_path = []
+    global_path.append((num_steps, path))
+
+    global_direction = []
+
+    update_animation = []
+
+    save_path = None
+    previous_point = None
+    back_foot_pos = None
+    # previous_direction = "top"
+    for index, item in enumerate(path):
+        previous_direction = "top"
+        direction = item[-2]
+        ee_to_move = item[-1]
+        baseID = 'D' if robot.primary_ee == 'A' else 'A'
+        # if index == 0:
+        #     global_direction.append((0, "top"))
+        #     previous_direction = "top"
+        # else:
+        #     global_direction.append((num_steps*index, path[index-1][-1]))
+        #     previous_direction = path[index-1][-1]
+        #     # previous_direction = direction
+
+        point = list(item[0:3])
+        if direction == "top":
+            point[0] = item[0] + 0.5
+            point[1] = item[1] + 0.5
+            point[2] = item[2] + 1
+        elif direction =="bottom":
+            point[0] = item[0] + 0.5
+            point[1] = item[1] + 0.5
+            point[2] = item[2] + 1
+        elif direction == "left":
+            point[0] = item[0] - 1.37  #-1.37
+            point[1] = item[1] + 0.5
+            point[2] = item[2] - 0.87 #-.87
+        elif direction =="right":
+            point[0] = item[0] - 1.37  #-1.37
+            point[1] = item[1] + 0.5
+            point[2] = item[2] - 0.87 #-.87
+        elif direction == "front":
+            point[0] = item[0] + 0.5
+            point[1] = item[1] + 1
+            point[2] = item[2] + 0.5
+        elif direction =="back":
+            point[0] = item[0] + 0.5
+            point[1] = item[1] + 1
+            point[2] = item[2] + 0.5
+
+        print("\t\t\n\nINDEX: {}".format(index))
+        print("\nPOINT: {}   DIRECTION: {}    PREVIOUS_DIRECTION: {}".format(point, direction, path[index-1][-1]))
+
+
+
+        # if index == 0:
+        #     # ee_up = list(point)
+        # ee_to_move =
+        ee = robot.DEE_POSE if ee_to_move == 'D' else robot.AEE_POSE
+        ee_up = list(create_point_from_homogeneous_transform(ee))
+        # TODO: FIX TO ACCEPT ANY ORIENTATION, NOT JUST +Z
+        # move_up[2] = move_up[2] + offset
+        previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
+
+        ee_up = add_offset(ee_up, previous_direction, offset)
+
+        previous_angles_1 = move_to_point(direction, ee_up, robot, num_steps, baseID=baseID)
+        stop_above = np.copy(point)
+        stop_above = add_offset(stop_above, direction, offset)
+        previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID,
+                                          previous_angles=previous_angles_1[-1].flatten().tolist()[0])
+        previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID,
+                                          previous_angles=previous_angles_2[-1].flatten().tolist()[0])
+
+        robot.primary_ee = baseID #Switching base to ee
+        # else:
+        # ee_pos = robot.end_effector_position()
+        # ee_pos = robot.DEE_POSE if robot.primary_ee == 'A' else robot.AEE_POSE
+        # ee_pos = create_point_from_homogeneous_transform(ee_pos)
+        # initial_angles = robot.get_current_joint_config(unit='deg')
+        #
+        # ee_pos = round_end_effector_position(ee_pos, direction, previous_point)
+        #
+        # if ee_to_move == robot.primary_ee:
+        #     new_base = flip_base(ee_pos, previous_direction, 0)
+        #     flip_angles = False
+        #
+        # else:
+        #     new_base = flip_base(ee_pos, previous_direction, 180)
+        #     flip_angles = True
+        #
+        # temp = initial_angles[1]
+        # initial_angles[1] = 180 / 2 + initial_angles[3]
+        # initial_angles[3] = temp - 180 / 2
+        # baseID = ee_to_move
+        # robot.primary_ee = baseID
+        # robot.base = new_base
+        # # ee_pos = np.copy(previous_point)
+        #
+        # # if (index) % 2 == 0:
+        # #
+        # #     new_base = flip_base(ee_pos, previous_direction, 0)
+        # #
+        # #     temp = initial_angles[1]
+        # #     initial_angles[1] = 180 / 2 + initial_angles[3]
+        # #     initial_angles[3] = temp - 180 / 2
+        # #     flip_angles = False
+        # #     baseID = 'A'
+        # #
+        # # else:
+        # #     new_base = flip_base(ee_pos, previous_direction, 180)
+        # #
+        # #
+        # #     temp = initial_angles[1]
+        # #     initial_angles[1] = 180 / 2 + initial_angles[3]
+        # #     initial_angles[3] = temp - 180 / 2
+        # #     flip_angles = True
+        # #     baseID = 'D'
+        #
+        # robot.base = new_base
+        # robot.update_angles(initial_angles, unit="deg")
+        #
+        # print("Previous Point: {}".format(previous_point))
+        # ee_pos = robot.DEE_POSE if baseID == 'A' else robot.AEE_POSE
+        # ee_pos = create_point_from_homogeneous_transform(ee_pos)
+        #
+        # ee_up = np.copy(ee_pos)
+        # print("Going to point: {}\t EE Pos: {}\tRounded Pos: {}".format(point, ee_pos, ee_up))
+        # print("\tPrevious Direction: {}".format(previous_direction))
+        #
+        #
+        # # TODO: FIX TO ACCEPT ANY ORIENTATION, NOT JUST +Z
+        # # if update_animation is not None:
+        # #     flatten = lambda l: [item for sublist in l for item in sublist]
+        # #     base_up = create_point_from_homogeneous_transform(update_animation[-1].robot_base).tolist()
+        # #     base_up = flatten(base_up)
+        # #     ee_up = add_offset(base_up,
+        # #                        previous_direction, offset, path[index - 2][-1],
+        # #                        index=index, type="ee_up")
+        # # else:
+        # ee_up = add_offset(ee_up, previous_direction, offset, previous_point, index=index)
+        #
+        # stop_above = np.copy(point)
+        # stop_above = add_offset(stop_above, direction, offset)
+        #
+        # print("\t\t\tOffsets: \n\t\t\tEE Up: {}\n\t\t\tStop Above: {}".format(ee_up, stop_above))
+        #
+        # if direction == path[index - 1][-1]:
+        #     direction = "top"
+        #     previous_direction = "top"
+        #
+        # previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
+        # previous_angles_1 = move_to_point(previous_direction, ee_up, robot, num_steps, baseID=baseID, previous_angles=initial_angles)
+        # previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0])
+        # previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID, previous_angles=previous_angles_2[-1].flatten().tolist()[0])
+
+        save_path = update_path(save_path, previous_angles_1, previous_angles_2, previous_angles_3)
+        previous_point = point
+        back_foot_pos = create_point_from_homogeneous_transform(robot.base).flatten().tolist()[0]
+        print("BACK FOOT: {}".format(back_foot_pos))
+
+        if path[index-1][-1] == path[index][-1]:
+            direction = path[index][-1]
+        else:
+            direction = path[index-1][-1]
+
+        update_animation.append(AnimationUpdate(robot=robot, robot_base=robot.base, direction=direction, path=path[index:], index=index, trajectory=[ee_up, stop_above, point]))
+
+    update_animation.append(
+        AnimationUpdate(robot=robot, robot_base=robot.base, direction=direction, path=path[index:], trajectory=[],
+                        index=index-1, placedObstacle=True, obstacle=[6, 0, 0]))
+    return robot
+
+# def ik_solver(pipe_connection, robot, simulator_communicator, blueprint, percentage_done=0):
+#     """
+#     Action used to solve for inverse kinematics
+#
+#     :param pipe_connection: Process connection to receive messages from parent process
+#     :param robot: Robot object
+#     :param simulator_communicator: Object to send messages to simulator
+#     :param percentage_done: Percentage of ik solved
+#     :return:
+#     """
+#
+#     idle = True
+#     percentage_complete = percentage_done
+#     try:
+#         while True:
+#             if pipe_connection.poll():
+#                 point = pipe_connection.recv()
+#
+#
+#                 percentage_complete = 0
+#                 idle = False
+#             if not idle:
+#                 percentage_complete += 10
+#                 pipe_connection.send([percentage_complete])
+#                 if percentage_complete == 100:
+#                     idle = True
+#                     # break
+#             if config.SIMULATE:
+#                 simulator_communicator.robot_communicator.send_communication("Moving")
+#             # print(f"IK solver: completion done {percentage_complete}")
+#             time.sleep(0.01)
+#         return True
+#     except KeyboardInterrupt:
+#         pass
 
 
 
@@ -124,12 +381,12 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
     """
     print("Getting a path to return")
     # time.sleep(0.05)
-    print("Path found")
+    print("Path Path to Traversefound")
     # if config.SIMULATE:
     #     simulator_communicator.robot_communicator.send_communication(message="Got path")
-    armReach = [2.38, 1.58]
+    # armReach = [2.38, 1.58]
 
-    # armReach = [1.5, 1.5]
+    armReach = [1.5, 1.5]
 
     # armReach = [1.5, 1.5]
     blueprint = np.array([
@@ -147,6 +404,19 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
         direction = 'top'
 
     point = list(destination)
+
+    #TODO: Have conversion for other directions too
+    modified_det = np.array([point[0]+0.5, point[1]+0.5, point[2]])
+    d_pose = np.array(create_point_from_homogeneous_transform(robot.DEE_POSE))
+    a_pose = np.array(create_point_from_homogeneous_transform(robot.AEE_POSE))
+
+    # print(type(d_pose))
+    if (np.linalg.norm(d_pose - modified_det) < 0.0001):
+        return []
+
+    if (np.linalg.norm(a_pose - modified_det) < 0.0001):
+        return []
+
     if direction == "top" or direction == "bottom":
         point[0] = round(point[0])
         point[1] = round(point[1])
@@ -160,19 +430,23 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
         point[1] = point[1] - 1
         point[2] = point[2] - 0.5
     print(f"Going to point: {point}")
+
+
+
     try:
         path = faceStarPlanner.get_path(start=current_position, goal=BlockFace(point[0], point[1],
                                                                                         point[2],
-                                                                                        direction))
-    except Exception:
+                                                                                        direction, robot.primary_ee))
+    except Exception as e:
+        print(e)
         print(f"Path planner unable to find path to {point}")
 
 
     # return [choice([(1, 0, 0, "Top"), (2, 0, 0, "Top"), (3, 0, 0, "Top"), (4, 0, 0, "Top")])]
     # path.pop(0)
-    # print(f"Path: {path}")
-    # return path
-    return []
+    print(f"Path: {path}")
+    return path
+    # return []
 
 class RemoveBlock(py_trees.behaviour.Behaviour):
     """
@@ -383,7 +657,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
     """
 
     def __init__(self, robot, key, robot_communicator, simulator_communicator, blueprint, name="NavigateToPoint",
-                 current_position_key="current_position"):
+                 current_position_key="current_position", robot_model_key="robot"):
         """
 
         :param robot:
@@ -400,20 +674,23 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.state = self.attach_blackboard_client("State", "state")
         self.key = key
         self.current_position_key = current_position_key
+        self.robot_model_key = robot_model_key
         self.blackboard.register_key(key=self.key, access=py_trees.common.Access.READ)
         self.state.register_key(key=self.key, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=current_position_key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=robot_model_key, access=py_trees.common.Access.WRITE)
         self.blueprint = blueprint
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
     def setup(self):
-        self.parent_connection, self.child_connection = multiprocessing.Pipe()
+        # self.parent_connection, self.child_connection = multiprocessing.Pipe()
 
-        self.ik_planner = multiprocessing.Process(target=ik_solver, args=(self.child_connection, self.robot,
-                                                                          self.simulator_communicator, self.blueprint))
-        atexit.register(self.ik_planner.terminate)
-        self.ik_planner.start()
+        # self.ik_planner = multiprocessing.Process(target=ik_solver, args=(self.child_connection, self.robot,
+        #                                                                   self.simulator_communicator, self.blueprint))
+        # atexit.register(self.ik_planner.terminate)
+        # self.ik_planner.start()
+        pass
 
     def initialise(self):
         self.reached_point = (True, None)
@@ -422,8 +699,11 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.current_position = self.state.get(self.current_position_key)
         print(f"[{self.name.upper()}]: Current Position: ({self.current_position.xPos}, {self.current_position.yPos}, {self.current_position.zPos}, {self.current_position.face})")
         print(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
+        self.robot = self.state.get(self.robot_model_key)
+
         self.path = get_path_to_point(self.robot, self.current_position, self.point_to_reach, self.robot_communicator,
                                       self.point_to_reach)
+
         # print(self.blackboard)
 
     def update(self):
@@ -434,10 +714,23 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         # except KeyError:
         #     return py_trees.common.Status.FAILURE
 
-        self.percentage_completion = 0
+        # self.percentage_completion = 0
         if len(self.path) > 0 and self.reached_point[0]:
             self.next_point = self.path.pop(0)
-            self.parent_connection.send(self.next_point)
+            self.robot = follow_path(self.robot, [self.next_point])
+            self.state.set(name=self.robot_model_key, value=self.robot)
+            base = create_point_from_homogeneous_transform(
+                self.robot.base)
+
+            base_block_face = BlockFace(base[0], base[1], base[2],
+                      'top', self.robot.primary_ee)
+
+
+            self.state.set(name=self.current_position_key, value=base_block_face)
+
+            print(f"ROBOT BASE: {self.robot.base}")
+            print(f"Next point moving to: {self.next_point}")
+            # self.parent_connection.send(self.next_point)
             # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
             # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
             #                                                                   message=AnimationUpdateMessage(
@@ -447,82 +740,82 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             #                                                                   status=RobotBehaviors.MOVE,
             #                                                                   payload=StatusUpdateMessagePayload(
             #                                                                     robot_base=base)))
-            print(f"Next point moving to: {self.next_point}")
-        if self.parent_connection.poll():
-            self.percentage_completion = self.parent_connection.recv().pop()
-            if self.percentage_completion == "FAILURE":
-                print(f"[{self.name.upper()}]: IK solver unable to find solution")
-                return py_trees.common.Status.FAILURE
-            while self.percentage_completion != 100:
-                """
-                Note will block other behaviors until done moving, this is to ensure
-                that while robot detaches foot and moves it to new location, it can
-                never be interrupted. Otherwise, robot could be stopped with foot hanging
-                in midair.
-                """
-                point = np.array(self.next_point[0:3])
-                try:
-                    z = point[2] + 1
-                except IndexError:
-                    z = 4
 
-                # TODO: Fix last point
-                base = create_homogeneous_transform_from_point((point[0] + 0.5, point[1] + 0.5, z))
-                # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
-                self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                     message=AnimationUpdateMessage(
-                    robot_base=base, path=self.path, trajectory=np.array([[1.61095456e-15,  6.18966422e+01,
-                                                                           -1.23793284e+02, -2.80564688e+01]])*np.pi/180))
-
-                self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                              message=StatusUpdateMessage(
-                                                                                  status=RobotBehaviors.MOVE,
-                                                                                  payload=StatusUpdateMessagePayload(
-                                                                                      robot_base=base)))
-                self.percentage_completion = self.parent_connection.recv().pop()
-                self.reached_point = (False, self.next_point)
-                self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
-                    1], self.next_point[2], self.next_point[3]))
-                print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
-            if self.percentage_completion == 100:
-                print(f"[{self.name.upper()}]: Reached point: {self.next_point}")
-                self.reached_point = (True, self.next_point)
-                self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
-                    1], self.next_point[2], self.next_point[3]))
-                print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
-        else:
-            self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
-            # finish
-            try:
-                point = np.array(self.next_point[0:3])
-                direction = self.next_point[3]
-            except AttributeError:
-                point = np.array(self.point_to_reach[0:3])
-                try:
-                    direction = self.point_to_reach[3]
-                except IndexError:
-                    direction = "top"
-            try:
-                z = point[2] + 1
-            except IndexError:
-                z = 4
-
-            #TODO: Fix last point
-            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
-            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-            #                                                                   message=AnimationUpdateMessage(
-            #                                                                       robot_base=base))
-
-            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-                                                                              message=AnimationUpdateMessage(
-                                                                                  robot_base=base, path=self.path,
-                                                                                  trajectory=np.array(
-                                                                                      [[1.61095456e-15, 6.18966422e+01,
-                                                                                        -1.23793284e+02,
-                                                                                        -2.80564688e+01]])*np.pi/180))
-            self.state.set(name=self.current_position_key, value=BlockFace(point[0], point[
-                1], point[2], direction))
-            print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
+        # if self.parent_connection.poll():
+        #     self.percentage_completion = self.parent_connection.recv().pop()
+        #     if self.percentage_completion == "FAILURE":
+        #         print(f"[{self.name.upper()}]: IK solver unable to find solution")
+        #         return py_trees.common.Status.FAILURE
+        #     while self.percentage_completion != 100:
+        #         """
+        #         Note will block other behaviors until done moving, this is to ensure
+        #         that while robot detaches foot and moves it to new location, it can
+        #         never be interrupted. Otherwise, robot could be stopped with foot hanging
+        #         in midair.
+        #         """
+        #         point = np.array(self.next_point[0:3])
+        #         try:
+        #             z = point[2] + 1
+        #         except IndexError:
+        #             z = 4
+        #
+        #         # TODO: Fix last point
+        #         base = create_homogeneous_transform_from_point((point[0] + 0.5, point[1] + 0.5, z))
+        #         # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
+        #         self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+        #                                                              message=AnimationUpdateMessage(
+        #             robot_base=base, path=self.path, trajectory=np.array([[1.61095456e-15,  6.18966422e+01,
+        #                                                                    -1.23793284e+02, -2.80564688e+01]])*np.pi/180))
+        #
+        #         self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+        #                                                                       message=StatusUpdateMessage(
+        #                                                                           status=RobotBehaviors.MOVE,
+        #                                                                           payload=StatusUpdateMessagePayload(
+        #                                                                               robot_base=base)))
+        #         self.percentage_completion = self.parent_connection.recv().pop()
+        #         self.reached_point = (False, self.next_point)
+        #         self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
+        #             1], self.next_point[2], self.next_point[3]))
+        #         print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
+        #     if self.percentage_completion == 100:
+        #         print(f"[{self.name.upper()}]: Reached point: {self.next_point}")
+        #         self.reached_point = (True, self.next_point)
+        #         self.state.set(name=self.current_position_key, value=BlockFace(self.next_point[0], self.next_point[
+        #             1], self.next_point[2], self.next_point[3]))
+        #         print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
+        # else:
+        #     self.reached_point = (True, self.reached_point[1]) #TODO: Set to false, need to wait for all points to
+        #     # finish
+        #     try:
+        #         point = np.array(self.next_point[0:3])
+        #         direction = self.next_point[3]
+        #     except AttributeError:
+        #         point = np.array(self.point_to_reach[0:3])
+        #         try:
+        #             direction = self.point_to_reach[3]
+        #         except IndexError:
+        #             direction = "top"
+        #     try:
+        #         z = point[2] + 1
+        #     except IndexError:
+        #         z = 4
+        #
+        #     #TODO: Fix last point
+        #     base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
+        #     # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+        #     #                                                                   message=AnimationUpdateMessage(
+        #     #                                                                       robot_base=base))
+        #
+        #     self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+        #                                                                       message=AnimationUpdateMessage(
+        #                                                                           robot_base=base, path=self.path,
+        #                                                                           trajectory=np.array(
+        #                                                                               [[1.61095456e-15, 6.18966422e+01,
+        #                                                                                 -1.23793284e+02,
+        #                                                                                 -2.80564688e+01]])*np.pi/180))
+        #     self.state.set(name=self.current_position_key, value=BlockFace(point[0], point[
+        #         1], point[2], direction))
+        #     print(f"Updated Current position to: {self.state.get(self.current_position_key).return_tuple()}")
         if len(self.path) <= 0 and self.reached_point[0]:
             new_status = py_trees.common.Status.SUCCESS
 

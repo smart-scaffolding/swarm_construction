@@ -32,7 +32,7 @@ class FaceStar:
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
 
     # array: the current structure, startFace: the start face, goalFace: the goal face
-    def faceStar(self, startFace, goalFace):
+    def faceStar(self, startFace, goalFace, ee_label):
 
         neighborFaces = [(0, 1, 0),
                      (0, -1, 0),
@@ -57,11 +57,11 @@ class FaceStar:
             if currentFace == goalFace:
                 data = []
                 while currentFace in came_from:
-                    pathNode = self.parse_output(currentFace)
+                    pathNode = self.parse_output(currentFace, ee_label)
                     data.append(pathNode)
                     self.path.append(currentFace)
                     currentFace = came_from[currentFace]
-                data.append(self.parse_output(self.startFace))
+                data.append(self.parse_output(self.startFace, ee_label))
                 self.path.append(self.startFace)
                 return data
 
@@ -151,7 +151,7 @@ class FaceStar:
         else:
             return False
 
-    def parse_output(self, face):
+    def parse_output(self, face, ee_label):
         idx_x, idx_y, idx_z = self.get_block_idx(face)
         if self.within_range_huh(idx_x, idx_y, idx_z):
             faceLabel = ''
@@ -170,7 +170,7 @@ class FaceStar:
                     faceLabel = 'top'
                 elif idx_z > face[2]:
                     faceLabel = 'bottom'
-            return idx_x, idx_y, idx_z, faceLabel
+            return idx_x, idx_y, idx_z, faceLabel, ee_label
         else:
             return None
 
@@ -208,16 +208,24 @@ class FaceStar:
 
     def get_path(self, start, goal):
         self.startFace = start.get_face_coordinate()
+        print(f"Start Face: {self.startFace}")
         if not self.startFace:
             raise Exception("Start face is invalid")
         self.goalFace = goal.get_face_coordinate()
+        ee_label = goal.ee_on_face
+        print(f"Goal Face: {self.goalFace}")
         if not self.goalFace:
             raise Exception("Goal face is invalid")
-        route = self.faceStar(self.startFace, self.goalFace)
+        route = self.faceStar(self.startFace, self.goalFace, ee_label)
         if route is None:
             # self.logger.error("Unable to find route between points {} and {}".format(self.startFace, self.goalFace))
             raise Exception("Path planning unable to find route")
+
         route = route[::-1]
+
+        route.pop(0)
+        route = self.add_back_ee_motion(path=route, start_face=start)
+
         print("Path to Traverse: {}\n".format(route))
         self.route = route
         return route
@@ -228,6 +236,23 @@ class FaceStar:
 
     #     self.colors[self.route[-1]] = '#03fc62'
     #     return self.colors
+
+    def add_back_ee_motion(self, path, start_face):
+
+        filtered_path = []
+        for index, point in enumerate(path):
+            filtered_path.append(point)
+            if index == 0:
+                x, y, z, face, primary_ee_pos = (start_face.xPos, start_face.yPos, start_face.zPos, start_face.face,
+                                                 start_face.ee_on_face)
+            else:
+                x, y, z, face, primary_ee_pos = path[index - 1]
+
+            if point[-1] == primary_ee_pos:
+                primary_ee_pos = 'D' if primary_ee_pos == 'A' else 'A'
+
+            filtered_path.append((x, y, z, face, primary_ee_pos))
+        return filtered_path
 
     def display_path(self, path=None):
         if not path:
@@ -277,8 +302,8 @@ if __name__ == '__main__':
     # armReach = [2.38, 1.6]
     armReach = [2.38, 2.38]
 
-    startFace = BlockFace(0,0,0,'top')
-    endFace = BlockFace(7,2,2,'right')
+    startFace = BlockFace(2,0,0,'top', 'D')
+    endFace = BlockFace(2,0,0,'top', 'A')
     bp1  = np.array([
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -294,16 +319,18 @@ if __name__ == '__main__':
     # path = faceStarPlanner.get_path()
     # faceStarPlanner.display_path()
 
+    # bp2 = np.array([
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+    #     [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+    #     [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    # ])
+
     bp2 = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
+                             [[1] * 1] * 12,
+                         ] * 12)
 
     bp3 = np.array([
         [[1, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -311,9 +338,11 @@ if __name__ == '__main__':
         [[1, 0, 0], [1, 0, 0], [1, 1, 1]],
     ])
 
-    startFaceDebug = BlockFace(1,2,0,'top')
-    endFaceDebug = BlockFace(1,2,0,'top')
+    # startFaceDebug = BlockFace(1,2,0,'top')
+    # endFaceDebug = BlockFace(1,2,0,'top')
 
+    startFaceDebug = startFace
+    endFaceDebug = endFace
     faceStarDebug = FaceStar(bp2, armReach)
     # faceStarDebug.display_blueprint()
     # faceStarDebug.display_start_end([startFaceDebug.get_face_coordinate(),endFaceDebug.get_face_coordinate()])

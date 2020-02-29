@@ -35,7 +35,7 @@ class Wait(py_trees.behaviour.Behaviour):
     def update(self):
         new_status = py_trees.common.Status.RUNNING
 
-        self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom'))
+        self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom', 'D'))
 
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")

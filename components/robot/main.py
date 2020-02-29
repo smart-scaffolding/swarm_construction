@@ -13,6 +13,7 @@ from components.robot.communication.communicate_with_simulator import SimulatorC
 from components.robot.communication.communicate_with_structure import StructureCommunication
 from components.robot.communication.messages import *
 from components.robot.pathplanning.searches.face_star import BlockFace
+from components.robot.motionplanning import model
 from components.structure.behaviors.building.common_building import Block
 import py_trees
 import time
@@ -116,6 +117,22 @@ if __name__ == '__main__':
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
+    blueprint = np.array([
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    ])
+
+    base = np.matrix([[1, 0, 0, 0.5],
+                      [0, 1, 0, 1.5],
+                      [0, 0, 1, 1.],
+                      [0, 0, 0, 1]])
+
+    robot_model = model.Inchworm(base=base, blueprint=blueprint)
+
     behaviour_tree = py_trees.trees.BehaviourTree(root)
     #
     # blocks_to_place = [Block(position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
@@ -135,6 +152,7 @@ if __name__ == '__main__':
     writer.register_key(key="state/location_to_move_to", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/robot", access=py_trees.common.Access.WRITE)
 
 
     # blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
@@ -151,10 +169,12 @@ if __name__ == '__main__':
     #
     writer.set(name="state/blocks_to_move", value=None)
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
-    writer.set(name="state/block_has_been_placed", value=False)
+    writer.set(name="state/block_has_been_placed", value=True)
     writer.set(name="state/point_to_reach", value=True)
     writer.set(name="state/location_to_move_to",
-               value=(10, 0, 0, "top"))
+               value=(4, 2, 1, "top"))
+    writer.set(name="state/robot", value=robot_model)
+
 
     choice([(1, 1, 0, "top"), (4, 1, 0, "top"), (7, 1, 0, "top"),
             (1, 4, 0, "top"), (4, 4, 0, "top"), (5, 4, 0, "top"),
@@ -162,8 +182,10 @@ if __name__ == '__main__':
             ])
 
 
-    writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
-                                                              'top'))
+    # writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
+    #                                                           'top', 'D'))
+    writer.set(name="state/current_position", value=BlockFace(2, 0, 0,
+                                                              'top', 'D'))
 
 
     behaviour_tree.setup(timeout=15)
@@ -220,7 +242,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
         except KeyError as e:
-            print(f"Key error exception caught in main: {e}")
+            print(f"Key error exception caught in robot_trajectory_serial_demo: {e}")
             # raise e
             continue
     # print("\n")
