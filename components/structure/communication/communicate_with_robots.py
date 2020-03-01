@@ -14,6 +14,7 @@ import threading
 import zlib
 import pickle
 # import cPickle as pickle
+from logzero import logger
 
 class ReceiveTopicThread(threading.Thread):
     def __init__(self, result_q, socket_port, topics):
@@ -84,7 +85,7 @@ class SendTopicThread(threading.Thread):
                 messagedata_compressed = zlib.compress(message_pickle)
 
                 self.socket.send_multipart([topic, messagedata_compressed])
-                print(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
+                logger.debug(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
             # except:
             #     continue
 

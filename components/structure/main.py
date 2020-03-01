@@ -22,6 +22,7 @@ from components.structure.behaviors.divide_structure import BuildingPlanner
 from components.structure.behaviors.building.common_building import spiral_sort_helper, Block, Robot
 from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
 from copy import deepcopy
+from logzero import logger
 
 configuration = None
 
@@ -62,7 +63,9 @@ class StructureMain:
             self.receive_messages_socket = config.communication["receive_messages_port"]
             self.send_messages_socket = config.communication["send_messages_port"]
         except:
-            raise Exception("Must define all parameters in configuration file")
+            config_exception = Exception("Must define all parameters in configuration file")
+            logger.exception(config_exception)
+            raise config_exception
 
         self.robot_communicator = RobotCommunication(receive_messages_socket=self.receive_messages_socket,
                                                              send_messages_socket=self.send_messages_socket,
@@ -86,7 +89,7 @@ class StructureMain:
 
         :return:
         """
-        print(f"[Structure] Starting all communications")
+        logger.info(f"[Structure] Starting all communications")
         start_hearbeat_detector(self.robot_queue)
         self.robot_communicator.initialize_communication_with_structure()
         if config.SIMULATE:
@@ -317,7 +320,7 @@ class StructureMain:
             division_size=self.division_size, level=level)
         self.item1 = -1
         self.item2 = 0
-        print(self.divisions)
+        logger.debug(f"Divisions: {self.divisions}")
         self.need_to_visit_again = []
         while self.item2 < len(self.divisions) - 1:
 
@@ -366,6 +369,8 @@ class StructureMain:
 
 
             assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)  # assign robots
+            while True:
+                pass
             # assign_robots_closest_point(robots, self.currently_claimed_set, None)
             for bot in robots:  # update dictionary to include robot with claimed division
                 node, _ = self.all_nodes[bot.target.id]
@@ -375,7 +380,7 @@ class StructureMain:
             self.currently_working.append(node1)
 
             ferry_blocks = []
-            print(len(self.currently_working))
+            logger.debug(len(self.currently_working))
             while len(self.currently_working) > 0:
                 # print(repr(node), end="\n\n")
                 # TODO: TELL FIRST ROBOT TO START DOING WORK
@@ -406,8 +411,8 @@ class StructureMain:
                         #     ferry_blocks = ferry_blocks_id[0:9]
                         # ferry_blocks.reverse()
 
-                        print(f"Setting up blocks for node: {node}")
-                        print(f"Goal nodes: {self.goals}")
+                        logger.info(f"Setting up blocks for node: {node}")
+                        logger.info(f"Goal nodes: {self.goals}")
                         if node.id in self.goal_ids:
                             filtered_blocks = list(filter(lambda x: x.final_destination == node.id, self.blocks_to_move))
                             ferry_blocks = self.get_new_block_location(node, filtered_blocks, type="BUILD")
@@ -428,9 +433,9 @@ class StructureMain:
                             structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
                                 blocks_to_move=ferry_blocks))
 
-                        print(f"Got new block location: {self.blocks_to_move}")
+                        logger.info(f"Got new block location: {self.blocks_to_move}")
 
-                        print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+                        logger.debug(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
 
                         # for blocks in ferry_blocks:
                         #     blocks.assigned_node = node.id
@@ -461,20 +466,20 @@ class StructureMain:
                 self.wait_for_task_completion()
 
                 # time.sleep(2)
-                print("Robot has finished working on node")
+                logger.info("Robot has finished working on node")
                 # Robot has finished working
                 try:
-                    print("Getting new node")
+                    logger.debug("Getting new node")
                     new_node = self.nodes_to_visit.get(timeout=1) #TODO: May need to check if id already in here
-                    print(f"New node: {new_node}")
+                    logger.debug(f"New node: {new_node}")
                     self.currently_claimed_set.append(new_node)
                     # currently_claimed_set.remove(node)
-                    print("Done updating")
+                    logger.debug("Done updating")
                 except(Empty):
-                    print("Queue is empty, continuing")
+                    logger.debug("Queue is empty, continuing")
                     # continue
 
-                print("\nAssigning robots to points")
+                logger.info("\nAssigning robots to points")
 
                 # TODO: Change assign_robots to deal with if num of points less than number of robots
                 if len(self.currently_claimed_set) > len(robots):
@@ -488,7 +493,7 @@ class StructureMain:
                 assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
                 # assign_robots_closest_point(robots, self.currently_claimed_set, None)
                 time.sleep(2)
-                print("Updating dictionary with new robot positions")
+                logger.debug("Updating dictionary with new robot positions")
                 for bot in robots:  # update dictionary to include robot with claimed division
                     update_node, _ = self.all_nodes[bot.target.id]
                     self.all_nodes[bot.target.id] = (update_node, bot)
@@ -548,7 +553,7 @@ class StructureMain:
         # node.direction = {'RIGHT'}
 
 
-        print("In Get new block location")
+        logger.debug("In Get new block location")
         x_start, x_end = node.x_range
         y_start, y_end = node.y_range
         z_start, z_end = node.z_range
@@ -580,18 +585,18 @@ class StructureMain:
         if type == "BUILD" or None in node.direction:
             rows = len(level)
             columns = len(level[0])
-            print(level)
-            print(level.reshape((rows, columns)))
-            print(self.blueprint)
+            logger.debug(level)
+            logger.debug(level.reshape((rows, columns)))
+            logger.debug(self.blueprint)
             layer, new_block_locations = spiral_sort_helper(rows, columns, level.reshape((rows, columns)),
                                                             x_offset=x_offset,
                                                             y_offset=y_offset,
                                                             z_offset=z_offset,
                                                             )
         else:
-            print("Getting ferry block locations")
-            print(f"Num blocks to ferry: {num_blocks}")
-            print(f'Directions ferrying for: {node.direction}')
+            logger.debug("Getting ferry block locations")
+            logger.debug(f"Num blocks to ferry: {num_blocks}")
+            logger.debug(f'Directions ferrying for: {node.direction}')
 
             _, _, new_block_locations = determine_ferry_regions(level, num_rows=m,
                                                                 num_cols=n,
@@ -603,7 +608,7 @@ class StructureMain:
                                                              num_blocks=num_blocks
                                                              )
 
-        print("Got new block location in get new block")
+        logger.debug("Got new block location in get new block")
         new_blocks = []
         # new_blocks = blocks_to_move
         blocks_to_move.reverse()
@@ -623,13 +628,13 @@ class StructureMain:
 
             new_block.set_next_location(location)
             # block.location = location
-            print(new_block, location)
+            logger.debug(new_block, location)
             # blocks_to_move[index] = block
             new_blocks.append(new_block)
 
         # print(new_blocks)
         # blocks_to_move = new_blocks
-        print(f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}")
+        logger.debug(f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}")
 
         # time.sleep(3)
         return new_blocks
@@ -877,7 +882,7 @@ if __name__ == '__main__':
     structure.initialize_communications(colors=colors)
 
     for i in range(3):
-        print(f"STARTING LEVEL: {i}")
+        logger.info(f"STARTING LEVEL: {i}")
         blueprint = blueprints[i]
         structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)

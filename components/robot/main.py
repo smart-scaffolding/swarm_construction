@@ -13,13 +13,15 @@ from components.robot.communication.communicate_with_simulator import SimulatorC
 from components.robot.communication.communicate_with_structure import StructureCommunication
 from components.robot.communication.messages import *
 from components.robot.pathplanning.searches.face_star import BlockFace
-from components.robot.motionplanning import model
+from components.robot.motionplanning import model, helpers
+from components.robot.motionplanning.common import create_homogeneous_transform_from_point
 from components.structure.behaviors.building.common_building import Block
 import py_trees
 import time
 import argparse
 import numpy as np
 from random import choice
+from logzero import logger
 
 configuration = None
 
@@ -31,15 +33,17 @@ class RobotMain:
             self.id = config.ROBOT_ID.encode('UTF-8')
             self.heartbeat_connection_in = config.communication["heartbeat_connection_in"]
             self.heartbeat_connection_out = config.communication["heartbeat_connection_out"]
+            self.blueprint = config.BLUEPRINT
+
             if self.configuration.TESTING:
                 args = command_line_argument_parser().parse_args()
-                print(args)
                 self.id = str(args.robot_id).encode('UTF-8')
                 self.position = str(args.position).encode('UTF-8')
                 self.position = self.position.decode().strip(" []").split(",")
                 self.position = [float(x) for x in self.position]
-                print(self.id)
-                print(self.position)
+                logger.info(f"ROBOT ID: {self.id}")
+                logger.info(f"ROBOT Position: {self.position}")
+
             if self.configuration.SIMULATE:
                 self.simulator_send_messages_socket = config.communication["simulator_send_messages_port"]
             self.receive_messages_socket = config.communication["receive_messages_port"]
@@ -53,7 +57,7 @@ class RobotMain:
                                                              receive_topics=self.id)
 
         if self.configuration.SIMULATE:
-            print("SIMULATING")
+            logger.debug("SIMULATION ENABLED")
             self.simulator_communicator = SimulatorCommunication(
                 send_messages_socket=self.simulator_send_messages_socket,
                 send_topics=self.id)
@@ -63,7 +67,6 @@ class RobotMain:
 
         :return:
         """
-        print(self.id)
         start_heartbeat(id=self.id, connection_in=self.heartbeat_connection_in,
                         connection_out=self.heartbeat_connection_out)
         self.structure_communicator.initialize_communication_with_structure()
@@ -126,8 +129,8 @@ if __name__ == '__main__':
         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
     ])
 
-    base = np.matrix([[1, 0, 0, 0.5],
-                      [0, 1, 0, 1.5],
+    base = np.matrix([[1, 0, 0, 3.5],
+                      [0, 1, 0, 0.5],
                       [0, 0, 1, 1.],
                       [0, 0, 0, 1]])
 
@@ -153,28 +156,37 @@ if __name__ == '__main__':
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/robot", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/blueprint", access=py_trees.common.Access.WRITE)
 
 
-    # blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
-    #         Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
-    #         Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
-    #         Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
-    #         Block(location=(3, 1, 2), next_destination=(7, 4, 1), final_destination=(7, 4, 1)),
-    #         Block(location=(3, 2, 2), next_destination=(7, 5, 1), final_destination=(7, 5, 1)),
-    #         Block(location=(3, 0, 3), next_destination=(8, 3, 1), final_destination=(8, 3, 1)),
-    #         Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
-    #         Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
-    #         ]
-    # blocks.reverse()
+    block = Block(final_destination=(6, 3, 1))
+    block.set_next_location((3, 0, 1))
+    block.location = (3, 3, 1)
+
+    block2 = Block(final_destination=(6, 4, 1))
+    block2.set_next_location((3, 0, 2))
+    block2.location = (3, 2, 1)
+
+    blocks = [block,block2
+            # Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
+            # Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
+            # Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
+            # Block(location=(3, 1, 2), next_destination=(7, 4, 1), final_destination=(7, 4, 1)),
+            # Block(location=(3, 2, 2), next_destination=(7, 5, 1), final_destination=(7, 5, 1)),
+            # Block(location=(3, 0, 3), next_destination=(8, 3, 1), final_destination=(8, 3, 1)),
+            # Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
+            # Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
+            ]
+    blocks.reverse()
     #
-    writer.set(name="state/blocks_to_move", value=None)
-    writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
+    writer.set(name="state/blocks_to_move", value=blocks)
+    writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
     writer.set(name="state/block_has_been_placed", value=True)
-    writer.set(name="state/point_to_reach", value=True)
+    writer.set(name="state/point_to_reach", value=False)
     writer.set(name="state/location_to_move_to",
-               value=(4, 2, 1, "top"))
+               value=(6, 0, 1, "top"))
     writer.set(name="state/robot", value=robot_model)
-
+    writer.set(name="state/blueprint", value=robot.blueprint)
 
     choice([(1, 1, 0, "top"), (4, 1, 0, "top"), (7, 1, 0, "top"),
             (1, 4, 0, "top"), (4, 4, 0, "top"), (5, 4, 0, "top"),
@@ -184,8 +196,10 @@ if __name__ == '__main__':
 
     # writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
     #                                                           'top', 'D'))
-    writer.set(name="state/current_position", value=BlockFace(2, 0, 0,
+    writer.set(name="state/current_position", value=BlockFace(3, 0, 0,
                                                               'top', 'D'))
+
+
 
 
     behaviour_tree.setup(timeout=15)
@@ -193,12 +207,21 @@ if __name__ == '__main__':
 
 
     robot.initialize_communications()
+    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+                              trajectory=np.array([180,62,-1.23793284e+02, -28]),
+                              id=robot.id)
+    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
+                              id=robot.id)
+    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
+                              id=robot.id)
+    # print(f"Sent base: {base} and traj {robot_model.get_current_joint_config(unit='deg')}")
 
-    #
+
     # ####################
     # # Tick Tock
     # ####################
-
 
     while True:
     # for unused_i in range(1, 50):
@@ -242,9 +265,9 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
         except KeyError as e:
-            print(f"Key error exception caught in robot_trajectory_serial_demo: {e}")
-            # raise e
-            continue
+            logger.exception(f"Key error exception caught in main: {e}")
+            raise e
+            # continue
     # print("\n")
     # while True:
     #     print("Ticking")

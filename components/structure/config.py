@@ -1,4 +1,7 @@
 from uuid import uuid1
+from logzero import setup_default_logger, logfile, LogFormatter
+import logging
+
 
 DEBUG = True  # Use to control printing
 SIMULATE = True # Use to control whether robot sends updates to simulator
@@ -11,4 +14,14 @@ communication = {
 }
 
 TESTING = True  # Use to configure if need unique id or predefining id
-ROBOT_ID = "ROBOT_1"
+
+LOGLEVEL = logging.DEBUG
+LOGFILE = "./logs/structure_logfile.log"
+log_format = '%(color)s[STRUCTURE: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
+log_file_format = '[STRUCTURE: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s'
+
+formatter = LogFormatter(fmt=log_format)
+file_formatter = LogFormatter(fmt=log_file_format)
+
+LOGGING = setup_default_logger(level=LOGLEVEL, formatter=formatter)
+logfile(LOGFILE, maxBytes=1000000, backupCount=3, formatter=file_formatter)

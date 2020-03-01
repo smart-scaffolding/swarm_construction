@@ -5,6 +5,7 @@
 import py_trees
 import time
 from components.robot.common.states import RobotBehaviors
+from logzero import logger
 ##############################################################################
 # Classes
 ##############################################################################
@@ -69,23 +70,23 @@ class UpdateState(py_trees.behaviour.Behaviour):
         new_status = py_trees.common.Status.RUNNING
         updates = self.communicator.get_communication()
         for update in updates:
-            print(f"[{self.name.upper()}]: update -> {update}")
+            logger.debug(f"[{self.name.upper()}]: update -> {update}")
             topic, message = update
             message_id = message.message_id
             if message_id == RobotBehaviors.FERRY:
-                print(f"[{self.name.upper()}]: Received ferry message {message}, sending to handler")
+                logger.debug(f"[{self.name.upper()}]: Received ferry message {message}, sending to handler")
                 self.handle_ferry_message(message)
 
             elif message_id == RobotBehaviors.BUILD:
-                print(f"[{self.name.upper()}]: Received build message {message}, sending to handler")
+                logger.debug(f"[{self.name.upper()}]: Received build message {message}, sending to handler")
                 self.handle_build_message(message)
 
             elif message_id == RobotBehaviors.WAIT:
-                print(f"[{self.name.upper()}]: Received wait message {message}, sending to handler")
+                logger.debug(f"[{self.name.upper()}]: Received wait message {message}, sending to handler")
                 self.handle_wait_message(message)
 
             elif message_id == RobotBehaviors.MOVE:
-                print(f"[{self.name.upper()}]: Received move message {message}, sending to handler")
+                logger.debug(f"[{self.name.upper()}]: Received move message {message}, sending to handler")
                 self.handle_move_message(message)
 
             else:
@@ -100,11 +101,15 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["blocks_to_move_key"], value=update.blocks_to_move)
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["block_placed_state"], value=True)
+        self.state.set(name=self.keys["destination_reached"], value=False)
+
 
     def handle_build_message(self, update):
         self.state.set(name=self.keys["blocks_to_move_key"], value=update.blocks_to_move)
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["block_placed_state"], value=True)
+        self.state.set(name=self.keys["destination_reached"], value=False)
+
 
     def handle_wait_message(self, update):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)

@@ -1,4 +1,9 @@
 import numpy as np
+from components.robot.common.common import create_point_from_homogeneous_transform
+import components.robot.config as config
+from random import randint, choice
+from datetime import datetime
+
 
 def update_path(save_path, new_motion_1, new_motion_2, new_motion_3):
     if save_path is None:
@@ -77,19 +82,46 @@ class AnimationUpdate:
         self.obstacle = obstacle
 
 
-def send_to_simulator(base, trajectory, topic=b"ROBOT_1"):
+def send_to_simulator(base, trajectory, id=b"ROBOT_1"):
     import zmq
     from components.robot.communication.messages import AnimationUpdateMessage, MessageWrapper
     import pickle
     import zlib
+
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
-    socket.connect("tcp://127.0.0.1:5559")
+    socket.connect(config.communication["simulator_send_messages_port"])
+
+    position = create_point_from_homogeneous_transform(base)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    config.pusher.trigger(u'robot', u'state', {
+        u'id': id.decode(),
+        u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
+        u'angles': [f'{trajectory[1]:.1f}', f'{-1*trajectory[2]:.1f}', f'{-1*trajectory[3]:.1f}'],
+        u'grippers': {
+            u'a': 0,
+            u'd': 100
+        },
+        u'battery': 77,
+        u'blocks_placed': 0,
+        u'a_link_blocks': 1,
+        u'd_link_blocks': 0,
+        u'robot_state': "MOVING",
+        u'end_effector_velocity': {
+            u'label': current_time,
+            u'value': randint(0, 100)
+        }
+    })
+
     trajectory[0] = trajectory[0] - 90
     trajectory = trajectory*np.pi/180
     messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
-    message_obj = MessageWrapper(topic=topic, message=messagedata)
+    message_obj = MessageWrapper(topic=id, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
     z = zlib.compress(p)
-    socket.send_multipart([topic, z])
+    socket.send_multipart([id, z])
+
+
+
     # time.sleep(0.01)

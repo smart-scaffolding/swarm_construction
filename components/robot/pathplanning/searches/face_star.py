@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import heapq
 from components.robot.common.states import BlockFace
+from logzero import logger
 # from robot.pathplanning.path_planner import PathPlannerImp
 
 # note: variable ending with "face" is the coordinate of a face; variable ending with "idx" is a face label of a face
@@ -23,7 +24,7 @@ class FaceStar:
         self.bp = blueprint
         self.building_dimensions = self.bp.shape
         self.armReach = armReach # first element: arm reach in same face situation; second element: arm reach in different face situation
-        print("\nBuilding Dimensions: {}\n".format(self.building_dimensions))
+        logger.debug("\nBuilding Dimensions: {}\n".format(self.building_dimensions))
         self.colors = np.array([[[(0,0,1,0.3)]*self.building_dimensions[2]] * self.building_dimensions[1]]*self.building_dimensions[0], )
 
         # self.logger = logging.getLogger('PathPlanning')
@@ -208,12 +209,12 @@ class FaceStar:
 
     def get_path(self, start, goal):
         self.startFace = start.get_face_coordinate()
-        print(f"Start Face: {self.startFace}")
+        logger.debug(f"Start Face: {self.startFace}")
         if not self.startFace:
             raise Exception("Start face is invalid")
         self.goalFace = goal.get_face_coordinate()
         ee_label = goal.ee_on_face
-        print(f"Goal Face: {self.goalFace}")
+        logger.debug(f"Goal Face: {self.goalFace}")
         if not self.goalFace:
             raise Exception("Goal face is invalid")
         route = self.faceStar(self.startFace, self.goalFace, ee_label)
@@ -226,7 +227,7 @@ class FaceStar:
         route.pop(0)
         route = self.add_back_ee_motion(path=route, start_face=start)
 
-        print("Path to Traverse: {}\n".format(route))
+        logger.debug("Path to Traverse: {}\n".format(route))
         self.route = route
         return route
 
@@ -302,8 +303,8 @@ if __name__ == '__main__':
     # armReach = [2.38, 1.6]
     armReach = [2.38, 2.38]
 
-    startFace = BlockFace(2,0,0,'top', 'D')
-    endFace = BlockFace(2,0,0,'top', 'A')
+    startFace = BlockFace(3.4999999999999964, 1.5, 1.49000000000000353,'top', 'D')
+    endFace = BlockFace(3,1,1,'top', 'A')
     bp1  = np.array([
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -346,7 +347,26 @@ if __name__ == '__main__':
     faceStarDebug = FaceStar(bp2, armReach)
     # faceStarDebug.display_blueprint()
     # faceStarDebug.display_start_end([startFaceDebug.get_face_coordinate(),endFaceDebug.get_face_coordinate()])
-    path = faceStarDebug.get_path(startFaceDebug, endFaceDebug)
+
+    direction = endFace.face
+
+    point = list([endFace.xPos, endFace.yPos, endFace.zPos])
+
+
+    if direction == "top" or direction == "bottom":
+        point[0] = round(point[0])
+        point[1] = round(point[1])
+        point[2] = point[2]-1
+    if direction == "left" or direction == "right":
+        point[0] = point[0] + 1.37  # -1.37
+        point[1] = point[1] - 0.5
+        point[2] = point[2] + 0.87  # -.87
+    if direction == "front" or direction == "back":
+        point[0] = point[0] - 0.5
+        point[1] = point[1] - 1
+        point[2] = point[2] - 0.5
+    print(f"Going to point: {point}")
+    path = faceStarDebug.get_path(startFaceDebug, goal=endFaceDebug)
     faceStarDebug.display_path()
 
 

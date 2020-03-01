@@ -19,6 +19,8 @@ import zlib
 import pickle
 from signal import signal, SIGINT
 from sys import exit
+from logzero import logger
+import components.simulator.config as config
 
 POINTS = False
 ROBOTS = 1
@@ -41,6 +43,53 @@ BLUEPRINT = np.array([
 # ])
 
 BLUEPRINT = np.array([[[1]*1]*12] * 12)
+#
+# blueprint1 = np.array([
+#                           [[1] * 1] * 10,
+#                       ] * 10)
+# blueprint1_5 = np.array([
+#                           [[1] * 1] * 10,
+#                       ] * 10)
+#
+# blueprint2 = np.array([
+#                           [[1] * 1] * 10,
+#                       ] * 10)
+#
+# blueprint2[0, :, :] = 0
+# blueprint2[1, :, :] = 0
+# blueprint2[-1, :, :] = 0
+# blueprint2[-2, :, :] = 0
+# blueprint2[:, 0, :] = 0
+# blueprint2[:, 1, :] = 0
+# blueprint2[:, -1, :] = 0
+# blueprint2[:, -2, :] = 0
+#
+# blueprint3 = np.array([
+#                           [[1] * 1] * 10,
+#                       ] * 10)
+#
+# blueprint3[0, :, :] = 0
+# blueprint3[1, :, :] = 0
+# blueprint3[2, :, :] = 0
+# blueprint3[3, :, :] = 0
+# blueprint3[-1, :, :] = 0
+# blueprint3[-2, :, :] = 0
+# blueprint3[-3, :, :] = 0
+# blueprint3[-4, :, :] = 0
+# blueprint3[:, 0, :] = 0
+# blueprint3[:, 1, :] = 0
+# blueprint3[:, 2, :] = 0
+# blueprint3[:, 3, :] = 0
+# blueprint3[:, -1, :] = 0
+# blueprint3[:, -2, :] = 0
+# blueprint3[:, -3, :] = 0
+# blueprint3[:, -4, :] = 0
+# blueprints = [blueprint1, blueprint1_5, blueprint2, blueprint3]
+#
+# BLUEPRINT = np.dstack(blueprints)
+# BLUEPRINT[0, 0, 1] = 1
+
+
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
 
@@ -86,7 +135,7 @@ class WorkerThread(threading.Thread):
                 [topic, message] = self.socket.recv_multipart()
                 message = zlib.decompress(message)
                 messagedata = pickle.loads(message)
-                print(f"[Worker thread]: {topic} {messagedata}")
+                logger.debug(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
                     # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
@@ -287,7 +336,7 @@ class vtkTimerCallback():
         if rendered_id:
             self.pipeline.add_actor(rendered_id)
 
-        print("Should be seeing new robot, as it was just added")
+        logger.debug("Should be seeing new robot, as it was just added")
 
         self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
         # print(f"Robot added to known robots: {self.robot_actors}")
@@ -312,7 +361,7 @@ class vtkTimerCallback():
         # print("Callback: Should now be seeing robot")
 
     def create_new_thread(self, queue, result_queue):
-        print("Callback: Creating new thread for robot")
+        logger.debug("Callback: Creating new thread for robot")
         calculate_thread = CalculatorThread(dir_q=queue, result_q=result_queue, filter_q=self.new_actors,
                                             socket=self.socket, pipeline=self.pipeline, block_q=self.block_q)
         self.worker_pool.append(calculate_thread)
@@ -323,14 +372,14 @@ class vtkTimerCallback():
         # topic, messagedata = string.split()
         # print(topic, messagedata)
         if self.timer_count % 100 == 0:
-           print(self.timer_count)
+           logger.debug(self.timer_count)
         self.timer_count += 1
         while not self.new_actors.empty():
            topic, message, queue = self.new_actors.get()
            result_q = Queue()
-           print(f"Callback: Creating new thread for actor: {topic} {queue}")
+           logger.debug(f"Callback: Creating new thread for actor: {topic} {queue}")
            self.create_new_thread(queue, result_q)
-           print(f"Callback: Adding new actor to sim: {topic}")
+           logger.debug(f"Callback: Adding new actor to sim: {topic}")
            self.add_robot_to_sim(topic, result_q)
 
         for robot in self.robot_actors:
@@ -384,8 +433,8 @@ class vtkTimerCallback():
                        assembly.SetUserMatrix(transforms[index])
 
                if path:
-                    print(f"Path in Callback: {path}")
-                    print(f"Previous path: {self.previous_path}")
+                    logger.debug(f"Path in Callback: {path}")
+                    logger.debug(f"Previous path: {self.previous_path}")
                     for i in self.previous_path:
                         self.pipeline.remove_actor(i)
                         self.previous_path.remove(i)
@@ -468,7 +517,7 @@ class Simulate:
             [topic, message] = self.socket.recv_multipart()
             message = zlib.decompress(message)
             messagedata = pickle.loads(message)
-            print(f"[Worker thread]: {topic} {messagedata}")
+            logger.debug(f"[Worker thread]: {topic} {messagedata}")
             if topic == b"STRUCTURE":
                 BLUEPRINT = messagedata.message.blueprint
                 COLORS = messagedata.message.colors
@@ -593,7 +642,7 @@ class Simulate:
         # Start all threads
         for thread in self.pool:
             thread.start()
-            print("Started worker thread")
+            logger.info("Started worker thread")
 
 
         signal(SIGINT, self.save_video_end_program)
@@ -613,12 +662,12 @@ class Simulate:
             # self.windowToImageFilter.Modified()
             # self.writer.Write()
         except KeyboardInterrupt:
-            print("Exiting")
+            logger.info("Exiting")
             pass
 
         finally:
             # self.writer.End()
-            print("Saving video")
+            logger.info("Saving video")
             for thread in self.pool:
                 thread.join()
             for thread in self.worker_pool:
@@ -657,7 +706,7 @@ if __name__ == '__main__':
     socket = context.socket(zmq.SUB)
 
     # socket1 = context.socket(zmq.SUB)
-    print("Collecting updates from simulator...")
+    logger.info("Collecting updates from simulator...")
     socket.bind("tcp://0.0.0.0:5559")
     # socket1.connect(f"tcp://localhost:{port}")
 

@@ -156,7 +156,7 @@ import components.structure.config as config
 # import threading
 
 from multiprocessing import Process, Queue
-
+from logzero import logger
 
 class HeartBeater():
     def __init__(self, robot_queue, period=1000):
@@ -209,27 +209,27 @@ class HeartBeater():
             self.handle_heart_failure(heartfailures)
         self.responses = set()
 
-        print("%i beating hearts: %s"%(len(self.hearts),self.hearts))
+        logger.debug("%i beating hearts: %s"%(len(self.hearts),self.hearts))
         self.pingstream.send(str(self.lifetime).encode())
 
     def handle_new_heart(self, heart):
         while len(heart) > 0:
             new_heart = heart.pop()
-            print(f"Detected new heart {str(new_heart)}")
+            logger.info(f"Detected new heart {str(new_heart)}")
             self.hearts.add(new_heart)
             self.robot_queue.put(new_heart)
-            print("New heart added to queue")
+            logger.info("New heart added to queue")
 
     def handle_heart_failure(self, heart):
         while len(heart) > 0:
-            print("HEART FAILURE")
+            logger.warning("HEART FAILURE")
             heart_failure = heart.pop()
             if heart_failure == b'SIMULATOR':
-                print("The simulator has disconnected")
+                logger.warning("The simulator has disconnected")
             elif "ROBOT" in str(heart_failure):
-                print(f"A robot has been disconnected, {heart_failure}")
+                logger.warnign(f"A robot has been disconnected, {heart_failure}")
             else:
-                print(f"Heart {str(heart_failure)} failed, no longer connected")
+                logger.warning(f"Heart {str(heart_failure)} failed, no longer connected")
             self.hearts.remove(heart_failure)
 
     def handle_pong(self, msg):
@@ -238,7 +238,7 @@ class HeartBeater():
         if msg[1] == str(self.lifetime).encode():
             self.responses.add(msg[0])
         else:
-            print(f"Bad heartbeat (possibly old?): {msg[1]}")
+            logger.error(f"Bad heartbeat (possibly old?): {msg[1]}")
 
 
 def create_heartbeat_detector(robot_queue):

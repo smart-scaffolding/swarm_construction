@@ -6,7 +6,9 @@ import py_trees
 import time
 from components.robot.communication.messages import StatusUpdateMessage
 from components.robot.common.states import RobotBehaviors
+from logzero import logger
 from components.robot.pathplanning.searches.face_star import BlockFace
+
 ##############################################################################
 # Classes
 ##############################################################################
@@ -35,14 +37,14 @@ class Wait(py_trees.behaviour.Behaviour):
     def update(self):
         new_status = py_trees.common.Status.RUNNING
 
-        self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom', 'D'))
+        # self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom', 'D'))
 
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
 
-        print(f"[{self.name.upper()}]: Waiting...")
+        logger.info(f"[{self.name.upper()}]: Waiting...")
         response_message = StatusUpdateMessage(status=self.status_identifier, payload="Waiting...")
         self.communicator.send_communication(topic=self.robot_id, message=response_message)
         return new_status

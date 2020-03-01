@@ -106,7 +106,7 @@ class Block:
         else:
             self.location = self.next_destination
         self.next_destination = new_location
-        # return self
+        return self
 
     def __repr__(self):
         return f"\n\nBlock: {self.id}\n\tCurrent Loc: {self.location}\n\tNext Loc: {self.next_destination}\n\tFinal " \

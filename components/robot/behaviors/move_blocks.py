@@ -7,7 +7,7 @@ from .motion_planning_behaviors import get_motion_planning_behaviors_tree
 from components.robot.common.states import Block, MoveBlocksStore, Division, RobotBehaviors
 from components.robot.communication.messages import StatusUpdateMessage, BlockLocationMessage, FerryBlocksStatusFinished
 import time
-
+from logzero import logger
 
 ##############################################################################
 # Classes
@@ -16,7 +16,8 @@ import time
 
 class MoveBlocks(py_trees.behaviour.Behaviour):
     def __init__(self, name, status_identifier, robot_communicator,
-                 simulator_communicator, navigation_first_key="navigation/point_to_reach",
+                 simulator_communicator,
+                 navigation_first_key="navigation/point_to_reach",
                  place_block_key="place_block/location_to_place_block",
                  navigation_second_key="navigation/point_to_reach_2",
                  remove_block_key="remove_block/block_to_remove",
@@ -68,7 +69,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
 
         if len(self.blocks_to_move) <= 0:
 
-            print(f"[{self.name.upper()}]: Success! All blocks have been moved")
+            logger.info(f"[{self.name.upper()}]: Success! All blocks have been moved")
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="All blocks have been moved "
                                                                                          "successfully")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
@@ -104,18 +105,20 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
                                                                                          "block to place")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
 
-            print(f"[{self.name.upper()}]: Moving blocks...")
+            logger.info(f"[{self.name.upper()}]: Moving blocks...")
             self.state.set(name=self.keys["block_placed_state"], value=False)
-            self.move_block = self.blocks_to_move.pop()
-            print(f"[{self.name.upper()}]: New block being moved: {self.move_block}")
+            self.move_block = self.blocks_to_move[-1]
+            logger.debug(f"[{self.name.upper()}]: New block being moved: {self.move_block}")
             self.block_destination = self.move_block.location
-            print(f"[{self.name.upper()}]: New block destination: {self.block_destination}")
+            logger.debug(f"[{self.name.upper()}]: New block destination: {self.block_destination}")
             print("\n")
             self.blackboard.set(name=self.keys["remove_block_key"], value=self.move_block)
             self.blackboard.set(name=self.keys["navigation_first_key"], value=self.block_destination) #TODO: Change
             # to previous location of block
             self.blackboard.set(name=self.keys["navigation_second_key"], value=self.move_block.next_destination) #TODO: Change
             # to next destination of block
+
+            print("Just set navigation first key")
             self.blackboard.set(name=self.keys["place_block_key"], value=self.move_block.next_destination)
 
             # self.simulator_communicator.send_communication(topic=self.move_block.id, message=BlockLocationMessage(

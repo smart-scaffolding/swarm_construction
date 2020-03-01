@@ -7,7 +7,7 @@ from .motion_planning_behaviors import get_move_to_point_tree
 from components.robot.common.states import Block, MoveBlocksStore, Division, RobotBehaviors
 from components.robot.communication.messages import StatusUpdateMessage
 import time
-
+from logzero import logger
 
 ##############################################################################
 # Classes
@@ -66,10 +66,10 @@ class MoveToNewLocation(py_trees.behaviour.Behaviour):
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="Destination has been reached")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
             self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
-            print("Move robot behavior has finished (destination reached)")
+            logger.info("Move robot behavior has finished (destination reached)")
             return py_trees.common.Status.SUCCESS
         else:
-            print(f"[{self.name.upper()}]: Moving to location...")
+            logger.info(f"[{self.name.upper()}]: Moving to location...")
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="Moving to location...")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
 
