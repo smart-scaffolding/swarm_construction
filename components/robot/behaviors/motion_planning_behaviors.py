@@ -10,7 +10,7 @@ import atexit
 import components.robot.config as config
 from components.robot.communication.messages import AnimationUpdateMessage, StatusUpdateMessagePayload, \
     StatusUpdateMessage, PlacedBlockUpdateMessagePayload, BlockLocationMessage
-from components.robot.common.states import RobotBehaviors
+from components.robot.common.states import RobotBehaviors, BlockMoved
 from components.robot.common.common import create_homogeneous_transform_from_point
 from components.robot.pathplanning.searches.face_star import FaceStar, BlockFace
 import numpy as np
@@ -25,7 +25,7 @@ from random import choice
 ##############################################################################
 # Classes
 ##############################################################################
-def remove_block(robot, block_to_pick_up, simulator_communicator, blueprint):
+def remove_block(robot, block_to_pick_up, simulator_communicator, structure_communicator, blueprint):
     """
     Action used to remove a block from the structure at the specified location
 
@@ -45,7 +45,11 @@ def remove_block(robot, block_to_pick_up, simulator_communicator, blueprint):
             simulator_communicator.robot_communicator.send_communication(topic=block_to_pick_up.id,
                                                                          message=BlockLocationMessage(
                 block_id=block_to_pick_up.id, location=block_to_pick_up.location))
-
+        # structure_communicator.robot_communicator.send_communication(topic=block_to_pick_up.id,
+        #                                                              message=BlockLocationMessage(
+        #                                                                  block_id=block_to_pick_up.id,
+        #                                                                  location=block_to_pick_up.location,
+        #                                                                  removed=True))
         time.sleep(0.05)
         logger.info(f"Robot has removed up block {block_to_pick_up}")
 
@@ -55,7 +59,7 @@ def remove_block(robot, block_to_pick_up, simulator_communicator, blueprint):
     except KeyboardInterrupt:
         pass
 
-def place_block(robot, simulator_communicator, location_to_set_block, block, blueprint):
+def place_block(robot, simulator_communicator, location_to_set_block, block, structure_communicator, blueprint):
     """
     Action used to place a block on the structure at the specified location
 
@@ -79,6 +83,9 @@ def place_block(robot, simulator_communicator, location_to_set_block, block, blu
             simulator_communicator.robot_communicator.send_communication(topic=block.id, message=BlockLocationMessage(
                 block_id=block.id, location=block.next_destination))
             # Change base not to none
+
+        # structure_communicator.robot_communicator.send_communication(topic=block.id, message=BlockLocationMessage(
+        #         block_id=block.id, location=block.next_destination, removed=False))
         logger.info(f"Robot has placed block at: {location_to_set_block}")
 
         time.sleep(0.1)
@@ -379,10 +386,12 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
     a_pose = np.array(create_point_from_homogeneous_transform(robot.AEE_POSE))
 
     # print(type(d_pose))
-    if (np.linalg.norm(d_pose - modified_det) <= 1.2):
+    if (np.linalg.norm(d_pose - modified_det) <= 0.5):
+        logger.debug("D link already close enough to destination, returning empty path")
         return []
 
-    if (np.linalg.norm(a_pose - modified_det) <= 1.2):
+    if (np.linalg.norm(a_pose - modified_det) <= 0.5):
+        logger.debug("A link already close enough to destination, returning empty path")
         return []
 
     if direction == "top" or direction == "bottom":
@@ -435,7 +444,7 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
     def __init__(self, robot, key, robot_communicator, simulator_communicator, blueprint, name="RemoveBlock",
                     remove_block_key="remove_block/block_to_remove",
                     blueprint_key="state/blueprint",
-
+                    blocks_robot_has_moved_key="state/blocks_robot_has_moved"
                  ):
         """
 
@@ -455,10 +464,12 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         self.keys = {
             "remove_block_key": remove_block_key,
             "blueprint": blueprint_key,
+            "blocks_robot_has_moved": blocks_robot_has_moved_key,
         }
 
         self.blackboard.register_key(key=str(self.key), access=py_trees.common.Access.READ)
         self.state.register_key(key=blueprint_key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=blocks_robot_has_moved_key, access=py_trees.common.Access.WRITE)
         # self.blackboard.register_key(key=remove_block_key, access=py_trees.common.Access.READ)
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
@@ -489,10 +500,15 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         #     if self.percentage_completion == 100:
         #         new_status = py_trees.common.Status.SUCCESS
         remove_block_action = remove_block(self.robot, self.block_to_remove, self.simulator_communicator,
-                                           blueprint=self.blueprint)
+                                           blueprint=self.blueprint, structure_communicator=self.robot_communicator)
         if remove_block_action is True:
             new_status = py_trees.common.Status.SUCCESS
             # print(f"Before error {self.block_to_remove}")
+
+            blocks_robot_has_moved = self.state.get(name=self.keys["blocks_robot_has_moved"])
+            blocks_robot_has_moved.append(BlockMoved(location=self.block_to_remove.location, placed_block=False))
+            self.state.set(name=self.keys["blocks_robot_has_moved"], value=blocks_robot_has_moved)
+
             self.blueprint[self.block_to_remove.location] = 0
             self.state.set(name=self.keys["blueprint"], value=self.blueprint)
         else:
@@ -532,6 +548,7 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
                  blocks_to_move_key="state/blocks_to_move",
                  remove_block_key="remove_block/block_to_remove",
                  blueprint_key="state/blueprint",
+                 blocks_robot_has_moved_key="state/blocks_robot_has_moved",
                  name="PlaceBlock"):
         """
         Default construction.
@@ -547,12 +564,15 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         self.blueprint = blueprint
         self.state = self.attach_blackboard_client()
         self.state.register_key(key=state_key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=blocks_robot_has_moved_key, access=py_trees.common.Access.WRITE)
+
         self.keys = {
             "place_block_key": place_block_key,
             "robot_state": state_key,
             "remove_block_key": remove_block_key,
             "blueprint": blueprint_key,
             "blocks_to_move_key": blocks_to_move_key,
+            "blocks_robot_has_moved": blocks_robot_has_moved_key,
         }
 
         # self.blackboard.register_key()
@@ -600,12 +620,17 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         #         new_status = py_trees.common.Status.SUCCESS
         place_block_action = place_block(robot=self.robot, location_to_set_block=self.location_to_place_block,
                                          simulator_communicator=self.simulator_communicator, block=self.move_block,
-                                         blueprint=self.blueprint)
+                                         blueprint=self.blueprint, structure_communicator=self.robot_communicator)
 
         if place_block_action is True:
             new_status = py_trees.common.Status.SUCCESS
             self.blueprint[self.location_to_place_block] = 1
             self.state.set(name=self.keys["blueprint"], value=self.blueprint)
+
+            blocks_robot_has_moved = self.state.get(name=self.keys["blocks_robot_has_moved"])
+            blocks_robot_has_moved.append(BlockMoved(location=self.location_to_place_block, placed_block=True))
+            self.state.set(name=self.keys["blocks_robot_has_moved"], value=blocks_robot_has_moved)
+
             self.blocks_to_move.pop()
             self.state.set(name=self.keys["blocks_to_move_key"], value=self.blocks_to_move)
         else:

@@ -472,7 +472,7 @@ class SerialLink:
 
     # Units: inches, radians
     # inputs should be in the global reference frame
-    def ikin(self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1):
+    def ikin(self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, inching=True):
 
         if self.DEBUG:
             print(f'(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}')
@@ -483,7 +483,7 @@ class SerialLink:
         L1 = self.links[0].length
         L2 = self.links[1].length
 
-        relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID)
+        relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID, inching=inching)
         # x, y, z, dummy = relativePos * blockWidth  # dummy value should always 1
         x, y, z, dummy = relativePos  # dummy value should always 1
 
@@ -526,7 +526,7 @@ class SerialLink:
             print(f'ikin output q: {q}\n\n')
         return q
 
-    def handlePlaneChanges(self, goalPos, gamma, baseID):
+    def handlePlaneChanges(self, goalPos, gamma, baseID, inching=True):
 
         if self.DEBUG:
             print(f'Pre plane handling:\n AEE_POSE: {self.AEE_POSE}')
@@ -640,16 +640,28 @@ class SerialLink:
                     localGamma = -pi / 2
 
         # sets the goalPos and goalOri to the moving ee
-        if baseID == 'A':  # requested ee is A, update D to match goal
-            # DEEPOS = goalPos
-            # DEEORI = goalOri
-            self.DEE_POSE[:3, 3] = np.array(goalPos)
-            self.DEE_POSE[:3, :3] = goalRot[:3, :3]
-        elif baseID == 'D':  # requested ee is D, update A to match goal
-            # AEEPOS = goalPos
-            # AEEORI = goalOri
-            self.AEE_POSE[:3, 3] = np.array(goalPos)
-            self.AEE_POSE[:3, :3] = goalRot[:3, :3]
+        if inching:
+            if baseID == 'A':  # requested ee is A, update D to match goal
+                # DEEPOS = goalPos
+                # DEEORI = goalOri
+                self.DEE_POSE[:3, 3] = np.array(goalPos)
+                self.DEE_POSE[:3, :3] = goalRot[:3, :3]
+            elif baseID == 'D':  # requested ee is D, update A to match goal
+                # AEEPOS = goalPos
+                # AEEORI = goalOri
+                self.AEE_POSE[:3, 3] = np.array(goalPos)
+                self.AEE_POSE[:3, :3] = goalRot[:3, :3]
+        else:
+            if baseID == 'D':  # requested ee is A, update D to match goal
+                # DEEPOS = goalPos
+                # DEEORI = goalOri
+                self.DEE_POSE[:3, 3] = np.array(goalPos)
+                self.DEE_POSE[:3, :3] = goalRot[:3, :3]
+            elif baseID == 'A':  # requested ee is D, update A to match goal
+                # AEEPOS = goalPos
+                # AEEORI = goalOri
+                self.AEE_POSE[:3, 3] = np.array(goalPos)
+                self.AEE_POSE[:3, :3] = goalRot[:3, :3]
 
         if self.DEBUG:
             print(f'Post plane handling:\n AEE_POSE: {self.AEE_POSE}')

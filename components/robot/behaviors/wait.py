@@ -29,6 +29,8 @@ class Wait(py_trees.behaviour.Behaviour):
         self.state.register_key(key="current_position", access=py_trees.common.Access.WRITE)
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
+        self.counter = 0
+
 
     def initialise(self):
         robot_status_key = self.keys["robot_state"]
@@ -36,15 +38,16 @@ class Wait(py_trees.behaviour.Behaviour):
 
     def update(self):
         new_status = py_trees.common.Status.RUNNING
-
         # self.state.set(name="current_position", value=BlockFace(6, 6, 6, 'bottom', 'D'))
 
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
+        if self.counter == 0 or self.counter % 10000 == 0:
+            logger.info(f"[{self.name.upper()}]: Waiting...")
+        self.counter += 1
 
-        logger.info(f"[{self.name.upper()}]: Waiting...")
         response_message = StatusUpdateMessage(status=self.status_identifier, payload="Waiting...")
         self.communicator.send_communication(topic=self.robot_id, message=response_message)
         return new_status

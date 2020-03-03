@@ -14,7 +14,9 @@ from components.robot.test.minimum_jerk_trajectory_planner import *
 import zmq
 import zlib
 import pickle
-
+import components.robot.config as config
+from random import randint, choice
+from datetime import datetime
 
 class AnimationUpdate:
     def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
@@ -130,7 +132,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     check_if_point_reachable(robot, basePos, point)
 
-    setPoints, _, _, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
+    setPoints, _, velPoints, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
 
     # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos,point]), average_velocity=3.0,
     #                                                  frequency=100)
@@ -143,8 +145,8 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     forward_3 = []
     forward_4 = []
     base = robot.AEE_POSE
+    for index, point in enumerate(setPoints):
 
-    for point in setPoints:
         try:
             # ik_angles = robot.ikineConstrained(direction, p=point, flipped=flip_angles, accuracy=accuracy) * 180 / np.pi ## converted to degrees
             # print(ik_angles)
@@ -193,7 +195,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         # angle_update = ik_angles
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
-        send_to_simulator(base=base, trajectory=ik_angles)
+        send_to_simulator(base=base, trajectory=ik_angles, vel=velPoints[index])
 
     forward_1 = np.asmatrix(forward_1)
     forward_2 = np.asmatrix(forward_2)
@@ -466,7 +468,7 @@ def check_if_point_reachable(robot, base, goal):
         raise ValueError(f'Robot cannot reach from base {base} to goal {goal}')
 
 
-def send_to_simulator(base, trajectory, topic=TOPIC):
+def send_to_simulator(base, trajectory, topic=TOPIC, vel=None):
     # base *= trotz(theta=np.pi/2)
     # print(f'before converted to pi: {trajectory}')
     trajectory[0] = trajectory[0] - 90
@@ -478,6 +480,29 @@ def send_to_simulator(base, trajectory, topic=TOPIC):
     z = zlib.compress(p)
     # print(f"{topic} {z}")
     socket.send_multipart([topic, z])
+
+    position = create_point_from_homogeneous_transform(base)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    config.pusher.trigger(u'robot', u'state', {
+        u'id': id.decode(),
+        u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
+        u'angles': [f'{trajectory[1]:.1f}', f'{-1 * trajectory[2]:.1f}', f'{-1 * trajectory[3]:.1f}'],
+        u'grippers': {
+            u'a': 0,
+            u'd': 100
+        },
+        u'battery': 77,
+        u'blocks_placed': 0,
+        u'a_link_blocks': 1,
+        u'd_link_blocks': 0,
+        u'robot_state': "MOVING",
+        u'end_effector_velocity': {
+            u'label': current_time,
+            u'value': np.linalg.norm(vel)
+        }
+    })
+
     # time.sleep(0.01)
 
 

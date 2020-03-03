@@ -3,7 +3,7 @@ from components.structure.communication import SimulatorCommunication
 from components.structure.communication.heartbeater import start_hearbeat_detector
 from components.structure.communication.messages import *
 from components.robot.communication.messages import StatusUpdateMessagePayload as RobotStatusUpdateMessagePayload, \
-    BlockLocationMessage, FerryBlocksStatusFinished
+    BlockLocationMessage, FerryBlocksStatusFinished, MovingFinished
 from components.structure.common.common import create_point_from_homogeneous_transform
 import components.structure.config as config
 from components.simulator.model.graphics import vtk_named_colors
@@ -23,18 +23,22 @@ from components.structure.behaviors.building.common_building import spiral_sort_
 from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
 from copy import deepcopy
 from logzero import logger
+import py_trees
+
+
 
 configuration = None
 
 
 class StructureMain:
-    def __init__(self, blueprint, division_size=5, ferry_region_size=3, feeding_location=(0, 0)):
+    def __init__(self, template, blueprint, division_size=5, ferry_region_size=3, feeding_location=(0, 0)):
         self.configuration = config
         # self.manager = Manager()
         self.robot_queue = Queue()
         self.known_robots = {}
+        self.template = template
+        self.buildingPlanner = BuildingPlanner(template, feeding_location=feeding_location)
         self.blueprint = blueprint
-        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=feeding_location)
 
         self.goals = set()
         self.goal_ids = set()
@@ -78,9 +82,9 @@ class StructureMain:
                 send_messages_socket=self.simulator_send_messages_socket,
                 send_topics=b"STRUCTURE")
 
-    def reset_building_planner(self, blueprint, division_size=5, feeding_location=(0, 0)):
-        self.blueprint = blueprint
-        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=feeding_location)
+    def reset_building_planner(self, template, division_size=5, feeding_location=(0, 0)):
+        self.template = template
+        self.buildingPlanner = BuildingPlanner(template, feeding_location=feeding_location)
         self.division_size = division_size
         # self.ferry_region_size =
 
@@ -291,12 +295,21 @@ class StructureMain:
                     #     print(node.id)
                     #     continue
 
-    def wait_for_task_completion(self):
+    def update_blueprint_with_moved_blocks(self, moved_blocks):
+        for block in moved_blocks:
+            if block.placed_block:
+                self.blueprint[block.location] = 1
+            else:
+                self.blueprint[block.location] = 0
+
+
+    def wait_for_task_completion(self, robots, task_type="Ferry"):
         message = None
         finished = False
-
-        while not finished:
-            print("Waiting for robot to finish")
+        finished_robots = set()
+        num_robots_waiting = len(robots)
+        while len(finished_robots) != num_robots_waiting:
+            print("Waiting for robots to finish")
             messages = self.robot_communicator.get_communication()
             for update in messages:
                 topic, received_message = update
@@ -304,14 +317,24 @@ class StructureMain:
                 # print(type(message))
                 # print(type(FerryBlocksStatusFinished))
                 # print(f"Is instance: {isinstance(message, FerryBlocksStatusFinished)}")
-
-                finished = isinstance(message, FerryBlocksStatusFinished)
+                if task_type == "MOVE":
+                    finished = isinstance(message, MovingFinished)
+                else:
+                    finished = isinstance(message, FerryBlocksStatusFinished)
                 if finished:
+                    finished_robots.add(topic)
+                    if task_type != "MOVE":
+                        moved_blocks = message.blocks_moved
+                        self.update_blueprint_with_moved_blocks(moved_blocks)
+                    # break
+
+                if len(finished_robots) == num_robots_waiting:
                     break
                 # print(f"[Structure] got message(s) from robot {topic}-> {message}")
                 # print(received_message.robot_status)
                 # print(f"DOING WORK on node: {node.id}")
             time.sleep(1)
+        logger.debug(finished_robots)
         print("\n\n\n\nRobot has finished")
         time.sleep(3)
 
@@ -368,9 +391,14 @@ class StructureMain:
             # print(currently_claimed_set)
 
 
-            assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)  # assign robots
-            while True:
-                pass
+            assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator,
+                                        blueprint=self.template)
+            #
+            # assign robots
+            self.wait_for_task_completion(robots=robots, task_type="MOVE")
+            logger.error("Robots have reached destinations")
+            # while True:
+            #     pass
             # assign_robots_closest_point(robots, self.currently_claimed_set, None)
             for bot in robots:  # update dictionary to include robot with claimed division
                 node, _ = self.all_nodes[bot.target.id]
@@ -419,7 +447,7 @@ class StructureMain:
                             # ferry_blocks = self.blocks_to_move
                             # ferry_blocks.reverse()
                             structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-                                blocks_to_move=ferry_blocks))
+                                blocks_to_move=ferry_blocks, blueprint=self.blueprint))
 
                             # self.blocks_to_move.
                             for i in ferry_blocks:
@@ -431,7 +459,7 @@ class StructureMain:
                             self.blocks_to_move = self.get_new_block_location(node, self.blocks_to_move, type="FERRY")
                             ferry_blocks = self.blocks_to_move
                             structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                                blocks_to_move=ferry_blocks))
+                                blocks_to_move=ferry_blocks, blueprint=self.blueprint))
 
                         logger.info(f"Got new block location: {self.blocks_to_move}")
 
@@ -463,7 +491,7 @@ class StructureMain:
                         print(f"\nDOING WORK on node: {node.id}")
                         print(f"\nDOING WORK on node: {node.id}")
 
-                self.wait_for_task_completion()
+                self.wait_for_task_completion(robots=robots, task_type="FERRY")
 
                 # time.sleep(2)
                 logger.info("Robot has finished working on node")
@@ -490,7 +518,8 @@ class StructureMain:
                 #
                 # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
                 # print(f"Current claimed set: {currently_claimed_set}")
-                assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
+                assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator,
+                                            blueprint=self.template)
                 # assign_robots_closest_point(robots, self.currently_claimed_set, None)
                 time.sleep(2)
                 logger.debug("Updating dictionary with new robot positions")
@@ -558,7 +587,7 @@ class StructureMain:
         y_start, y_end = node.y_range
         z_start, z_end = node.z_range
 
-        level = self.blueprint[x_start:x_end, y_start:y_end]
+        level = self.template[x_start:x_end, y_start:y_end]
         m, n, _ = level.shape
         num_blocks = {
                      "FRONT": 0,
@@ -587,7 +616,7 @@ class StructureMain:
             columns = len(level[0])
             logger.debug(level)
             logger.debug(level.reshape((rows, columns)))
-            logger.debug(self.blueprint)
+            logger.debug(self.template)
             layer, new_block_locations = spiral_sort_helper(rows, columns, level.reshape((rows, columns)),
                                                             x_offset=x_offset,
                                                             y_offset=y_offset,
@@ -657,185 +686,10 @@ if __name__ == '__main__':
     bx, by, bz = blueprint.shape
     colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-    # colors[0][0][0] = vtk_named_colors(["Blue"])
-    # colors[0]4][1] = vtk_named_colors(["Blue"])
-    # colors[0][4][4] = vtk_named_colors(["Blue"])
-    # colors[0][4][7] = vtk_named_colors(["Blue"])
 
-    # blueprint = np.array([
-    #                          [[1] * 9] * 9,
-    #                      ] * 9)
-    #
-    # colors = np.array([[['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']]])
+    blueprint_base = np.array([
+                              [[1] * 1] * 10,
+                          ] * 10)
 
     blueprint1 = np.array([
                               [[1] * 1] * 10,
@@ -877,11 +731,17 @@ if __name__ == '__main__':
     blueprints = [blueprint1, blueprint2, blueprint3]
 
 
+    blueprint_status = []
+    blueprint_status.append(blueprint_base)
+    blueprint_status.extend(blueprints)
+    blueprint_status = np.dstack(blueprint_status)
+
+
     division_size = 5
-    structure = StructureMain(blueprint=blueprints[0], division_size=division_size)
+    structure = StructureMain(template=blueprints[0], division_size=division_size, blueprint=blueprint_status)
     structure.initialize_communications(colors=colors)
 
-    for i in range(3):
+    for i in range(len(blueprints)):
         logger.info(f"STARTING LEVEL: {i}")
         blueprint = blueprints[i]
         structure.reset_building_planner(blueprint, division_size)

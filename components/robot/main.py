@@ -129,7 +129,7 @@ if __name__ == '__main__':
         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
     ])
 
-    base = np.matrix([[1, 0, 0, 3.5],
+    base = np.matrix([[1, 0, 0, 0.5],
                       [0, 1, 0, 0.5],
                       [0, 0, 1, 1.],
                       [0, 0, 0, 1]])
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/robot", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/blueprint", access=py_trees.common.Access.WRITE)
-
+    writer.register_key(key="state/blocks_robot_has_moved", access=py_trees.common.Access.WRITE)
 
     block = Block(final_destination=(6, 3, 1))
     block.set_next_location((3, 0, 1))
@@ -180,13 +180,16 @@ if __name__ == '__main__':
     blocks.reverse()
     #
     writer.set(name="state/blocks_to_move", value=blocks)
-    writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
-    writer.set(name="state/block_has_been_placed", value=True)
-    writer.set(name="state/point_to_reach", value=False)
+    writer.set(name="state/robot_status", value=RobotBehaviors.WAIT) #If setting to ferry/move,
+                                                                      # must set block_has_been_placed to true
+    writer.set(name="state/block_has_been_placed", value=False)
+    writer.set(name="state/point_to_reach", value=True)
     writer.set(name="state/location_to_move_to",
                value=(6, 0, 1, "top"))
     writer.set(name="state/robot", value=robot_model)
     writer.set(name="state/blueprint", value=robot.blueprint)
+    writer.set(name="state/blocks_robot_has_moved", value=[])
+
 
     choice([(1, 1, 0, "top"), (4, 1, 0, "top"), (7, 1, 0, "top"),
             (1, 4, 0, "top"), (4, 4, 0, "top"), (5, 4, 0, "top"),
@@ -196,7 +199,7 @@ if __name__ == '__main__':
 
     # writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
     #                                                           'top', 'D'))
-    writer.set(name="state/current_position", value=BlockFace(3, 0, 0,
+    writer.set(name="state/current_position", value=BlockFace(8, 8, 0,
                                                               'top', 'D'))
 
 

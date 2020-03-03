@@ -10,26 +10,30 @@ class Message:
 
 
 class FerryBlocksMessage(Message):
-    def __init__(self, blocks_to_move):
+    def __init__(self, blocks_to_move, blueprint):
         super().__init__(message_id=RobotBehaviors.FERRY)
         self.blocks_to_move = blocks_to_move
+        self.blueprint = blueprint
 
 
 class BuildMessage(Message):
-    def __init__(self, blocks_to_move):
+    def __init__(self, blocks_to_move, blueprint):
         super().__init__(message_id=RobotBehaviors.BUILD)
         self.blocks_to_move = blocks_to_move
+        self.blueprint = blueprint
 
 
 class WaitMessage(Message):
-    def __init__(self):
+    def __init__(self, blueprint):
         super().__init__(message_id=RobotBehaviors.WAIT)
+        self.blueprint = blueprint
 
 
 class MoveToPointMessage(Message):
-    def __init__(self, destination):
+    def __init__(self, destination, blueprint):
         super().__init__(message_id=RobotBehaviors.MOVE)
         self.location_to_move_to = destination
+        self.blueprint = blueprint
 
 
 class StatusUpdateMessage(Message):

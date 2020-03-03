@@ -24,6 +24,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
                  blocks_to_move_key="blocks_to_move",
                  robot_state="robot_status",
                  block_placed_state="block_has_been_placed",
+                 blocks_robot_has_moved_key="blocks_robot_has_moved"
                  ):
         super().__init__(name=name)
         self.communicator = robot_communicator.robot_communicator
@@ -40,6 +41,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             "blocks_to_move_key": blocks_to_move_key,
             "robot_state": robot_state,
             "block_placed_state": block_placed_state,
+            "blocks_robot_has_moved": blocks_robot_has_moved_key,
         }
         self.blackboard.register_key(key=navigation_first_key, access=py_trees.common.Access.WRITE)
         self.blackboard.register_key(key=place_block_key, access=py_trees.common.Access.WRITE)
@@ -49,6 +51,8 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
         self.state.register_key(key=blocks_to_move_key, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=robot_state, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=block_placed_state, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=blocks_robot_has_moved_key, access=py_trees.common.Access.WRITE)
+
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
@@ -65,30 +69,37 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
 
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
+
+            self.state.set(name=self.keys["blocks_robot_has_moved"], value=[])
             return py_trees.common.Status.SUCCESS
 
         if len(self.blocks_to_move) <= 0:
 
             logger.info(f"[{self.name.upper()}]: Success! All blocks have been moved")
+            blocks_robot_has_moved =  self.state.get(name=self.keys["blocks_robot_has_moved"])
+
             response_message = StatusUpdateMessage(status=self.status_identifier, payload="All blocks have been moved "
                                                                                          "successfully")
             self.communicator.send_communication(topic=self.robot_id, message=response_message)
 
             self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
-                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished(blocks_moved=blocks_robot_has_moved)))
 
             self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
-                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished(blocks_moved=blocks_robot_has_moved)))
 
             self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
-                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished(blocks_moved=blocks_robot_has_moved)))
 
             self.communicator.send_communication(topic=self.robot_id, message=StatusUpdateMessage(
-                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished()))
+                status=RobotBehaviors.WAIT, payload=FerryBlocksStatusFinished(blocks_moved=blocks_robot_has_moved)))
 
 
             print("Sent finished status to structure (done moving blocks)")
             self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
+
+            self.state.set(name=self.keys["blocks_robot_has_moved"], value=[])
+
             return py_trees.common.Status.SUCCESS
         if self.state.get(name=self.keys["block_placed_state"]) is False:
             # print("SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS HAVE BEEN PLACED")

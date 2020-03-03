@@ -6,7 +6,7 @@ communication = {
     "receive_messages_port": "tcp://0.0.0.0:5559",
 }
 
-LOGLEVEL = logging.DEBUG
+LOGLEVEL = logging.INFO
 LOGFILE = "./logs/simulator_logfile.log"
 
 log_format = '%(color)s[SIMULATOR: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'

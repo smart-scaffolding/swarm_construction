@@ -16,6 +16,13 @@ class FerryBlocksMessage(Message):
 
 
 class FerryBlocksStatusFinished:
+    def __init__(self, blocks_moved):
+        # super().__init__(message_id=RobotBehaviors.FERRY)
+        self.finished = True
+        self.blocks_moved = blocks_moved
+
+
+class MovingFinished:
     def __init__(self):
         # super().__init__(message_id=RobotBehaviors.FERRY)
         self.finished = True
@@ -69,9 +76,10 @@ class AnimationUpdateMessage(Message):
 
 
 class BlockLocationMessage:
-    def __init__(self, block_id, location):
+    def __init__(self, block_id, location, removed=False):
         self.id = block_id
         self.location = location
+        self.removed = removed
 
 
 class MessageWrapper:

@@ -23,6 +23,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
                  block_placed_state="block_has_been_placed",
                  location_to_move_to_key="location_to_move_to",
                  destination_reached="point_to_reach",
+                 blueprint_key="state/blueprint",
 
                  ):
         super().__init__(name=name)
@@ -41,6 +42,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
             "block_placed_state": block_placed_state,
             "location_to_move_to_key": location_to_move_to_key,
             "destination_reached": destination_reached,
+            "blueprint_key": blueprint_key
         }
         self.blackboard = self.attach_blackboard_client()
 
@@ -54,6 +56,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.register_key(key=block_placed_state, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=destination_reached, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=location_to_move_to_key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=blueprint_key, access=py_trees.common.Access.WRITE)
 
         self.communicator = robot_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
@@ -102,6 +105,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["block_placed_state"], value=True)
         self.state.set(name=self.keys["destination_reached"], value=False)
+        self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
 
 
     def handle_build_message(self, update):
@@ -109,16 +113,21 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["block_placed_state"], value=True)
         self.state.set(name=self.keys["destination_reached"], value=False)
+        self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
 
 
     def handle_wait_message(self, update):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
+        self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
+
 
     def handle_move_message(self, update):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["block_placed_state"], value=True)
         self.state.set(name=self.keys["location_to_move_to_key"], value=update.location_to_move_to)
         self.state.set(name=self.keys["destination_reached"], value=False)
+        self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
+
 
 
 def create_update_behavior_root(robot_communicator, blueprint):

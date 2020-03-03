@@ -12,6 +12,10 @@ from components.robot.test.minimum_jerk_trajectory_planner import *
 import zmq
 import zlib
 import pickle
+import components.robot.config as config
+from random import randint, choice
+from datetime import datetime
+
 
 accuracy = 1e-7
 threshold = 1
@@ -25,7 +29,7 @@ TOPIC = b"ROBOT_1"
 
 JOINT_ANGLE_PKT_SIZE = 8
 
-robot_ee_starting_point = (2.5, 1.5, 1)
+robot_ee_starting_point = (2.5, 0.5, 1)
 
 blueprint = np.array([
     [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [1, 1, 1]],
@@ -52,6 +56,18 @@ base = np.matrix([[1, 0, 0, 0.5],
                   [0, 1, 0, 0.5],
                   [0, 0, 1, 1.],
                   [0, 0, 0, 1]])
+
+
+class AnimationUpdate:
+    def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
+        self.robot = robot
+        self.robot_base = robot_base
+        self.index = index
+        self.direction = direction
+        self.trajectory = trajectory
+        self.path = path
+        self.placedObstacle = placedObstacle
+        self.obstacle = obstacle
 
 def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, blueprint=blueprint, base=base,
                                  velocity_offset=0, use_grippers=False):
@@ -108,7 +124,8 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
             angle[1] = 180 / 2 + angle[3]
             angle[3] = temp - 180 / 2
 
-        if SERIAL:
+        if serial:
+            print("Sending angle to robot")
             robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=0,
                                 delay=timeout)
 
@@ -123,7 +140,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     check_if_point_reachable(robot, basePos, point)
 
-    setPoints, _, _, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
+    setPoints, _, velPoints, _ = get_quintic_trajectory(points=np.array([currentEEPos,point]), set_points=num_steps)
 
     # setPoints, _, _, _ = get_minimum_jerk_trajectory(points=np.array([currentEEPos, point]), average_velocity=3.0,
     #                                                  frequency=50)
@@ -134,7 +151,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     forward_4 = []
     base = robot.AEE_POSE
 
-    for point in setPoints:
+    for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
         ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
@@ -158,7 +175,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
         if SIMULATE:
-            send_to_simulator(base=base, trajectory=ik_angles)
+            send_to_simulator(base=base, trajectory=ik_angles, vel=velPoints)
 
     forward_1 = np.asmatrix(forward_1)
     forward_2 = np.asmatrix(forward_2)
@@ -275,6 +292,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             #
             ee_pos = round_end_effector_position(ee_pos.tolist()[0], direction, previous_point)
             # ee_pos = np.copy(previous_point)
+
 
             if (index) % 2 == 0:
 
@@ -406,11 +424,35 @@ def check_if_point_reachable(robot, base, goal):
         raise ValueError(f'Robot cannot reach from base {base} to goal {goal}')
 
 
-def send_to_simulator(base, trajectory, topic=TOPIC):
+def send_to_simulator(base, trajectory, topic=TOPIC,vel=None):
     # base *= trotz(theta=np.pi/2)
     # print(f'before converted to pi: {trajectory}')
+
+    position = create_point_from_homogeneous_transform(base)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    config.pusher.trigger(u'robot', u'state', {
+        u'id': topic.decode(),
+        u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
+        u'angles': [f'{trajectory[1]:.1f}', f'{-1 * trajectory[2]:.1f}', f'{-1 * trajectory[3]:.1f}'],
+        u'grippers': {
+            u'a': 0,
+            u'd': 100
+        },
+        u'battery': 77,
+        u'blocks_placed': 0,
+        u'a_link_blocks': 1,
+        u'd_link_blocks': 0,
+        u'robot_state': "MOVING",
+        u'end_effector_velocity': {
+            u'label': current_time,
+            u'value': np.linalg.norm(vel)
+        }
+    })
+    # time.sleep(0.01)
+
     trajectory[0] = trajectory[0] - 90
-    trajectory = trajectory*np.pi/180
+    trajectory = trajectory * np.pi / 180
     # print(f'after converted to pi: {trajectory}')
     messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
     message_obj = MessageWrapper(topic=topic, message=messagedata)
@@ -418,7 +460,6 @@ def send_to_simulator(base, trajectory, topic=TOPIC):
     z = zlib.compress(p)
     # print(f"{topic} {z}")
     socket.send_multipart([topic, z])
-    # time.sleep(0.01)
 
 
 if __name__ == '__main__':
@@ -485,13 +526,3 @@ if __name__ == '__main__':
     robot_trajectory_serial_demo(num_steps=NUM_STEPS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
                                  path=path, blueprint=blueprint, base=base)
 
-class AnimationUpdate:
-    def __init__(self, robot, robot_base, index, direction, trajectory, path, placedObstacle=False, obstacle=None):
-        self.robot = robot
-        self.robot_base = robot_base
-        self.index = index
-        self.direction = direction
-        self.trajectory = trajectory
-        self.path = path
-        self.placedObstacle = placedObstacle
-        self.obstacle = obstacle

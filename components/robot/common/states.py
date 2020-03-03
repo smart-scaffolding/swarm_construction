@@ -88,3 +88,9 @@ class BuildingStates(IntEnum):
     DONE_ORIGIN = 2
     DONE = 3
     EMPTY = 4
+
+
+class BlockMoved:
+    def __init__(self, location, placed_block=False):
+        self.location = location
+        self.placed_block = placed_block

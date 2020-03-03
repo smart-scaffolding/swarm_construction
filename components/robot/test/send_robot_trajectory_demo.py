@@ -18,7 +18,7 @@ BAUD: The baud rate
 
 SERIAL = False
 PORT = '/dev/cu.usbmodem14201'
-BAUD = 9600
+BAUD = 115200
 
 
 
@@ -37,8 +37,8 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
                  
 '''
 
-TIMEOUT = 3.0           # seconds
-NUM_VIA_POINTS = 50
+TIMEOUT = 0.03          # seconds
+NUM_VIA_POINTS = 25
 
 
 ##############################################################################
@@ -50,19 +50,31 @@ not wish to run and uncomment the single path you do wish to run.
 '''
 
 # D link moves forward one step
-path = [(3, 0, 0, 'top')]
+# path = [(3, 0, 0, 'top')]
 
 # D link moves forward one step and will stop at block height (use to reach block)
 # path = [(3, 0, 1, 'top')]
-
-
 
 # Inch from start to end
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 # path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0, "top"), (5, 0, 0, "top"), (3, 0, 0, "top")]
 
+# Move block forward
+## NOTE: Grippers must either be enabled or disengaged for this to work
+## NOTE: Block must be placed underneath for robot to step on
+path=[(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 2, "top")]
 
 
+# Move block forward
+## NOTE: Grippers must either be enabled or disengaged for this to work
+## NOTE: Block must be placed underneath for robot to step on
+# path=[(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 2, "top")]
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+#                                                                                                        "top")]
+path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0, "top"), (5, 0, 1, "top"), (4, 0, 1,
+                                                                                                       "top"), (6, 0,
+                                                                                                                2,
+                                                                                                                "top"), (5, 0, 1, "top"), (7, 0, 3, "top"), (6, 0, 2, "top")]
 ##############################################################################
 # Gripper Control
 ##############################################################################

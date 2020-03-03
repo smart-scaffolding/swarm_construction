@@ -227,7 +227,7 @@ class HeartBeater():
             if heart_failure == b'SIMULATOR':
                 logger.warning("The simulator has disconnected")
             elif "ROBOT" in str(heart_failure):
-                logger.warnign(f"A robot has been disconnected, {heart_failure}")
+                logger.warning(f"A robot has been disconnected, {heart_failure}")
             else:
                 logger.warning(f"Heart {str(heart_failure)} failed, no longer connected")
             self.hearts.remove(heart_failure)
