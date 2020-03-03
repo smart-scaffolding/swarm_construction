@@ -715,6 +715,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
+        # self.last_point_to_reach = None
+        self.inching = True
+        self.toggle_for_searching_every_other = True
+
     def setup(self):
         # self.parent_connection, self.child_connection = multiprocessing.Pipe()
 
@@ -729,14 +733,24 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.point_to_reach = self.blackboard.get(self.key)
         self.blueprint = self.state.get(name=self.keys["blueprint"])
         self.current_position = self.state.get(self.current_position_key)
+        self.current_position.round_pos()
         logger.info(f"[{self.name.upper()}]: Current Position: ({self.current_position.xPos}, "
                 f"{self.current_position.yPos}, {self.current_position.zPos}, {self.current_position.face})")
         logger.info(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
         self.robot = self.state.get(self.robot_model_key)
 
-        self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
-                                      simulator_communicator=self.robot_communicator,
-                                      blueprint=self.blueprint)
+        # self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
+        #                               simulator_communicator=self.robot_communicator,
+        #                               blueprint=self.blueprint)
+
+        if self.inching:
+            if self.toggle_for_searching_every_other or len(self.path) < 2:
+                self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
+                                  simulator_communicator=self.robot_communicator,
+                                  blueprint=self.blueprint)
+                self.toggle_for_searching_every_other = False
+            else:
+                self.toggle_for_searching_every_other = True
 
         # print(self.blackboard)
     def update(self):
@@ -750,8 +764,6 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         # self.percentage_completion = 0
         if len(self.path) > 0 and self.reached_point[0]:
             self.next_point = self.path.pop(0)
-
-
 
             place_block=False
             modified_goal = np.array(self.point_to_reach)

@@ -42,6 +42,11 @@ class BlockFace:
             return None
         return tuple(coordinate)
 
+    def round_pos(self):
+        self.xPos = round(self.xPos, 1)
+        self.yPos = round(self.yPos, 1)
+        self.zPos = round(self.zPos, 1)
+
 
 class Division(object):
     def __init__(self):
