@@ -359,7 +359,8 @@ class SerialLink:
             q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
-        new_x = x / cos(q1)
+        # new_x = x / cos(q1)
+        new_x = sqrt(x**2+y**2)
 
         x3 = new_x - L1 * cos(localGamma)
         z3 = new_z - L1 * sin(localGamma)  # reduce to the 2dof planar robot

@@ -182,7 +182,10 @@ if __name__ == '__main__':
     writer.set(name="state/blocks_to_move", value=blocks)
     writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
     writer.set(name="state/block_has_been_placed", value=True)
-    writer.set(name="state/point_to_reach", value=False)
+    # writer.set(name="state/point_to_reach", value=False)
+    writer.set(name="state/point_to_reach", value=True)
+    # writer.set(name="state/location_to_move_to",
+    #            value=(6, 0, 1, "top"))
     writer.set(name="state/location_to_move_to",
                value=(6, 0, 1, "top"))
     writer.set(name="state/robot", value=robot_model)
@@ -208,7 +211,7 @@ if __name__ == '__main__':
 
     robot.initialize_communications()
     helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
-                              trajectory=np.array([180,62,-1.23793284e+02, -28]),
+                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
                               id=robot.id)
     helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
                               trajectory=np.array([180, 62, -1.23793284e+02, -28]),
