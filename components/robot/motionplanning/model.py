@@ -12,7 +12,7 @@ import numpy as np
 
 
 class Inchworm(SerialLink):
-    def __init__(self, base=None, blueprint=None, port=None, baud=9600):
+    def __init__(self, a_link_starting_pos, d_link_starting_pos, base=None, blueprint=None, port=None, baud=9600):
 
         # self.qn = np.matrix([[0, pi / 4, pi, 0, pi / 4, 0]])
         # self.qr = np.matrix([[0, pi / 2, -pi / 2, 0, 0, 0]])
@@ -45,13 +45,15 @@ class Inchworm(SerialLink):
         #          Revolute(d=0, a=seg_lens[3], alpha=0, j=0, theta=0, offset=0, qlim=(-180 * pi / 180, 180 * pi / 180), length=seg_lens[3]),
         #          ]
 
-        if base is None:
-            base = tr.trotx(-90, unit='deg')
-        else:
-            assert ishomog(base, (4, 4))
+        # if base is None:
+        #     base = tr.trotx(-90, unit='deg')
+        # else:
+        #     assert ishomog(base, (4, 4))
         # file_names = SerialLink._setup_file_names(4)
         # colors = graphics.vtk_named_colors(["Red", "DarkGreen", "Blue", "Cyan"])
 
 
-        super().__init__(links=links, base=base, name='inchworm', stl_files=None, colors=None, param=param,
+        super().__init__(links=links, a_link_starting_pos=a_link_starting_pos,
+                         d_link_starting_pos=d_link_starting_pos, base=base, name='inchworm',
+                         stl_files=None, colors=None, param=param,
                          blueprint=blueprint, port=port, baud=baud)

@@ -120,6 +120,11 @@ if __name__ == '__main__':
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
+    a_end_effector = [4.5, 4.5, 1]
+    x, y, z = a_end_effector
+    d_end_effector = [x+2, y, z]
+
+
     blueprint = np.array([
         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
@@ -129,12 +134,11 @@ if __name__ == '__main__':
         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
     ])
 
-    base = np.matrix([[1, 0, 0, 0.5],
-                      [0, 1, 0, 0.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+    base = create_homogeneous_transform_from_point(np.array(a_end_effector))
+    logger.debug(base)
 
-    robot_model = model.Inchworm(base=base, blueprint=blueprint)
+    robot_model = model.Inchworm(base=base, blueprint=blueprint, a_link_starting_pos=a_end_effector,
+                                 d_link_starting_pos=d_end_effector)
 
     behaviour_tree = py_trees.trees.BehaviourTree(root)
     #
@@ -180,15 +184,12 @@ if __name__ == '__main__':
     blocks.reverse()
     #
     writer.set(name="state/blocks_to_move", value=blocks)
-    writer.set(name="state/robot_status", value=RobotBehaviors.WAIT) #If setting to ferry/move,
+    writer.set(name="state/robot_status", value=RobotBehaviors.MOVE) #If setting to ferry/move,
                                                                       # must set block_has_been_placed to true
 
-
-
-    writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
-    writer.set(name="state/block_has_been_placed", value=True)
+    writer.set(name="state/block_has_been_placed", value=False) # Set to true if trying to place block
     # writer.set(name="state/point_to_reach", value=False)
-    writer.set(name="state/point_to_reach", value=True)
+    writer.set(name="state/point_to_reach", value=False) # Set to false if trying to move
     # writer.set(name="state/location_to_move_to",
     #            value=(6, 0, 1, "top"))
     writer.set(name="state/location_to_move_to",
@@ -206,8 +207,8 @@ if __name__ == '__main__':
 
     # writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
     #                                                           'top', 'D'))
-    writer.set(name="state/current_position", value=BlockFace(8, 8, 0,
-                                                              'top', 'D'))
+    writer.set(name="state/current_position", value=BlockFace(a_end_effector[0], a_end_effector[1], a_end_effector[2],
+                                                              'top', 'A'))
 
 
 
@@ -217,13 +218,13 @@ if __name__ == '__main__':
 
 
     robot.initialize_communications()
-    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+    helpers.send_to_simulator(base=robot_model.base,
                               trajectory=np.array([180, 62, -1.23793284e+02, -28]),
                               id=robot.id)
-    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+    helpers.send_to_simulator(base=robot_model.base,
                               trajectory=np.array([180, 62, -1.23793284e+02, -28]),
                               id=robot.id)
-    helpers.send_to_simulator(base=create_homogeneous_transform_from_point(np.array(robot.position)),
+    helpers.send_to_simulator(base=robot_model.base,
                               trajectory=np.array([180, 62, -1.23793284e+02, -28]),
                               id=robot.id)
     # print(f"Sent base: {base} and traj {robot_model.get_current_joint_config(unit='deg')}")

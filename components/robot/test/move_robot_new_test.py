@@ -69,6 +69,7 @@ class AnimationUpdate:
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
 
+
 def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, blueprint=blueprint, base=base,
                                  velocity_offset=0, use_grippers=False):
     robot = model.Inchworm(base=base, blueprint=blueprint)
@@ -129,6 +130,7 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
             robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=0,
                                 delay=timeout)
 
+
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
 
     if baseID == 'A':
@@ -185,11 +187,13 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
     ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
     return ik_angles.T
 
+
 def map_angles_from_robot_to_simulation(angles):
     angles = angles * 180 / np.pi
     angles = np.array([angles[0], 90-angles[1], -1*angles[2], -1*angles[3]])
     # angles = np.array([0,90-27,-124,0])
     return angles
+
 
 def temp_direction_to_gamma_convertion(direction):
     if direction == "top":
@@ -204,6 +208,7 @@ def temp_direction_to_gamma_convertion(direction):
         return 0
     else:
         return 0
+
 
 def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
@@ -273,6 +278,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
         if index == 0:
             # ee_up = list(point)
             ee_up = list(robot_ee_starting_point)
+
             # TODO: FIX TO ACCEPT ANY ORIENTATION, NOT JUST +Z
             # move_up[2] = move_up[2] + offset
             previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None

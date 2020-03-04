@@ -21,7 +21,9 @@ class SerialLink:
     SerialLink object class.
     """
 
-    def __init__(self, links, name=None, base=None, tool=None, stl_files=None, q=None, colors=None, param=None,
+    def __init__(self, links, a_link_starting_pos, d_link_starting_pos, name=None, base=None, tool=None,
+                 stl_files=None, q=None,
+                 colors=None, param=None,
                  blueprint=None, port=None, baud=9600):
         """
         Creates a SerialLink object.
@@ -39,7 +41,7 @@ class SerialLink:
         if base is None:
             self.base = np.asmatrix(np.eye(4, 4))
         else:
-            assert (type(base) is np.matrix) and (base.shape == (4, 4))
+            # assert (type(base) is np.matrix) and (base.shape == (4, 4))
             self.base = base
         if tool is None:
             self.tool = np.asmatrix(np.eye(4, 4))
@@ -87,7 +89,7 @@ class SerialLink:
         self.DEE_POSE = None
         self.primary_ee = 'D'
         self.update_angles(np.array([1.61095456e-15,  6.18966422e+01, -1.23793284e+02, -2.80564688e+01]))
-        self.resetEEStartingPoses()
+        self.resetEEStartingPoses(a_link_starting_pos, d_link_starting_pos)
 
     time.sleep(2)
 
@@ -536,7 +538,7 @@ class SerialLink:
         T[1, :] = [sin(theta), cos(theta), 0, 0]
         return T
 
-    def resetEEStartingPoses(self):
+    def resetEEStartingPoses(self, a_link_starting_pos, d_link_starting_pos):
         # self.AEEPOS = np.array([0,0,0]).T
         # self.AEEORI = np.array([0,0,1]).T
         # self.DEEPOS = np.array([2,0,0]).T
@@ -544,8 +546,8 @@ class SerialLink:
         self.AEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         self.DEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         # x y z position
-        self.AEE_POSE[:, 3] = np.array([3.5, 3.5, 1, 1])
-        self.DEE_POSE[:, 3] = np.array([3.5, 4.5, 1, 1])
+        self.AEE_POSE[:3, 3] = np.array(a_link_starting_pos)
+        self.DEE_POSE[:3, 3] = np.array(d_link_starting_pos)
 
     def jacob0(self, q=None):
         """Calculates the jacobian in the world frame by finding it in
