@@ -117,6 +117,13 @@ def command_line_argument_parser():
 
 if __name__ == '__main__':
 
+    header = "x SWARM CONSTRUCTION ROBOT DEMO x"
+    logger.info("\n")
+    logger.info("x" * len(header))
+    logger.info(header)
+    logger.info("x" * len(header))
+    logger.info("\n")
+
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
@@ -207,7 +214,7 @@ if __name__ == '__main__':
 
     # writer.set(name="state/current_position", value=BlockFace(robot.position[0], robot.position[1], robot.position[2],
     #                                                           'top', 'D'))
-    writer.set(name="state/current_position", value=BlockFace(a_end_effector[0], a_end_effector[1], a_end_effector[2],
+    writer.set(name="state/current_position", value=BlockFace(a_end_effector[0], a_end_effector[1], a_end_effector[2]-1,
                                                               'top', 'A'))
 
 

@@ -301,10 +301,14 @@ class FaceStar:
 
 if __name__ == '__main__':
     # armReach = [2.38, 1.6]
-    armReach = [2.38, 2.38]
+    # armReach = [2.38, 2.38]
+    armReach = [1.5, 1.5]
 
-    startFace = BlockFace(3.4999999999999964, 1.5, 1.49000000000000353,'top', 'D')
-    endFace = BlockFace(3,1,1,'top', 'A')
+
+    # startFace = BlockFace(3.4999999999999964, 1.5, 1.49000000000000353,'top', 'D')
+    # endFace = BlockFace(3,1,1,'top', 'A')
+    startFace = BlockFace(4, 4, 0, 'top', 'A')
+    endFace = BlockFace(6, 0, 0, 'top', 'D')
     bp1  = np.array([
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
             [[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -354,9 +358,9 @@ if __name__ == '__main__':
 
 
     if direction == "top" or direction == "bottom":
-        point[0] = round(point[0])
-        point[1] = round(point[1])
-        point[2] = point[2]-1
+        point[0] = int(point[0])
+        point[1] = int(point[1])
+        point[2] = int(point[2])-1
     if direction == "left" or direction == "right":
         point[0] = point[0] + 1.37  # -1.37
         point[1] = point[1] - 0.5
@@ -367,7 +371,7 @@ if __name__ == '__main__':
         point[2] = point[2] - 0.5
     print(f"Going to point: {point}")
     path = faceStarDebug.get_path(startFaceDebug, goal=endFaceDebug)
-    faceStarDebug.display_path()
+    # faceStarDebug.display_path()
 
 
 

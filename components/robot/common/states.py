@@ -24,6 +24,9 @@ class BlockFace:
     def return_tuple(self):
         return (self.xPos, self.yPos, self.zPos)
 
+    def return_int_tuple(self):
+        return (int(self.xPos), int(self.yPos), int(self.zPos))
+
     def get_face_coordinate(self):
         coordinate = [self.xPos, self.yPos, self.zPos]
         if self.face == 'front':

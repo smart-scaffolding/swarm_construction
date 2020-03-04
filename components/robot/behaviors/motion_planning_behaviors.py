@@ -358,9 +358,9 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
     # print("Path Path to Traversefound")
     # if config.SIMULATE:
     #     simulator_communicator.robot_communicator.send_communication(message="Got path")
-    # armReach = [2.38, 1.58]
+    armReach = [2.38, 2.38]
 
-    armReach = [1.5, 1.5]
+    # armReach = [1.5, 1.5]
 
     # armReach = [1.5, 1.5]
     # blueprint = np.array([
@@ -395,9 +395,9 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
         return []
 
     if direction == "top" or direction == "bottom":
-        point[0] = round(point[0])
-        point[1] = round(point[1])
-        point[2] = point[2]-1
+        point[0] = int(point[0])
+        point[1] = int(point[1])
+        point[2] = int(point[2])-1
     if direction == "left" or direction == "right":
         point[0] = point[0] + 1.37  # -1.37
         point[1] = point[1] - 0.5
@@ -408,7 +408,9 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
         point[2] = point[2] - 0.5
     logger.debug(f"Going to point: {point}")
 
-
+    current_position.xPos = int(current_position.xPos)
+    current_position.yPos = int(current_position.yPos)
+    current_position.zPos = int(current_position.zPos)
 
     try:
         path = faceStarPlanner.get_path(start=current_position, goal=BlockFace(point[0], point[1],
@@ -766,7 +768,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             self.next_point = self.path.pop(0)
 
             place_block=False
-            modified_goal = np.array(self.point_to_reach)
+            modified_goal = np.array(self.point_to_reach[:3])
             modified_goal[2] -= 1
 
             robot_status = self.state.get(name=self.keys["robot_status"])

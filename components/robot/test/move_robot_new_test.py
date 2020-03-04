@@ -110,14 +110,14 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
                     robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
                     time.sleep(1)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(45)
+                    time.sleep(50)
                 else:
                     time.sleep(2)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
                     time.sleep(1)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(45)
+                    time.sleep(50)
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
 
         if flip_angles:
