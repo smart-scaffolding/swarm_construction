@@ -358,9 +358,9 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
     # print("Path Path to Traversefound")
     # if config.SIMULATE:
     #     simulator_communicator.robot_communicator.send_communication(message="Got path")
-    armReach = [2.38, 2.38]
+    # armReach = [2.38, 2.38]
 
-    # armReach = [1.5, 1.5]
+    armReach = [2.2, 1.5]
 
     # armReach = [1.5, 1.5]
     # blueprint = np.array([
@@ -735,7 +735,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.point_to_reach = self.blackboard.get(self.key)
         self.blueprint = self.state.get(name=self.keys["blueprint"])
         self.current_position = self.state.get(self.current_position_key)
-        self.current_position.round_pos()
+
+        # TODO this is hardcoded to only convert for the TOP face case
+        self.current_position.convert_pos_from_simulator_to_robot()
+
         logger.info(f"[{self.name.upper()}]: Current Position: ({self.current_position.xPos}, "
                 f"{self.current_position.yPos}, {self.current_position.zPos}, {self.current_position.face})")
         logger.info(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
@@ -786,7 +789,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             base_block_face = BlockFace(base[0], base[1], base[2],
                       'top', self.robot.primary_ee)
 
-
+            ## TODO block face is not correct
             self.state.set(name=self.current_position_key, value=base_block_face)
 
             logger.debug(f"ROBOT BASE: {self.robot.base}")
