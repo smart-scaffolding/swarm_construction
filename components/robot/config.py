@@ -3,6 +3,8 @@ import numpy as np
 from logzero import setup_default_logger, logfile, LogFormatter
 import logging
 from pusher import Pusher
+import pyfiglet
+
 
 DEBUG = True  # Use to control printing
 SIMULATE = True # Use to control whether robot sends updates to simulator
@@ -21,6 +23,22 @@ ROBOT_ID = "ROBOT_1"
 
 LOGLEVEL = logging.DEBUG
 LOGFILE = "./logs/robot_logfile.log"
+
+
+banner = pyfiglet.figlet_format("Swarm Construction: Robot")
+print("\n")
+print("*"* int(len(banner)*0.15))
+print(banner)
+print("\n")
+print("*"* int(len(banner)*0.15))
+
+with open(LOGFILE, "a") as file:
+    file.write("\n")
+    file.write("*" * int(len(banner)*0.15))
+    file.write("\n")
+    file.write(banner)
+    file.write("\nAuthors: Caleb Wagner and Hannan Liang\n")
+    file.write("*" * int(len(banner)*0.15))
 
 log_format = f'%(color)s[{ROBOT_ID}: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
 log_file_format = f'[{ROBOT_ID}: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s'

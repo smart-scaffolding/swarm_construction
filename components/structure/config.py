@@ -1,7 +1,7 @@
 from uuid import uuid1
 from logzero import setup_default_logger, logfile, LogFormatter
 import logging
-
+import pyfiglet
 
 DEBUG = True  # Use to control printing
 SIMULATE = True # Use to control whether robot sends updates to simulator
@@ -17,6 +17,22 @@ TESTING = True  # Use to configure if need unique id or predefining id
 
 LOGLEVEL = logging.DEBUG
 LOGFILE = "./logs/structure_logfile.log"
+
+banner = pyfiglet.figlet_format("Swarm Construction: Structure")
+print("\n")
+print("*"* int(len(banner)*0.15))
+print(banner)
+print("\n")
+print("*"* int(len(banner)*0.15))
+
+with open(LOGFILE, "a") as file:
+    file.write("\n")
+    file.write("*" * int(len(banner)*0.15))
+    file.write("\n")
+    file.write(banner)
+    file.write("\nAuthors: Caleb Wagner and Hannan Liang\n")
+    file.write("*" * int(len(banner)*0.15))
+
 log_format = '%(color)s[STRUCTURE: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
 log_file_format = '[STRUCTURE: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s'
 
