@@ -255,7 +255,7 @@ class SerialLink:
         # return len(self.links)
         return 4
 
-    def send_to_robot(self, angle, delay=2.0, open_gripper=False):
+    def send_to_robot(self, angle, delay=2.0, open_gripper=False, flip_angles=False):
         """
         NOTE: Expects all angles to be in degrees
         Sends a single angle to robot and then delays for a certain amount of time
@@ -263,20 +263,26 @@ class SerialLink:
         :param angle: Expects angles in degrees
         :param delay: delay after sending to robot
         """
-        targetAngles = self.map_angles_to_robot(angle, open_gripper)
-        self.serial.write(targetAngles)
+        targetAngles = self.map_angles_to_robot(angle, open_gripper, flip_angles)
+        # self.serial.write(targetAngles)
         time.sleep(delay)
 
-    def map_angles_to_robot(self, q, open_gripper=False):
+    def map_angles_to_robot(self, q, open_gripper=False, flip_angles=False):
         """
         Creates a mapping between the angles used by the higher level code and the actual robot angles
 
         :param q: Input angle, expects angles in degrees
         :return:
         """
+        if not flip_angles:
+            # print("NOPE")
+            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
+        else:
+            # print("Flipping angles")
+            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1]])
 
-        qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
+
         print("Final Angles: {}".format(qTemp[1:]))
 
         gripper = "0002"
