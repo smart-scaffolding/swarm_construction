@@ -20,33 +20,33 @@ TESTING = True  # Use to configure if need unique id or predefining id
 ROBOT_ID = "ROBOT_1"
 
 
-
+#
 LOGLEVEL = logging.DEBUG
-LOGFILE = "./logs/robot_logfile.log"
-
-
+# LOGFILE = "./logs/robot_logfile.log"
+#
+#
 banner = pyfiglet.figlet_format("Swarm Construction: Robot")
 print("\n")
 print("*"* int(len(banner)*0.15))
 print(banner)
 print("\n")
 print("*"* int(len(banner)*0.15))
-
-with open(LOGFILE, "a") as file:
-    file.write("\n")
-    file.write("*" * int(len(banner)*0.15))
-    file.write("\n")
-    file.write(banner)
-    file.write("\nAuthors: Caleb Wagner and Hannan Liang\n")
-    file.write("*" * int(len(banner)*0.15))
-
+#
+# with open(LOGFILE, "a") as file:
+#     file.write("\n")
+#     file.write("*" * int(len(banner)*0.15))
+#     file.write("\n")
+#     file.write(banner)
+#     file.write("\nAuthors: Caleb Wagner and Hannan Liang\n")
+#     file.write("*" * int(len(banner)*0.15))
+#
 log_format = f'%(color)s[{ROBOT_ID}: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d]%(end_color)s %(message)s'
-log_file_format = f'[{ROBOT_ID}: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s'
-
+# log_file_format = f'[{ROBOT_ID}: %(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s'
+#
 formatter = LogFormatter(fmt=log_format)
-file_formatter = LogFormatter(fmt=log_file_format)
+# file_formatter = LogFormatter(fmt=log_file_format)
 LOGGING = setup_default_logger(level=LOGLEVEL, formatter=formatter)
-logfile(LOGFILE, maxBytes=1000000, backupCount=3, formatter=file_formatter)
+# logfile(LOGFILE, maxBytes=1000000, backupCount=3, formatter=file_formatter)
 
 pusher = Pusher(
 app_id="882780",

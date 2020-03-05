@@ -81,6 +81,12 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
 
     flip_angles = True
     first_serial_message = True
+    # test_angles = list(map(robot.map_angles_to_robot(ik_motion), ik_motion))
+    # for index, angle in enumerate(ik_motion):
+    #     angle = angle.tolist()[0]
+    #     robot.map_angles_to_robot(angle)
+    # while True:
+    #     pass
     for index, angle in enumerate(ik_motion):
         # print(f"Angle: {angle}")
 
@@ -97,38 +103,45 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
             if serial and use_grippers:
                 if first_serial_message:
                     if flip_angles:
-                        robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                        robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
                     else:
-                        robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                        robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
 
                     first_serial_message = False
                     time.sleep(2)
 
                 if flip_angles:
+                    # if flip_angles:
+                    temp = angle[1]
+                    angle[1] = 180 / 2 + angle[3]
+                    angle[3] = temp - 180 / 2
+
                     time.sleep(0.1)
-                    robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
                     time.sleep(0.1)
-                    robot.send_to_robot(angle, delay=timeout, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
                     time.sleep(2)
                 else:
                     time.sleep(0.1)
-                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
                     time.sleep(0.1)
-                    robot.send_to_robot(angle, delay=timeout, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
+                    robot.send_to_robot(angle, delay=timeout, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset, flip_angles=flip_angles)
                     time.sleep(2)
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
+            continue
 
         if flip_angles:
             temp = angle[1]
             angle[1] = 180 / 2 + angle[3]
             angle[3] = temp - 180 / 2
 
+        # print(flip_angles)
         if serial:
             print("Sending angle to robot")
             robot.send_to_robot(angle, index=index, total_num_points=len(ik_motion), velocity_offset=0,
-                                delay=timeout)
+                                delay=timeout, flip_angles=flip_angles)
 
 
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
@@ -155,7 +168,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
-        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
+        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=False)
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
         # TODO: refactor the code

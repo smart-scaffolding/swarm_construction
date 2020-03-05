@@ -20,8 +20,8 @@ BAUD: The baud rate
 '''
 
 SERIAL = True
-# PORT = '/dev/cu.usbmodem14201'
-PORT = '/dev/cu.usbserial-DN02P9MR'
+PORT = '/dev/cu.usbmodem14201'
+# PORT = '/dev/cu.usbserial-DN02P9MR'
 
 BAUD = 115200
 
@@ -42,8 +42,8 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
                  
 '''
 
-TIMEOUT = 0.2          # seconds 0.03
-NUM_VIA_POINTS = 40     # 25
+TIMEOUT = 0.02          # seconds 0.03
+NUM_VIA_POINTS = 25     # 25
 
 
 ##############################################################################
@@ -69,15 +69,15 @@ not wish to run and uncomment the single path you do wish to run.
 # Move block forward
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 ## NOTE: Block must be placed underneath for robot to step on
-# path=[(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 2, "top")]
+path=[(3, 0, 1, "top"), (2, 0, 0, "top")]
 
 
 # Move block forward
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 ## NOTE: Block must be placed underneath for robot to step on
 # path=[(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 2, "top")]
-path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
-                                                                                                       "top")]
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+#                                                                                                        "top")]
 # path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0, "top"), (5, 0, 1, "top"), (4, 0, 1,
 #                                                                                                        "top"), (6, 0,
 #                                                                                                                 2,

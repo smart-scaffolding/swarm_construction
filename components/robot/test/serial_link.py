@@ -256,7 +256,8 @@ class SerialLink:
         return 1
 
 
-    def send_to_robot(self, angle, index, total_num_points, velocity_offset=2, delay=2.0, open_gripper="00"):
+    def send_to_robot(self, angle, index, total_num_points, velocity_offset=2, delay=2.0, open_gripper="00",
+                      flip_angles=False):
         """
         NOTE: Expects all angles to be in degrees
         Sends a single angle to robot and then delays for a certain amount of time
@@ -265,19 +266,23 @@ class SerialLink:
         :param delay: delay after sending to robot
         """
         velocity_controller_term = self.get_velocity_controller_term(index, total_num_points, velocity_offset)
-        targetAngles = self.map_angles_to_robot(angle, open_gripper, velocity_controller_term)
+        targetAngles = self.map_angles_to_robot(angle, open_gripper, velocity_controller_term, flip_angles=flip_angles)
         self.serial.write(targetAngles)
         time.sleep(delay)
 
-    def map_angles_to_robot(self, q, open_gripper="00", velocity_controller_term=0):
+    def map_angles_to_robot(self, q, open_gripper="00", velocity_controller_term=0, flip_angles=False):
         """
         Creates a mapping between the angles used by the higher level code and the actual robot angles
 
         :param q: Input angle, expects angles in degrees
         :return:
         """
-
-        qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
+        if not flip_angles:
+            print("NOPE")
+            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
+        else:
+            print("FLIPPING ANGLES")
+            qTemp = np.array([q[0],q[3] * -1,  q[2] * -1,  90 - q[1]])
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
         print("Final Angles: {}".format(qTemp[1:]))
 
