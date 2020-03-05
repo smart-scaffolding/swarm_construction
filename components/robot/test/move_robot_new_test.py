@@ -105,19 +105,19 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
                     time.sleep(2)
 
                 if flip_angles:
-                    time.sleep(2)
+                    time.sleep(0.1)
                     robot.send_to_robot(angle, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="21", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(1)
+                    time.sleep(0.1)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="12", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(50)
-                else:
                     time.sleep(2)
+                else:
+                    time.sleep(0.1)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="11", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(1)
+                    time.sleep(0.1)
                     robot.send_to_robot(angle, delay=timeout, open_gripper="22", index=index, total_num_points=len(ik_motion), velocity_offset=velocity_offset)
-                    time.sleep(50)
+                    time.sleep(2)
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
 
         if flip_angles:
@@ -435,26 +435,26 @@ def send_to_simulator(base, trajectory, topic=TOPIC,vel=None):
     # print(f'before converted to pi: {trajectory}')
 
     position = create_point_from_homogeneous_transform(base)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    config.pusher.trigger(u'robot', u'state', {
-        u'id': topic.decode(),
-        u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
-        u'angles': [f'{trajectory[1]:.1f}', f'{-1 * trajectory[2]:.1f}', f'{-1 * trajectory[3]:.1f}'],
-        u'grippers': {
-            u'a': 0,
-            u'd': 100
-        },
-        u'battery': 77,
-        u'blocks_placed': 0,
-        u'a_link_blocks': 1,
-        u'd_link_blocks': 0,
-        u'robot_state': "MOVING",
-        u'end_effector_velocity': {
-            u'label': current_time,
-            u'value': np.linalg.norm(vel)
-        }
-    })
+    # now = datetime.now()
+    # current_time = now.strftime("%H:%M:%S")
+    # config.pusher.trigger(u'robot', u'state', {
+    #     u'id': topic.decode(),
+    #     u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
+    #     u'angles': [f'{trajectory[1]:.1f}', f'{-1 * trajectory[2]:.1f}', f'{-1 * trajectory[3]:.1f}'],
+    #     u'grippers': {
+    #         u'a': 0,
+    #         u'd': 100
+    #     },
+    #     u'battery': 77,
+    #     u'blocks_placed': 0,
+    #     u'a_link_blocks': 1,
+    #     u'd_link_blocks': 0,
+    #     u'robot_state': "MOVING",
+    #     u'end_effector_velocity': {
+    #         u'label': current_time,
+    #         u'value': np.linalg.norm(vel)
+    #     }
+    # })
     # time.sleep(0.01)
 
     trajectory[0] = trajectory[0] - 90
