@@ -20,6 +20,7 @@ import pickle
 from signal import signal, SIGINT
 from sys import exit
 from logzero import logger
+import time
 import components.simulator.config as config
 
 POINTS = False
@@ -116,6 +117,40 @@ reader_list = vtk.vtkSTLReader()
 reader_list.SetFileName(move_block_loc)
 move_block_file_location = vtk.vtkPolyDataMapper()
 move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
+
+# text = vtk.vtkVectorText()
+# text.SetText("Simulation Time: 0 sec")
+# text_mapper = vtk.vtkPolyDataMapper()
+# text_mapper.SetInputConnection(text.GetOutputPort())
+# text_actor = vtk.vtkActor()
+# text_actor.SetMapper(text_mapper)
+# text_actor.GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
+# text_actor.AddPosition(0, 0, 1)
+# text_actor.SetScale(0.5)
+
+text_actor = vtk.vtkTextActor()
+text_actor.SetInput(f"Simulation Time: 00:00:00\nNumber of Robots: 0")
+text_actor.GetTextProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
+# text_actor.SetScale(0.5)
+# Create the text representation. Used for positioning the text_actor
+text_representation = vtk.vtkTextRepresentation()
+# text_representation.GetPositionCoordinate().SetValue(0.8, 0.9)
+text_representation.GetPosition2Coordinate().SetValue(0.2, 1.8)
+# text_representation.LowerRightCorner
+text_representation.GetSize([2, 0.5])
+text_representation.SetWindowLocation(text_representation.UpperLeftCorner)
+start_time = time.time()
+# text_representation.S
+
+# Create the TextWidget
+# Note that the SelectableOff method MUST be invoked!
+# According to the documentation :
+#
+# SelectableOn/Off indicates whether the interior region of the widget can be
+# selected or not. If not, then events (such as left mouse down) allow the user
+# to "move" the widget, and no selection is possible. Otherwise the
+# SelectRegion() method is invoked.
+
 
 class WorkerThread(threading.Thread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
@@ -373,8 +408,14 @@ class vtkTimerCallback():
         # string = self.socket.recv()
         # topic, messagedata = string.split()
         # print(topic, messagedata)
+        elapsed_time = time.time() - start_time
+
+        text_actor.SetInput(f"Simulation Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}\nNumber of Robots: {len(self.robot_actors)}")
+
         if self.timer_count % 100 == 0:
            logger.debug(self.timer_count)
+           text_actor.SetInput(f"Simulation Time: {self.timer_count} seconds")
+
         self.timer_count += 1
         while not self.new_actors.empty():
            topic, message, queue = self.new_actors.get()
@@ -614,7 +655,13 @@ class Simulate:
         # '/Users/calebwagner/SmartScaffoldingMQP_Code/zmq_vtk/components/simulator/media/block.stl'
         # print(f"DISPLAYING STRUCTURE {BLUEPRINT} {COLORS}")
         setup_structure_display(blueprint=BLUEPRINT, pipeline=self.pipeline, color=COLORS, block_file_location=block_file_location)
-
+        # self.pipeline.add_actor(text_actor)
+        text_widget = vtk.vtkTextWidget()
+        text_widget.SetRepresentation(text_representation)
+        text_widget.SetInteractor(self.pipeline.iren)
+        text_widget.SetTextActor(text_actor)
+        text_widget.SelectableOff()
+        text_widget.On()
         # print(time.time()-start)
 
         # self.pipeline.add_actor(structure_actor)
