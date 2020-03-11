@@ -21,7 +21,7 @@ class SerialLink:
     SerialLink object class.
     """
 
-    def __init__(self, links, a_link_starting_pos, d_link_starting_pos, name=None, base=None, tool=None,
+    def __init__(self, links, a_link_starting_pos, d_link_starting_pos, name=None, tool=None,
                  stl_files=None, q=None,
                  colors=None, param=None,
                  blueprint=None, port=None, baud=9600):
@@ -38,11 +38,11 @@ class SerialLink:
         self.links = links
         if q is None:
             self.q = np.matrix([0 for each in links])
-        if base is None:
-            self.base = np.asmatrix(np.eye(4, 4))
-        else:
-            # assert (type(base) is np.matrix) and (base.shape == (4, 4))
-            self.base = base
+        # if base is None:
+        #     self.base = np.asmatrix(np.eye(4, 4))
+        # else:
+        #     # assert (type(base) is np.matrix) and (base.shape == (4, 4))
+        #     self.base = base
         if tool is None:
             self.tool = np.asmatrix(np.eye(4, 4))
         else:
@@ -335,7 +335,7 @@ class SerialLink:
 
     # Units: inches, radians
     # inputs should be in the global reference frame
-    def ikin(self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1):
+    def ikin(self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, placeBlock=False):
 
         if self.DEBUG:
             print(f'(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}')
@@ -346,7 +346,7 @@ class SerialLink:
         L1 = self.links[0].length
         L2 = self.links[1].length
 
-        relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID)
+        relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID, placeBlock=placeBlock)
         # x, y, z, dummy = relativePos * blockWidth  # dummy value should always 1
         x, y, z, dummy = relativePos  # dummy value should always 1
 
@@ -390,7 +390,7 @@ class SerialLink:
             print(f'ikin output q: {q}\n\n')
         return q
 
-    def handlePlaneChanges(self, goalPos, gamma, baseID):
+    def handlePlaneChanges(self, goalPos, gamma, baseID, placeBlock=False):
 
         if self.DEBUG:
             print(f'Pre plane handling:\n AEE_POSE: {self.AEE_POSE}')
@@ -504,6 +504,12 @@ class SerialLink:
                     localGamma = -pi / 2
 
         # sets the goalPos and goalOri to the moving ee
+        goalPos_list = list(goalPos)
+        if placeBlock:
+            goalPos_list[2] = goalPos_list[2] - 1
+
+            goalPos = tuple(goalPos_list)
+
         if baseID == 'A':  # requested ee is A, update D to match goal
             # DEEPOS = goalPos
             # DEEORI = goalOri
@@ -601,32 +607,32 @@ class SerialLink:
             J[:, i] = np.vstack((d, delta)).flatten()
         return J
 
-    def ikine(self, T, q0=None, unit='rad'):
-        """
-        Calculates inverse kinematics for homogeneous transformation matrix using numerical optimisation method.
-        :param T: homogeneous transformation matrix.
-        :param q0: initial list of joint angles for optimisation.
-        :param unit: preferred unit for returned joint angles. Allowed values: 'rad' or 'deg'.
-        :return: a list of 6 joint angles.
-        """
-        assert T.shape == (4, 4)
-        bounds = [(link.qlim[0], link.qlim[1]) for link in self]
-        reach = 0
-        for link in self:
-            reach += abs(link.a) + abs(link.d)
-        omega = np.diag([1, 1, 1, 3 / reach])
-        if q0 is None:
-            q0 = np.asmatrix(np.zeros((1, self.length)))
-
-        def objective(x):
-            return (
-                np.square(((np.linalg.lstsq(T, self.fkine(x))[0]) - np.asmatrix(np.eye(4, 4))) * omega)).sum()
-
-        sol = minimize(objective, x0=q0, bounds=bounds)
-        if unit == 'deg':
-            return np.asmatrix(sol.x * 180 / pi)
-        else:
-            return np.asmatrix(sol.x)
+    # def ikine(self, T, q0=None, unit='rad'):
+    #     """
+    #     Calculates inverse kinematics for homogeneous transformation matrix using numerical optimisation method.
+    #     :param T: homogeneous transformation matrix.
+    #     :param q0: initial list of joint angles for optimisation.
+    #     :param unit: preferred unit for returned joint angles. Allowed values: 'rad' or 'deg'.
+    #     :return: a list of 6 joint angles.
+    #     """
+    #     assert T.shape == (4, 4)
+    #     bounds = [(link.qlim[0], link.qlim[1]) for link in self]
+    #     reach = 0
+    #     for link in self:
+    #         reach += abs(link.a) + abs(link.d)
+    #     omega = np.diag([1, 1, 1, 3 / reach])
+    #     if q0 is None:
+    #         q0 = np.asmatrix(np.zeros((1, self.length)))
+    #
+    #     def objective(x):
+    #         return (
+    #             np.square(((np.linalg.lstsq(T, self.fkine(x))[0]) - np.asmatrix(np.eye(4, 4))) * omega)).sum()
+    #
+    #     sol = minimize(objective, x0=q0, bounds=bounds)
+    #     if unit == 'deg':
+    #         return np.asmatrix(sol.x * 180 / pi)
+    #     else:
+    #         return np.asmatrix(sol.x)
 
 
 

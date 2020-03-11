@@ -48,12 +48,12 @@ formatter = LogFormatter(fmt=log_format)
 LOGGING = setup_default_logger(level=LOGLEVEL, formatter=formatter)
 # logfile(LOGFILE, maxBytes=1000000, backupCount=3, formatter=file_formatter)
 
-pusher = Pusher(
-app_id="882780",
-key="b19a4591cdd9ad1d70f7",
-secret="eb1cdfa23df02681662e",
-cluster="us2",
-ssl=True)
+# pusher = Pusher(
+# app_id="882780",
+# key="b19a4591cdd9ad1d70f7",
+# secret="eb1cdfa23df02681662e",
+# cluster="us2",
+# ssl=True)
 
 
 blueprint1 = np.array([

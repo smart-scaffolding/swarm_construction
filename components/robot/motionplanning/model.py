@@ -12,7 +12,7 @@ import numpy as np
 
 
 class Inchworm(SerialLink):
-    def __init__(self, a_link_starting_pos, d_link_starting_pos, base=None, blueprint=None, port=None, baud=9600):
+    def __init__(self, a_link_starting_pos, d_link_starting_pos, blueprint=None, port=None, baud=9600):
 
         # self.qn = np.matrix([[0, pi / 4, pi, 0, pi / 4, 0]])
         # self.qr = np.matrix([[0, pi / 2, -pi / 2, 0, 0, 0]])
@@ -54,6 +54,6 @@ class Inchworm(SerialLink):
 
 
         super().__init__(links=links, a_link_starting_pos=a_link_starting_pos,
-                         d_link_starting_pos=d_link_starting_pos, base=base, name='inchworm',
+                         d_link_starting_pos=d_link_starting_pos, name='inchworm',
                          stl_files=None, colors=None, param=param,
                          blueprint=blueprint, port=port, baud=baud)

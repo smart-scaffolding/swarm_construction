@@ -51,6 +51,7 @@ class BlockFace:
         self.zPos = round(self.zPos, 1)
 
     def convert_pos_from_simulator_to_robot(self):
+
         self.xPos = round(self.xPos, 1)
         self.yPos = round(self.yPos, 1)
         self.zPos -= 1

@@ -134,11 +134,7 @@ if __name__ == '__main__':
 
     blueprint = BluePrintFactory().get_blueprint("Playground").data
 
-
-    base = create_homogeneous_transform_from_point(np.array(a_end_effector))
-    logger.debug(base)
-
-    robot_model = model.Inchworm(base=base, blueprint=blueprint, a_link_starting_pos=a_end_effector,
+    robot_model = model.Inchworm(blueprint=blueprint, a_link_starting_pos=a_end_effector,
                                  d_link_starting_pos=d_end_effector)
 
     behaviour_tree = py_trees.trees.BehaviourTree(root)
@@ -219,14 +215,14 @@ if __name__ == '__main__':
 
 
     robot.initialize_communications()
-    helpers.send_to_simulator(base=robot_model.base,
-                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
+    helpers.send_to_simulator(base=robot_model.AEE_POSE,
+                              trajectory=np.array([0, 62, -1.23793284e+02, -28]),
                               id=robot.id)
-    helpers.send_to_simulator(base=robot_model.base,
-                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
+    helpers.send_to_simulator(base=robot_model.AEE_POSE,
+                              trajectory=np.array([0, 62, -1.23793284e+02, -28]),
                               id=robot.id)
-    helpers.send_to_simulator(base=robot_model.base,
-                              trajectory=np.array([180, 62, -1.23793284e+02, -28]),
+    helpers.send_to_simulator(base=robot_model.AEE_POSE,
+                              trajectory=np.array([0, 62, -1.23793284e+02, -28]),
                               id=robot.id)
     # print(f"Sent base: {base} and traj {robot_model.get_current_joint_config(unit='deg')}")
 
