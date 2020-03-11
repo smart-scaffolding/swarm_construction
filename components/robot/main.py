@@ -22,6 +22,7 @@ import argparse
 import numpy as np
 from random import choice
 from logzero import logger
+from blueprint_factory import BluePrintFactory
 
 configuration = None
 
@@ -131,15 +132,8 @@ if __name__ == '__main__':
     x, y, z = a_end_effector
     d_end_effector = [x+2, y, z]
 
+    blueprint = BluePrintFactory().get_blueprint("Playground").data
 
-    blueprint = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
 
     base = create_homogeneous_transform_from_point(np.array(a_end_effector))
     logger.debug(base)
@@ -191,10 +185,10 @@ if __name__ == '__main__':
     blocks.reverse()
     #
     writer.set(name="state/blocks_to_move", value=blocks)
-    writer.set(name="state/robot_status", value=RobotBehaviors.MOVE) #If setting to ferry/move,
+    writer.set(name="state/robot_status", value=RobotBehaviors.BUILD) #If setting to ferry/move,
                                                                       # must set block_has_been_placed to true
 
-    writer.set(name="state/block_has_been_placed", value=False) # Set to true if trying to place block
+    writer.set(name="state/block_has_been_placed", value=True) # Set to true if trying to place block
     # writer.set(name="state/point_to_reach", value=False)
     writer.set(name="state/point_to_reach", value=False) # Set to false if trying to move
     # writer.set(name="state/location_to_move_to",

@@ -23,75 +23,12 @@ from logzero import logger
 import time
 import components.simulator.config as config
 
+from blueprint_factory import BluePrintFactory
+
 POINTS = False
 ROBOTS = 1
-BLUEPRINT = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
 
-BLUEPRINT = np.array([
-    [[1, 0, 0, 0], [1, 0, 0, 0]],
-    [[1, 0, 0, 0], [1, 0, 0, 0]],
-    [[1, 0, 0, 0], [1, 0, 0, 0]],
-    [[1, 0, 0, 0], [1, 0, 0, 0]],
-    [[1, 0, 0, 0], [1, 0, 0, 0]],
-    [[1, 1, 0, 0], [1, 1, 1, 1]],
-    [[1, 1, 1, 0], [1, 1, 1, 1]],
-    [[1, 1, 1, 1], [1, 1, 1, 1]],
-])
-
-BLUEPRINT = np.array([[[1]*1]*12] * 12)
-#
-# blueprint1 = np.array([
-#                           [[1] * 1] * 10,
-#                       ] * 10)
-# blueprint1_5 = np.array([
-#                           [[1] * 1] * 10,
-#                       ] * 10)
-#
-# blueprint2 = np.array([
-#                           [[1] * 1] * 10,
-#                       ] * 10)
-#
-# blueprint2[0, :, :] = 0
-# blueprint2[1, :, :] = 0
-# blueprint2[-1, :, :] = 0
-# blueprint2[-2, :, :] = 0
-# blueprint2[:, 0, :] = 0
-# blueprint2[:, 1, :] = 0
-# blueprint2[:, -1, :] = 0
-# blueprint2[:, -2, :] = 0
-#
-# blueprint3 = np.array([
-#                           [[1] * 1] * 10,
-#                       ] * 10)
-#
-# blueprint3[0, :, :] = 0
-# blueprint3[1, :, :] = 0
-# blueprint3[2, :, :] = 0
-# blueprint3[3, :, :] = 0
-# blueprint3[-1, :, :] = 0
-# blueprint3[-2, :, :] = 0
-# blueprint3[-3, :, :] = 0
-# blueprint3[-4, :, :] = 0
-# blueprint3[:, 0, :] = 0
-# blueprint3[:, 1, :] = 0
-# blueprint3[:, 2, :] = 0
-# blueprint3[:, 3, :] = 0
-# blueprint3[:, -1, :] = 0
-# blueprint3[:, -2, :] = 0
-# blueprint3[:, -3, :] = 0
-# blueprint3[:, -4, :] = 0
-# blueprints = [blueprint1, blueprint1_5, blueprint2, blueprint3]
-#
-# BLUEPRINT = np.dstack(blueprints)
-# BLUEPRINT[0, 0, 1] = 1
-
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_12x12x1").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -129,7 +66,7 @@ move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
 # text_actor.SetScale(0.5)
 
 text_actor = vtk.vtkTextActor()
-text_actor.SetInput(f"Simulation Time: 00:00:00\nNumber of Robots: 0")
+text_actor.SetInput(f"Simulation Time: 00:00:00\nNumber of Robots: 0\nNumber of Blocks Placed: 0")
 text_actor.GetTextProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
 # text_actor.SetScale(0.5)
 # Create the text representation. Used for positioning the text_actor
@@ -410,11 +347,11 @@ class vtkTimerCallback():
         # print(topic, messagedata)
         elapsed_time = time.time() - start_time
 
-        text_actor.SetInput(f"Simulation Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}\nNumber of Robots: {len(self.robot_actors)}")
+        text_actor.SetInput(f"Simulation Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}\nNumber of "
+                            f"Robots: {len(self.robot_actors)}\nNumber of Blocks Placed: {len(self.blocks)}")
 
         if self.timer_count % 100 == 0:
            logger.debug(self.timer_count)
-           text_actor.SetInput(f"Simulation Time: {self.timer_count} seconds")
 
         self.timer_count += 1
         while not self.new_actors.empty():

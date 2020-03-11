@@ -24,7 +24,7 @@ from components.structure.behaviors.building.select_ferry_regions import determi
 from copy import deepcopy
 from logzero import logger
 import py_trees
-
+from blueprint_factory import BluePrintFactory
 
 
 configuration = None
@@ -674,76 +674,81 @@ if __name__ == '__main__':
 
 
 
-    blueprint = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
+    # blueprint = np.array([
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #     [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+    #     [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+    #     [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    # ])
+    #
+    # bx, by, bz = blueprint.shape
+    # colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+    #
+    #
+    # blueprint_base = np.array([
+    #                           [[1] * 1] * 10,
+    #                       ] * 10)
+    #
+    # blueprint1 = np.array([
+    #                           [[1] * 1] * 10,
+    #                       ] * 10)
+    #
+    # blueprint2 = np.array([
+    #                           [[1] * 1] * 10,
+    #                       ] * 10)
+    #
+    # blueprint2[0, :, :] = 0
+    # blueprint2[1, :, :] = 0
+    # blueprint2[-1, :, :] = 0
+    # blueprint2[-2, :, :] = 0
+    # blueprint2[:, 0, :] = 0
+    # blueprint2[:, 1, :] = 0
+    # blueprint2[:, -1, :] = 0
+    # blueprint2[:, -2, :] = 0
+    #
+    # blueprint3 = np.array([
+    #                           [[1] * 1] * 10,
+    #                       ] * 10)
+    #
+    # blueprint3[0, :, :] = 0
+    # blueprint3[1, :, :] = 0
+    # blueprint3[2, :, :] = 0
+    # blueprint3[3, :, :] = 0
+    # blueprint3[-1, :, :] = 0
+    # blueprint3[-2, :, :] = 0
+    # blueprint3[-3, :, :] = 0
+    # blueprint3[-4, :, :] = 0
+    # blueprint3[:, 0, :] = 0
+    # blueprint3[:, 1, :] = 0
+    # blueprint3[:, 2, :] = 0
+    # blueprint3[:, 3, :] = 0
+    # blueprint3[:, -1, :] = 0
+    # blueprint3[:, -2, :] = 0
+    # blueprint3[:, -3, :] = 0
+    # blueprint3[:, -4, :] = 0
+    # blueprints = [blueprint1, blueprint2, blueprint3]
 
-    bx, by, bz = blueprint.shape
-    colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
+    # blueprint_status = []
+    # blueprint_status.append(blueprint_base)
+    # blueprint_status.extend(blueprints)
+    # blueprint_status = np.dstack(blueprint_status)
 
-    blueprint_base = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
+    blueprint_status = BluePrintFactory().get_blueprint("Pyramid_10x10x4").data
 
-    blueprint1 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
-
-    blueprint2 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
-
-    blueprint2[0, :, :] = 0
-    blueprint2[1, :, :] = 0
-    blueprint2[-1, :, :] = 0
-    blueprint2[-2, :, :] = 0
-    blueprint2[:, 0, :] = 0
-    blueprint2[:, 1, :] = 0
-    blueprint2[:, -1, :] = 0
-    blueprint2[:, -2, :] = 0
-
-    blueprint3 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
-
-    blueprint3[0, :, :] = 0
-    blueprint3[1, :, :] = 0
-    blueprint3[2, :, :] = 0
-    blueprint3[3, :, :] = 0
-    blueprint3[-1, :, :] = 0
-    blueprint3[-2, :, :] = 0
-    blueprint3[-3, :, :] = 0
-    blueprint3[-4, :, :] = 0
-    blueprint3[:, 0, :] = 0
-    blueprint3[:, 1, :] = 0
-    blueprint3[:, 2, :] = 0
-    blueprint3[:, 3, :] = 0
-    blueprint3[:, -1, :] = 0
-    blueprint3[:, -2, :] = 0
-    blueprint3[:, -3, :] = 0
-    blueprint3[:, -4, :] = 0
-    blueprints = [blueprint1, blueprint2, blueprint3]
-
-
-    blueprint_status = []
-    blueprint_status.append(blueprint_base)
-    blueprint_status.extend(blueprints)
-    blueprint_status = np.dstack(blueprint_status)
 
 
     division_size = 5
-    structure = StructureMain(template=blueprints[0], division_size=division_size, blueprint=blueprint_status)
-    structure.initialize_communications(colors=colors)
+    structure = StructureMain(template=blueprint_status[:, :, 0], division_size=division_size,
+                              blueprint=blueprint_status)
+    structure.initialize_communications(colors=None)
 
-    for i in range(len(blueprints)):
+    x, y, num_of_levels = blueprint_status.shape
+    for i in range(num_of_levels):
         logger.info(f"STARTING LEVEL: {i}")
-        blueprint = blueprints[i]
+        blueprint = blueprint_status[:, :, i]
         structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)
 
