@@ -241,18 +241,22 @@ class FaceStar:
     def add_back_ee_motion(self, path, start_face):
 
         filtered_path = []
-        for index, point in enumerate(path):
-            filtered_path.append(point)
-            if index == 0:
-                x, y, z, face, primary_ee_pos = (start_face.xPos, start_face.yPos, start_face.zPos, start_face.face,
-                                                 start_face.ee_on_face)
-            else:
-                x, y, z, face, primary_ee_pos = path[index - 1]
+        ## TODO: could add logic here so back ee won't always go back to the starting face depending on orientation of the arm
+        if len(path) > 1:
+            for index, point in enumerate(path):
+                filtered_path.append(point)
+                if index == 0:
+                    x, y, z, face, primary_ee_pos = (start_face.xPos, start_face.yPos, start_face.zPos, start_face.face,
+                                                     start_face.ee_on_face)
+                else:
+                    x, y, z, face, primary_ee_pos = path[index - 1]
 
-            if point[-1] == primary_ee_pos:
-                primary_ee_pos = 'D' if primary_ee_pos == 'A' else 'A'
+                if point[-1] == primary_ee_pos:
+                    primary_ee_pos = 'D' if primary_ee_pos == 'A' else 'A'
 
-            filtered_path.append((x, y, z, face, primary_ee_pos))
+                filtered_path.append((x, y, z, face, primary_ee_pos))
+        else:
+            filtered_path = path
         return filtered_path
 
     def display_path(self, path=None):
