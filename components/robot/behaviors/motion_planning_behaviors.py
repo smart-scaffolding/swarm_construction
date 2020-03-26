@@ -166,8 +166,22 @@ def follow_path(robot, path, place_block=False, num_steps=15, offset=1.2, robot_
         if direction == "top":
             point[0] = item[0] + 0.5
             point[1] = item[1] + 0.5
-            point[2] = item[2] + 1 + (1*place_block)
-            # point[2] = item[2] + 1
+            # point[2] = item[2] + 1 + (1*place_block)
+
+            # if place_block and not robot.last_placed_block:
+            #     point[2] = item[2] + 2
+            #     robot.last_placed_block = True
+            # else:
+            #     point[2] = item[2] + 1
+            #     robot.last_placed_block = False
+
+            if place_block:
+                point[2] = item[2] + 2
+                # robot.last_placed_block = True
+            else:
+                point[2] = item[2] + 1
+                # robot.last_placed_block = False
+
 
         elif direction =="bottom":
             point[0] = item[0] + 0.5
@@ -249,11 +263,11 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
     a_pose = np.array(create_point_from_homogeneous_transform(robot.AEE_POSE))
 
     # print(type(d_pose))
-    if (np.linalg.norm(d_pose - modified_det) <= 0.5):
+    if (np.linalg.norm(d_pose - modified_det) <= 0.01):
         logger.debug("D link already close enough to destination, returning empty path")
         return []
 
-    if (np.linalg.norm(a_pose - modified_det) <= 0.5):
+    if (np.linalg.norm(a_pose - modified_det) <= 0.01):
         logger.debug("A link already close enough to destination, returning empty path")
         return []
 
@@ -580,7 +594,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
-        self.inching = True
+        self.inching = False
         self.toggle_for_searching_every_other = True
 
     def setup(self):
@@ -600,10 +614,6 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         logger.info(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
         self.robot = self.state.get(self.robot_model_key)
 
-        # self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
-        #                               simulator_communicator=self.robot_communicator,
-        #                               blueprint=self.blueprint)
-
         if self.inching:
             if self.toggle_for_searching_every_other or len(self.path) < 2:
                 self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
@@ -612,6 +622,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 self.toggle_for_searching_every_other = False
             else:
                 self.toggle_for_searching_every_other = True
+        else:
+            self.path = get_path_to_point(self.robot, current_position=self.current_position, destination=self.point_to_reach,
+                                  simulator_communicator=self.robot_communicator,
+                                  blueprint=self.blueprint)
 
         # print(self.blackboard)
     def update(self):
@@ -631,12 +645,13 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             modified_goal[2] -= 1
 
             robot_status = self.state.get(name=self.keys["robot_status"])
-            if(np.linalg.norm(modified_goal - np.array(self.next_point[0:3])) <= 3.0 and (robot_status ==
+            if(np.linalg.norm(modified_goal - np.array(self.next_point[0:3])) <= 0.1 and (robot_status ==
                                                                                           RobotBehaviors.BUILD or
                                                                                           robot_status ==
                                                                                           RobotBehaviors.FERRY)):
                 place_block = True
                 logger.debug("Placing block set to true")
+
 
             self.robot = follow_path(self.robot, [self.next_point], robot_id=self.robot_id, place_block=place_block)
             self.state.set(name=self.robot_model_key, value=self.robot)

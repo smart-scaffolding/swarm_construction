@@ -84,6 +84,7 @@ class SerialLink:
             self.serial = None
 
         self.DEBUG = False
+        self.last_placed_block = False
         # Robot state variables
         self.AEE_POSE = None
         self.DEE_POSE = None
@@ -402,10 +403,10 @@ class SerialLink:
         goalRot = np.zeros(3)
 
         # gets the relativePos, basePos, and baseOri in the global reference frame
-        if baseID == 'A':  # requested ee is A
+        if baseID == 'A':  # requested base is A
             basePos = self.AEE_POSE[:3, 3].T
             baseOri = R.from_matrix(self.AEE_POSE[:3, :3]).as_euler('xyz', degrees=True)
-        elif baseID == 'D':  # requested ee is D
+        elif baseID == 'D':  # requested base is D
             basePos = self.DEE_POSE[:3, 3].T
             baseOri = R.from_matrix(self.DEE_POSE[:3, :3]).as_euler('xyz', degrees=True)
 
@@ -504,11 +505,17 @@ class SerialLink:
                     localGamma = -pi / 2
 
         # sets the goalPos and goalOri to the moving ee
-        goalPos_list = list(goalPos)
-        if placeBlock:
-            goalPos_list[2] = goalPos_list[2] - 1
 
-            goalPos = tuple(goalPos_list)
+        goalPos_list = list(goalPos)
+        # if self.last_placed_block:
+        #     goalPos_list[2] = goalPos_list[2] - 1
+        #     goalPos = tuple(goalPos_list)
+        #     self.last_placed_block = False
+        #
+        # if placeBlock:
+        #     # goalPos_list[2] = goalPos_list[2] - 1
+        #     # goalPos = tuple(goalPos_list)
+        #     self.last_placed_block = True
 
         if baseID == 'A':  # requested ee is A, update D to match goal
             # DEEPOS = goalPos
