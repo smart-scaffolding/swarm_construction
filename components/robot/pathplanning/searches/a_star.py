@@ -4,6 +4,7 @@ import matplotlib as mpl
 import numpy as np
 import heapq
 import logging
+from rdp import rdp
 # from robot.pathplanning.path_planner import PathPlannerImp
 import pandas as pd
 from collections import OrderedDict
@@ -111,13 +112,37 @@ class AStar:
         route = route + [self.start]
         route = route[::-1]
         print("Path to Traverse: {}\n".format(route))
+        self.simplified_path = tuple(rdp(route))
+        print(f"Simplified Path: {self.simplified_path}")
         self.route = route
         return route
 
-    def display_path(self):
-        for i in self.route:
-            self.colors[i] = '#ff0000ff'
+    def display_path(self, blueprint=None):
+        for i in self.simplified_path:
+            self.colors[tuple(i)] = '#ff0000ff'
+            blueprint[tuple(i)] = 1
+            print(i)
 
         self.colors[self.route[-1]] = '#03fc62'
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.voxels(blueprint, facecolors=self.colors, edgecolor='k')
+
+        plt.show()
         return self.colors
 
+if __name__ == '__main__':
+    blueprint = np.array([
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 1, 1, 1], [1, 0, 0, 0], [1, 0, 0, 0]],
+        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    ])
+
+    b = np.logical_not(blueprint)
+    a = AStar(b)
+
+    a.get_path(start=(0, 0, 1), goal=(5, 0, 1))
+    a.display_path(blueprint)

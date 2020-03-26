@@ -144,7 +144,8 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
                                 delay=timeout, flip_angles=flip_angles)
 
 
-def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy):
+def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy,
+                  holding_block=False):
 
     if baseID == 'A':
         currentEEPos = robot.DEE_POSE[:3,3]
@@ -168,7 +169,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
-        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=False)
+        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
         # TODO: refactor the code
@@ -190,7 +191,7 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
         if SIMULATE:
-            send_to_simulator(base=base, trajectory=ik_angles, vel=velPoints)
+            send_to_simulator(base=base, trajectory=ik_angles, holding_block=holding_block)
 
     forward_1 = np.asmatrix(forward_1)
     forward_2 = np.asmatrix(forward_2)
@@ -250,13 +251,14 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
     # previous_direction = "top"
     for index, item in enumerate(path):
 
-        direction = item[-1]
+        direction = item.direction
+        holding_block = item.holding_block
         if index == 0:
             global_direction.append((0, "top"))
             previous_direction = "top"
         else:
-            global_direction.append((num_steps*index, path[index-1][-1]))
-            previous_direction = path[index-1][-1]
+            global_direction.append((num_steps*index, path[index-1].direction))
+            previous_direction = path[index-1].direction
             # previous_direction = direction
 
         point = list(item[0:3])
@@ -298,12 +300,12 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             ee_up = add_offset(ee_up, previous_direction, offset)
 
-            previous_angles_1 = move_to_point(direction, ee_up, robot, num_steps, baseID='A')
+            previous_angles_1 = move_to_point(direction, ee_up, robot, num_steps, baseID='A', holding_block=holding_block)
             stop_above = np.copy(point)
             stop_above = add_offset(stop_above, direction, offset)
             previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID='A',
-                                              previous_angles=previous_angles_1[-1].flatten().tolist()[0])
-            previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID='A', previous_angles=previous_angles_2[-1].flatten().tolist()[0])
+                                              previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
+            previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID='A', previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 
         else:
             ee_pos = robot.end_effector_position()
@@ -351,7 +353,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 base_up = create_point_from_homogeneous_transform(update_animation[-1].robot_base).tolist()
                 base_up = flatten(base_up)
                 ee_up = add_offset(base_up,
-                                   previous_direction, offset, path[index - 2][-1],
+                                   previous_direction, offset, path[index - 2].direction,
                                    index=index, type="ee_up")
             else:
                 ee_up = add_offset(ee_up, previous_direction, offset, previous_point, index=index)
@@ -361,24 +363,24 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             print("\t\t\tOffsets: \n\t\t\tEE Up: {}\n\t\t\tStop Above: {}".format(ee_up, stop_above))
 
-            if direction == path[index - 1][-1]:
+            if direction == path[index - 1].direction:
                 direction = "top"
                 previous_direction = "top"
 
             previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
-            previous_angles_1 = move_to_point(previous_direction, ee_up, robot, num_steps, baseID=baseID, previous_angles=initial_angles)
-            previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0])
-            previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID, previous_angles=previous_angles_2[-1].flatten().tolist()[0])
+            previous_angles_1 = move_to_point(previous_direction, ee_up, robot, num_steps, baseID=baseID, previous_angles=initial_angles, holding_block=holding_block)
+            previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
+            previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID, previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 
         save_path = update_path(save_path, previous_angles_1, previous_angles_2, previous_angles_3)
         previous_point = point
         back_foot_pos = create_point_from_homogeneous_transform(robot.base).flatten().tolist()[0]
         print("BACK FOOT: {}".format(back_foot_pos))
 
-        if path[index-1][-1] == path[index][-1]:
-            direction = path[index][-1]
+        if path[index-1].direction == path[index].direction:
+            direction = path[index].direction
         else:
-            direction = path[index-1][-1]
+            direction = path[index-1].direction
 
         update_animation.append(AnimationUpdate(robot=robot, robot_base=robot.base, direction=direction, path=path[index:], index=index, trajectory=[ee_up, stop_above, point]))
 
@@ -443,7 +445,7 @@ def check_if_point_reachable(robot, base, goal):
         raise ValueError(f'Robot cannot reach from base {base} to goal {goal}')
 
 
-def send_to_simulator(base, trajectory, topic=TOPIC,vel=None):
+def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     # base *= trotz(theta=np.pi/2)
     # print(f'before converted to pi: {trajectory}')
 
@@ -473,7 +475,8 @@ def send_to_simulator(base, trajectory, topic=TOPIC,vel=None):
     trajectory[0] = trajectory[0] - 90
     trajectory = trajectory * np.pi / 180
     # print(f'after converted to pi: {trajectory}')
-    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
+    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory, block_on_ee=holding_block)
+    # print(holding_block)
     message_obj = MessageWrapper(topic=topic, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
     z = zlib.compress(p)

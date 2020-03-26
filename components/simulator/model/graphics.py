@@ -65,8 +65,12 @@ class VtkPipeline:
         return actor
 
     def remove_actor(self, actor):
-        self.actor_list.remove(actor)
-        self.ren.RemoveActor(actor)
+        try:
+            self.actor_list.remove(actor)
+            self.ren.RemoveActor(actor)
+        except ValueError as e:
+            print(e)
+
 
 
     def set_camera(self):
@@ -441,3 +445,48 @@ class AnimationUpdate:
         self.path = path
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
+
+
+# if index == 4:
+#     # actors[-1] = cubeForPath((0, 0, 0, 'top'))
+#     # self.pipeline.add_actor(actors[-1])
+#
+#     # new_block_tool, _, _ = add_block((0, 0, 0),
+#     #                             block_file_location=move_block_file_location)
+#     logger.info(len(actors))
+#     # if len(actors) > 4:
+#     #     self.pipeline.remove_actor(actors[-1])
+#
+#     moving_block = False
+#     # actors.append(new_block_tool)
+#     # self.pipeline.add_actor(new_block_tool)
+#     # new_block_tool.SetUserMatrix(transforms[index])
+#     # new_block_tool.SetScale(0.013)
+#     # print("Updating block end position")
+#     # self.pipeline.ren.AddActor(new_block_tool)
+#
+#     if carrying_block_id in self.blocks:
+#
+#         print("Moving block from existing location")
+#         print(carrying_block_id)
+#         location, actor = self.blocks[carrying_block_id]
+#         moving_block = True
+#
+#         # self.pipeline.animate()
+#     else:
+#         print("adding new block")
+#         print(carrying_block_id)
+#         actor, _, _ = add_block(None,
+#                                 block_file_location=block_file_location)
+#         # self.pipeline.add_actor(actor)
+#         # self.pipeline.animate()
+#
+#     actor.SetUserMatrix(transforms[index])
+#     actor.SetScale(0.013)
+#     # actor.SetPosition(message.message.location)
+#     self.blocks[carrying_block_id] = (transforms[index], actor)
+#     self.pipeline.add_actor(actor)
+#     actors.append(actor)
+#     if not moving_block:
+#         self.pipeline.ren.AddActor(actor)
+#         self.pipeline.animate()

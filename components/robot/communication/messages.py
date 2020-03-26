@@ -65,7 +65,7 @@ class PlacedBlockUpdateMessagePayload:
 
 class AnimationUpdateMessage(Message):
     def __init__(self, robot_base, direction=None, trajectory=None, path=None, placedObstacle=False,
-                 obstacle=None):
+                 obstacle=None, block_on_ee=False):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base
         self.direction = direction
@@ -73,6 +73,7 @@ class AnimationUpdateMessage(Message):
         self.path = path
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
+        self.block_on_ee = block_on_ee
 
 
 class BlockLocationMessage:

@@ -145,7 +145,7 @@ def setup_structure_display(blueprint, pipeline, color, block_file_location):
     return None, None, actor_list
 
 
-def add_block(position, block_file_location):
+def add_block(position=None, block_file_location=None):
     # reader_list = vtk.vtkSTLReader()
     # # loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "block.stl")))
     # loc = block_file_location
@@ -159,7 +159,8 @@ def add_block(position, block_file_location):
 
     actor_list.GetProperty().SetColor(color[0])  # (R,G,B)
     actor_list.SetScale(0.013)
-    actor_list.SetPosition(position)
+    if position:
+        actor_list.SetPosition(position)
     # print("Adding block at pos: {}".format(position))
     # self.pipeline.add_actor(actor_list)
 

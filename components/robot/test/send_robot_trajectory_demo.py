@@ -3,7 +3,9 @@ import numpy as np
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import threading
 import time
+from collections import namedtuple
 
+Point = namedtuple('Point', 'x y z direction holding_block')
 
 ##############################################################################
 # Serial
@@ -19,10 +21,12 @@ PORT: A string representing port the usb is plugged into (check Arduino IDE for 
 BAUD: The baud rate
 '''
 
-SERIAL = True
+SERIAL = False
 PORT = '/dev/cu.usbmodem14201'
 # PORT = '/dev/cu.usbserial-DN02P9MR'
 
+if not SERIAL:
+    PORT = None
 BAUD = 115200
 
 
@@ -43,7 +47,7 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
 '''
 
 TIMEOUT = 0.02          # seconds 0.03
-NUM_VIA_POINTS = 25     # 25
+NUM_VIA_POINTS = 50     # 25
 
 
 ##############################################################################
@@ -69,19 +73,48 @@ not wish to run and uncomment the single path you do wish to run.
 # Move block forward
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 ## NOTE: Block must be placed underneath for robot to step on
-path=[(3, 0, 1, "top"), (2, 0, 0, "top")]
+# path=[(3, 0, 1, "top"), (2, 0, 0, "top")]
 
 
 # Move block forward
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 ## NOTE: Block must be placed underneath for robot to step on
-# path=[(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 2, "top")]
+
+block_id = "1"
+block_id_2 = "2"
+path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
+                                                                                                    None),
+      Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+                                                                                                     None), Point(0,
+                                                                                                                   0,
+                                                                                                                   1,
+                                                                                                                   "top", None),
+      Point(2, 0, 0, "top", None),
+      Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+      Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+                                                                                                     None), Point(0,
+                                                                                                                   0,
+                                                                                                                   1,
+                                                                                                                   "top", None),
+      Point(2, 0, 0, "top", None),
+      Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+      Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",None), Point(0,
+                                                                                                                      0,
+                                                                                                                      0,
+                                                                                                                      "top",
+                                                                                                                      None),
+      ]
+
+
 # path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
 #                                                                                                        "top")]
 # path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0, "top"), (5, 0, 1, "top"), (4, 0, 1,
 #                                                                                                        "top"), (6, 0,
 #                                                                                                                 2,
 #                                                                                                                 "top"), (5, 0, 1, "top"), (7, 0, 3, "top"), (6, 0, 2, "top")]
+
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+#                                                                                                    "top")]
 ##############################################################################
 # Gripper Control
 ##############################################################################
@@ -94,11 +127,9 @@ USE_GRIPPERS: True if grippers are to be used, False if they are not to be used
              engaged. Make sure that you are watching for this and unplug the robot before the motors stall     
 '''
 
-USE_GRIPPERS = True
+USE_GRIPPERS = False
 
 
-robot_serial = Serial(port=PORT, baudrate=BAUD, parity=PARITY_NONE,
-                                    stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
 
 
 def read_angles_from_robot(read_serial):
@@ -112,9 +143,99 @@ def read_angles_from_robot(read_serial):
                 print(e)
                 continue
 
-reading = threading.Thread(target=read_angles_from_robot, args=(robot_serial,))
-reading.start()
 
-time.sleep(0.5)
-robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
-                             path=path, use_grippers=USE_GRIPPERS)
+
+
+
+
+# are the datas shared through stigmergy guaranteed to be global across all robots (ie do all robots have access to
+# the exact same information?
+
+    # are there any race conditions, where robots might be acting on old information?
+
+
+# how is the distance between robots calculated (ie ultrasonic, lidar, rangefinders)
+
+# The example shown in the slides only showed the distance between robots as a scalar, is it in fact a vector?
+
+# How do robots know how to update their own distances if they receive data from multiple other robots? Is there some
+# kind of filtering that is being used to determine which robots to listen to regarding distance?
+
+
+# Based on the way buzz works with timesteps, are there chances that cause these timesteps to be slowed down,
+# ie if a certain operation takes longer than a single timestep? Does this mean timesteps will not be uniform
+
+def get_command_line_input(arguments, index):
+    output = None
+    try:
+        output = arguments[index]
+    except ValueError:
+        pass
+
+    return output
+
+def get_path(case):
+    if case == "single_step":
+        return [Point(3, 0, 0, 'top', None)]
+    if case == "single_step_block":
+        return [Point(3, 0, 1, 'top', None)]
+    if case == "two_step":
+        return [Point(3, 0, 0, 'top', None), Point(1, 0, 0, "top", None)]
+    if case == "two_step_onto_block":
+        return [Point(3, 0, 1, 'top', None), Point(1, 0, 0, "top", None)]
+    if case == "full_playground_inch":
+        return [Point(3, 0, 0, "top", None), Point(1, 0, 0, "top", None), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(5, 0,
+                                                                                                                0,
+                                                                                                                  "top", None), Point(3, 0, 0, "top", None)]
+    if case == "stairs":
+        return [Point(3, 1, 1, "top", None), Point(2, 1, 0, "top", None), Point(4, 1, 2, "top", None), Point(3, 1, 1, "top", None), Point(5, 1, 3, "top", None), Point(4, 1, 2,
+                                                                                                       "top", None)]
+    else:
+        return [Point(3, 0, 0, 'top', None)]
+def convert_js_bool(output):
+    return True if output == "true" else False
+
+if __name__ == '__main__':
+    import sys
+
+    if len(sys.argv) > 1:
+        output = get_command_line_input(sys.argv, 1)
+        SERIAL = SERIAL if output is None else convert_js_bool(str(output))
+
+        output = get_command_line_input(sys.argv, 2)
+        PORT = PORT if output is None else str(output)
+
+        output = get_command_line_input(sys.argv, 3)
+        BAUD = BAUD if output is None else int(output)
+
+        output = get_command_line_input(sys.argv, 4)
+        TIMEOUT = TIMEOUT if output is None else float(output)
+
+        output = get_command_line_input(sys.argv, 5)
+        NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
+
+        output = get_command_line_input(sys.argv, 6)
+        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
+
+        output = get_command_line_input(sys.argv, 7)
+        path = path if output is None else get_path(str(output))
+
+
+    print(f"Serial: {SERIAL}")
+    print(f"Port: {PORT}")
+    print(f"BAUD: {BAUD}")
+    print(f"Delay: {TIMEOUT}")
+    print(f"Via Points: {NUM_VIA_POINTS}")
+    print(f"Grippers: {USE_GRIPPERS}")
+    print(f"Trajectory: {path}")
+
+    # if SERIAL:
+    #     robot_serial = Serial(port=PORT, baudrate=BAUD, parity=PARITY_NONE,
+    #                           stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
+    #     reading = threading.Thread(target=read_angles_from_robot, args=(robot_serial,))
+    #     reading.start()
+    #
+    # time.sleep(0.5)
+    robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
+                                 path=path, use_grippers=USE_GRIPPERS)
+

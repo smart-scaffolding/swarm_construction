@@ -105,7 +105,14 @@ class RandomWorldConstrained(BlueprintTemplate):
         super().__init__(data=data, length=length, width=width, height=height, name=name)
 
 
+class StairwayToHeaven(BlueprintTemplate):
+    def __init__(self, name='StairwayToHeaven'):
+        data = np.load("../../blueprints/StairwayToHeaven.npy")
+        super().__init__(length=12, width=12, height=11, data=data, name=name)
+
+
 if __name__ == '__main__':
-    a = RandomWorldConstrained(10, 10, 5)
+    # a = RandomWorldConstrained(10, 10, 5)
     # a = Pyramid(10, 10, 4)
-    print(a.data)
+    a = StairwayToHeaven()
+    print(a.data.shape)

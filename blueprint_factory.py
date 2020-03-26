@@ -25,7 +25,8 @@ class BluePrintFactory:
         self.possible_blueprints["RandomWorld_10x10x3"] = RandomWorld(10, 10, 3, name="RandomWorld_10x10x3")
         self.possible_blueprints["RandomWorld_10x10x5"] = RandomWorld(10, 10, 5, name="RandomWorld_10x10x5")
         self.possible_blueprints["RandomWorldConstrained_10x10x5"] = RandomWorldConstrained(10, 10, 3,
-                                                                                   name="RandomWorldConstrained_10x10x5")
+                                                                                            name="RandomWorldConstrained_10x10x5")
+        self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
 
 
 
@@ -35,3 +36,6 @@ class BluePrintFactory:
         return self.possible_blueprints[blueprint_label]
 
 
+if __name__ == '__main__':
+    a = BluePrintFactory()
+    print(a.possible_blueprints["StairwayToHeaven"].data)

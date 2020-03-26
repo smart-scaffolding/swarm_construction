@@ -28,8 +28,9 @@ from blueprint_factory import BluePrintFactory
 POINTS = False
 ROBOTS = 1
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_12x12x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
+# BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
 
@@ -142,6 +143,8 @@ class CalculatorThread(WorkerThread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(CalculatorThread, self).__init__(dir_q, result_q, filter_q, socket, pipeline, block_q)
         self.blocks = {}
+        # self.count = 0
+        # self.switch = True
 
     def run(self):
         while not self.stoprequest.isSet():
@@ -161,6 +164,11 @@ class CalculatorThread(WorkerThread):
                     base = message.message.robot_base
                     trajectory = message.message.trajectory
                     path = message.message.path
+                    block_on_ee = message.message.block_on_ee
+                    # block_on_ee = True if self.switch else False
+                    # self.count += 1
+                    # if self.count % 150 == 0:
+                    #     self.switch = True if not self.switch else False
 
 
                 # base = np.matrix([[1, 0, 0, 0.5],
@@ -219,14 +227,17 @@ class CalculatorThread(WorkerThread):
                     # multiple_trajectories = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=1)
                     #
                     # for trajectory in multiple_trajectories:
+                    standing_on_block = True if block_on_ee else False
                     transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True,
-                                                          standing_on_block=False, num_links=4)
+                                                          standing_on_block=standing_on_block, num_links=4)
+
+
                     text_position = np.eye(4)
                     text_position[0, 3] = base[0, 3] + 1
                     text_position[1, 3] = base[1, 3]
                     text_position[2, 3] = base[2, 3] + 2
                     text_position = np2vtk(text_position)
-                    self.result_q.put((actor, robot_actors, text_position, path))
+                    self.result_q.put((actor, robot_actors, text_position, path, block_on_ee))
 
 
                 """
@@ -265,7 +276,7 @@ class CalculatorThread(WorkerThread):
 
                     path = message.message.path
                     print(f"Path: {path}")
-                    self.result_q.put((actor, [transform], None, path))
+                    self.result_q.put((actor, [transform], None, path, None))
 
             # except:
             #     continue
@@ -367,7 +378,7 @@ class vtkTimerCallback():
             if not robot_queue.empty():
         # if not self.queue.empty():
         #     for i in range(5):
-               robot_id, transforms, text_position, path = robot_queue.get()
+               robot_id, transforms, text_position, path, block_on_ee = robot_queue.get()
 
 
                # print(f"Callback: Moving position of robot: {robot_id}")
@@ -385,18 +396,46 @@ class vtkTimerCallback():
                            # actors[-1] = cubeForPath((0, 0, 0, 'top'))
                            # self.pipeline.add_actor(actors[-1])
 
-                           new_block_tool, _, _ = add_block((0, 0, 0),
+                        if not block_on_ee in self.blocks:
+
+                            new_block_tool, _, _ = add_block((0, 0, 0),
                                                        block_file_location=move_block_file_location)
-                           self.pipeline.remove_actor(actors[-1])
-                           actors.append(new_block_tool)
-                           self.pipeline.add_actor(new_block_tool)
-                           new_block_tool.SetUserMatrix(transforms[index])
-                           new_block_tool.SetScale(0.013)
-                           # print("Updating block end position")
-                           self.pipeline.ren.AddActor(new_block_tool)
+                            logger.info(len(actors))
+                            # if len(actors) > 4:
+                            #    self.pipeline.remove_actor(actors[-1])
+                            actors.append(new_block_tool)
+                            # self.pipeline.add_actor(new_block_tool)
+                            new_block_tool.SetUserMatrix(transforms[index])
+                            new_block_tool.SetScale(0.013)
+                            print("Updating block end position")
+                            self.pipeline.ren.AddActor(new_block_tool)
+                            self.blocks[block_on_ee] = (transforms[index], new_block_tool)
+
+                        else:
+                            _, new_block_tool = self.blocks[block_on_ee]
+                            new_block_tool.SetUserMatrix(transforms[index])
+                            new_block_tool.SetScale(0.013)
+                            self.blocks[block_on_ee] = (transforms[index], new_block_tool)
+                           # if topic in self.blocks:
+                           #     # print("Moving block from existing location")
+                           #     # print(self.blocks)
+                           #     location, actor = self.blocks[topic]
+                           #     actor.SetUserMatrix(transforms[index])
+                           #     actor.SetScale(0.013)
+                           #     # actor.SetPosition(message.message.location)
+                           #     self.blocks[message.message.id] = (transforms[index], actor)
+                           #     # self.pipeline.animate()
+                           # else:
+                           #     actor, _, _ = add_block(message.message.location,
+                           #                             block_file_location=block_file_location)
+                           #     self.blocks[message.message.id] = (message.message.location, actor)
+                           #     self.pipeline.add_actor(actor)
+                           #     self.pipeline.animate()
 
 
                        elif index <=3:
+                           # if len(actors) > 4:
+                           #     self.pipeline.remove_actor(actors[-1])
                            if index == 0:
                                # base = transforms[index].GetData()
                                rendered_id.SetUserMatrix(text_position)
