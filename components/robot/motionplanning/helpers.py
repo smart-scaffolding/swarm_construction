@@ -93,26 +93,26 @@ def send_to_simulator(base, trajectory, id=b"ROBOT_1"):
     socket.connect(config.communication["simulator_send_messages_port"])
 
     position = create_point_from_homogeneous_transform(base)
-    # now = datetime.now()
-    # current_time = now.strftime("%H:%M:%S")
-    # config.pusher.trigger(u'robot', u'state', {
-    #     u'id': id.decode(),
-    #     u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
-    #     u'angles': [f'{trajectory[1]:.1f}', f'{-1*trajectory[2]:.1f}', f'{-1*trajectory[3]:.1f}'],
-    #     u'grippers': {
-    #         u'a': 0,
-    #         u'd': 100
-    #     },
-    #     u'battery': 77,
-    #     u'blocks_placed': 0,
-    #     u'a_link_blocks': 1,
-    #     u'd_link_blocks': 0,
-    #     u'robot_state': "MOVING",
-    #     u'end_effector_velocity': {
-    #         u'label': current_time,
-    #         u'value': randint(0, 100)
-    #     }
-    # })
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    config.pusher.trigger(u'robot', u'state', {
+        u'id': id.decode(),
+        u'position': (f'{position[0]:.1f}', f'{position[1]:.1f}', f'{position[2]:.1f}', "top"),
+        u'angles': [f'{trajectory[1]:.1f}', f'{-1*trajectory[2]:.1f}', f'{-1*trajectory[3]:.1f}'],
+        u'grippers': {
+            u'a': 0,
+            u'd': 100
+        },
+        u'battery': 77,
+        u'blocks_placed': 0,
+        u'a_link_blocks': 1,
+        u'd_link_blocks': 0,
+        u'robot_state': "MOVING",
+        u'end_effector_velocity': {
+            u'label': current_time,
+            u'value': randint(0, 100)
+        }
+    })
 
     trajectory[0] = trajectory[0] - 90
     trajectory = trajectory*np.pi/180

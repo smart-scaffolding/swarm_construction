@@ -47,7 +47,7 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
 '''
 
 TIMEOUT = 0.02          # seconds 0.03
-NUM_VIA_POINTS = 50     # 25
+NUM_VIA_POINTS = 10     # 25
 
 
 ##############################################################################
@@ -82,6 +82,7 @@ not wish to run and uncomment the single path you do wish to run.
 
 block_id = "1"
 block_id_2 = "2"
+block_id_3 = "3"
 path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
                                                                                                     None),
       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
@@ -97,12 +98,12 @@ path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 
                                                                                                                    1,
                                                                                                                    "top", None),
       Point(2, 0, 0, "top", None),
-      Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
-      Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",None), Point(0,
-                                                                                                                      0,
-                                                                                                                      0,
-                                                                                                                      "top",
-                                                                                                                      None),
+      Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
+      Point(5, 0, 2, "top", None), Point(4, 0, 1, "top",None), Point(5,1,3,"top", None),
+      Point(5, 0, 2, "top", None), Point(4, 2, 3, "top", None), Point(5, 1, 3, "top", None),
+      Point(3, 1, 1, "top", None), Point(4, 1, 2, "top", None), Point(2, 0, 0, "top", None),
+      Point(3, 1, 1, "top", None), Point(1, 0, 0, "top", None), Point(2, 0, 0, "top", None),
+      Point(0, 0, 0, "top", None),
       ]
 
 
