@@ -5,6 +5,9 @@ import time
 from components.robot.test.common import create_point_from_homogeneous_transform, flip_base, round_end_effector_position
 from components.robot.test.quintic_trajectory_planner import *
 from components.robot.communication.messages import *
+from components.robot.pathplanning.path_planner import PathPlanner
+from components.robot.common.states import PathPlanners
+
 from components.robot.pathplanning.searches.face_star import *
 from components.robot.test.transforms import *
 from components.robot.test.minimum_jerk_trajectory_planner import *
@@ -145,7 +148,7 @@ def robot_trajectory_serial_demo(num_steps, serial, port, baud, timeout, path, b
 
 
 def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=None, accuracy=accuracy,
-                  holding_block=False):
+                  holding_block=False, inching=True):
 
     if baseID == 'A':
         currentEEPos = robot.DEE_POSE[:3,3]
@@ -169,12 +172,12 @@ def move_to_point(direction, point, robot, num_steps, baseID, previous_angles=No
 
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
-        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True)
+        ik_angles = robot.ikin(goalPos=point,gamma=gamma,phi=0,baseID=baseID,simHuh=True, inching=inching)
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
         # TODO: refactor the code
         # Temporary fix for base flipping
-        if baseID == 'D':
+        if baseID == 'D' and not inching:
             # ik_angles[0] = ik_angles[0] - 180
             base = robot.DEE_POSE
 
@@ -303,8 +306,33 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             previous_angles_1 = move_to_point(direction, ee_up, robot, num_steps, baseID='A', holding_block=holding_block)
             stop_above = np.copy(point)
             stop_above = add_offset(stop_above, direction, offset)
+
+            planner = PathPlanner(blueprint=np.logical_not(blueprint), arm_reach=(1, 1), search=PathPlanners.AStar)
+
+            start = ee_up
+            start[0] = int(start[0] - 0.5)
+            start[1] = int(start[1] - 0.5)
+            start[2] = int(start[2] - offset)
+
+            goal = stop_above
+            goal[0] = int(goal[0] - 0.5)
+            goal[1] = int(goal[1] - 0.5)
+            goal[2] = int(goal[2] - offset)
+            new_points = list(planner.get_path(start=start, goal=stop_above))
+            new_points.pop(0)
+            previous_angles_2 = previous_angles_1
+            for point in new_points:
+                point[0] = item[0] + 0.5
+                point[1] = item[1] + 0.5
+                point[2] = item[2] + 1
+                previous_angles_2 = move_to_point(direction, point, robot, num_steps, baseID='A',
+                                                  previous_angles=previous_angles_2[-1].flatten().tolist()[0],
+                                                  holding_block=holding_block, inching=False)
+
             previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID='A',
                                               previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
+
+
             previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID='A', previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 
         else:
@@ -369,6 +397,30 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
             previous_angles_1 = move_to_point(previous_direction, ee_up, robot, num_steps, baseID=baseID, previous_angles=initial_angles, holding_block=holding_block)
+
+
+            planner = PathPlanner(blueprint=np.logical_not(blueprint), arm_reach=(1, 1), search=PathPlanners.AStar)
+            start = ee_up
+            start[0] = int(start[0] - 0.5)
+            start[1] = int(start[1] - 0.5)
+            start[2] = int(start[2] - offset)
+
+            goal = stop_above
+            goal[0] = int(goal[0] - 0.5)
+            goal[1] = int(goal[1] - 0.5)
+            goal[2] = int(goal[2] - offset)
+            new_points = list(planner.get_path(start=start, goal=stop_above))
+            new_points.pop(0)
+
+            previous_angles_2 = previous_angles_1
+            for point in new_points:
+                point[0] = item[0] + 0.5
+                point[1] = item[1] + 0.5
+                point[2] = item[2] + 1
+                previous_angles_2 = move_to_point(direction, point, robot, num_steps, baseID='A',
+                                                  previous_angles=previous_angles_2[-1].flatten().tolist()[0],
+                                                  holding_block=holding_block, inching=False)
+
             previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
             previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID, previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 

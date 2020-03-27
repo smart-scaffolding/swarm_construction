@@ -1,5 +1,5 @@
-from components.robot.pathplanning import FaceStar
-from components.robot.pathplanning import AStar
+from components.robot.pathplanning.searches.face_star import FaceStar
+from components.robot.pathplanning.searches.a_star import AStar
 from components.robot.common.states import PathPlanners
 
 
@@ -13,7 +13,7 @@ class PathPlanner:
             self.planner = AStar(self.blueprint)
 
     def get_path(self, start, goal):
-        return self.planner.get_path(start=start, goal=goal)
+        return self.planner.get_path(start=tuple(start), goal=tuple(goal))
 
 
 # class PathPlannerImp:

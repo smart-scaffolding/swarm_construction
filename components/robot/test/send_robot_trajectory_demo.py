@@ -47,7 +47,7 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
 '''
 
 TIMEOUT = 0.02          # seconds 0.03
-NUM_VIA_POINTS = 50     # 25
+NUM_VIA_POINTS = 20     # 25
 
 
 ##############################################################################
@@ -82,6 +82,7 @@ not wish to run and uncomment the single path you do wish to run.
 
 block_id = "1"
 block_id_2 = "2"
+block_id_3 = "3"
 path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
                                                                                                     None),
       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
@@ -97,7 +98,7 @@ path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 
                                                                                                                    1,
                                                                                                                    "top", None),
       Point(2, 0, 0, "top", None),
-      Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+      Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",None), Point(0,
                                                                                                                       0,
                                                                                                                       0,
@@ -165,77 +166,14 @@ def read_angles_from_robot(read_serial):
 # Based on the way buzz works with timesteps, are there chances that cause these timesteps to be slowed down,
 # ie if a certain operation takes longer than a single timestep? Does this mean timesteps will not be uniform
 
-def get_command_line_input(arguments, index):
-    output = None
-    try:
-        output = arguments[index]
-    except ValueError:
-        pass
 
-    return output
+if SERIAL:
+    robot_serial = Serial(port=PORT, baudrate=BAUD, parity=PARITY_NONE,
+                          stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
+    reading = threading.Thread(target=read_angles_from_robot, args=(robot_serial,))
+    reading.start()
 
-def get_path(case):
-    if case == "single_step":
-        return [Point(3, 0, 0, 'top', None)]
-    if case == "single_step_block":
-        return [Point(3, 0, 1, 'top', None)]
-    if case == "two_step":
-        return [Point(3, 0, 0, 'top', None), Point(1, 0, 0, "top", None)]
-    if case == "two_step_onto_block":
-        return [Point(3, 0, 1, 'top', None), Point(1, 0, 0, "top", None)]
-    if case == "full_playground_inch":
-        return [Point(3, 0, 0, "top", None), Point(1, 0, 0, "top", None), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(5, 0,
-                                                                                                                0,
-                                                                                                                  "top", None), Point(3, 0, 0, "top", None)]
-    if case == "stairs":
-        return [Point(3, 1, 1, "top", None), Point(2, 1, 0, "top", None), Point(4, 1, 2, "top", None), Point(3, 1, 1, "top", None), Point(5, 1, 3, "top", None), Point(4, 1, 2,
-                                                                                                       "top", None)]
-    else:
-        return [Point(3, 0, 0, 'top', None)]
-def convert_js_bool(output):
-    return True if output == "true" else False
-
-if __name__ == '__main__':
-    import sys
-
-    if len(sys.argv) > 1:
-        output = get_command_line_input(sys.argv, 1)
-        SERIAL = SERIAL if output is None else convert_js_bool(str(output))
-
-        output = get_command_line_input(sys.argv, 2)
-        PORT = PORT if output is None else str(output)
-
-        output = get_command_line_input(sys.argv, 3)
-        BAUD = BAUD if output is None else int(output)
-
-        output = get_command_line_input(sys.argv, 4)
-        TIMEOUT = TIMEOUT if output is None else float(output)
-
-        output = get_command_line_input(sys.argv, 5)
-        NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
-
-        output = get_command_line_input(sys.argv, 6)
-        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
-
-        output = get_command_line_input(sys.argv, 7)
-        path = path if output is None else get_path(str(output))
-
-
-    print(f"Serial: {SERIAL}")
-    print(f"Port: {PORT}")
-    print(f"BAUD: {BAUD}")
-    print(f"Delay: {TIMEOUT}")
-    print(f"Via Points: {NUM_VIA_POINTS}")
-    print(f"Grippers: {USE_GRIPPERS}")
-    print(f"Trajectory: {path}")
-
-    # if SERIAL:
-    #     robot_serial = Serial(port=PORT, baudrate=BAUD, parity=PARITY_NONE,
-    #                           stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
-    #     reading = threading.Thread(target=read_angles_from_robot, args=(robot_serial,))
-    #     reading.start()
-    #
-    # time.sleep(0.5)
-    robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
-                                 path=path, use_grippers=USE_GRIPPERS)
+time.sleep(0.5)
+robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
+                             path=path, use_grippers=USE_GRIPPERS)
 

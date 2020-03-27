@@ -115,7 +115,7 @@ class AStar:
         self.simplified_path = tuple(rdp(route))
         print(f"Simplified Path: {self.simplified_path}")
         self.route = route
-        return route
+        return self.simplified_path
 
     def display_path(self, blueprint=None):
         for i in self.simplified_path:

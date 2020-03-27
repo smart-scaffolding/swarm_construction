@@ -28,7 +28,7 @@ from blueprint_factory import BluePrintFactory
 POINTS = False
 ROBOTS = 1
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_12x12x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
