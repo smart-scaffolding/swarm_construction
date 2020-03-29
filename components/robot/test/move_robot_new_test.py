@@ -8,6 +8,10 @@ from components.robot.communication.messages import *
 from components.robot.pathplanning.searches.face_star import *
 from components.robot.test.transforms import *
 from components.robot.test.minimum_jerk_trajectory_planner import *
+from components.robot.pathplanning.path_planner import PathPlanner
+from components.robot.common.states import PathPlanners
+from defined_blueprints import *
+
 # Comms
 import zmq
 import zlib
@@ -52,10 +56,13 @@ blueprint = np.array([
     [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
 ])
 
+blueprint = Plane(12, 12, name="Plane_12x12x1").data
+
 base = np.matrix([[1, 0, 0, 0.5],
                   [0, 1, 0, 0.5],
                   [0, 0, 1, 1.],
                   [0, 0, 0, 1]])
+
 
 
 class AnimationUpdate:
@@ -303,8 +310,53 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             previous_angles_1 = move_to_point(direction, ee_up, robot, num_steps, baseID='A', holding_block=holding_block)
             stop_above = np.copy(point)
             stop_above = add_offset(stop_above, direction, offset)
-            previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID='A',
-                                              previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
+
+            baseID = 'A'
+            if baseID == 'A':
+                move_base = np.copy(robot.AEE_POSE[:3, 3])
+            else:
+                move_base = np.copy(robot.DEE_POSE[:3, 3])
+
+            move_base = [int(x) for x in move_base]
+            modified_blueprint = np.copy(blueprint)
+
+            pad_x_before = 3
+            pad_x_after = 3
+            pad_y_before = 3
+            pad_y_after = 3
+            pad_z_before = 3
+            pad_z_after = 3
+            modified_blueprint = np.pad(modified_blueprint, ((pad_x_before, pad_x_after), (pad_y_before, pad_y_after), (pad_z_before, pad_z_after)), 'constant')
+            modified_blueprint = np.logical_not(modified_blueprint)
+            modified_blueprint[move_base[0] + pad_x_before][move_base[1] + pad_y_before] = 0
+            planner = PathPlanner(blueprint=modified_blueprint, arm_reach=(1, 1), search=PathPlanners.AStar)
+
+            start = ee_up
+            start[0] = int(round(start[0] - 0.5 + pad_x_before))
+            start[1] = int(round(start[1] - 0.5 + pad_y_before))
+            start[2] = int(round(start[2] - offset))
+
+            goal = stop_above
+            goal[0] = int(round(goal[0] - 0.5 + pad_x_before))
+            goal[1] = int(round(goal[1] - 0.5 + pad_y_before))
+            goal[2] = int(round(goal[2] - offset))
+            new_points = list(planner.get_path(start=tuple(start), goal=tuple(goal)))
+            new_points.pop(0)
+            previous_angles_2 = previous_angles_1
+            print(f"NEW POINTS: {new_points}")
+            for new_point in new_points:
+                new_point = list(new_point)
+                new_point[0] = new_point[0] + 0.5
+                new_point[1] = new_point[1] + 0.5
+                new_point[2] = new_point[2] + offset
+                print(f"MODIFIED POINT NEW: {new_point}")
+                previous_angles_2 = move_to_point(direction, new_point, robot, num_steps, baseID='A',
+                                                  previous_angles=previous_angles_2[-1].flatten().tolist()[0],
+                                                  holding_block=holding_block)
+
+
+            # previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID='A',
+            #                                   previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
             previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID='A', previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 
         else:
@@ -369,7 +421,50 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
             previous_angles_1 = move_to_point(previous_direction, ee_up, robot, num_steps, baseID=baseID, previous_angles=initial_angles, holding_block=holding_block)
-            previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
+
+            if baseID == 'A':
+                move_base = np.copy(robot.AEE_POSE[:3, 3])
+            else:
+                move_base = np.copy(robot.DEE_POSE[:3, 3])
+
+            move_base = [int(x) for x in move_base]
+            modified_blueprint = np.copy(blueprint)
+            pad_x_before = 3
+            pad_x_after = 3
+            pad_y_before = 3
+            pad_y_after = 3
+            pad_z_before = 3
+            pad_z_after = 3
+            modified_blueprint = np.pad(modified_blueprint, (
+            (pad_x_before, pad_x_after), (pad_y_before, pad_y_after), (pad_z_before, pad_z_after)), 'constant')
+            modified_blueprint = np.logical_not(modified_blueprint)
+            modified_blueprint[move_base[0] + pad_x_before][move_base[1] + pad_y_before] = 0
+
+            planner = PathPlanner(blueprint=modified_blueprint, arm_reach=(1, 1), search=PathPlanners.AStar)
+
+            start = ee_up
+            start[0] = int(round(start[0] - 0.5 + pad_x_before))
+            start[1] = int(round(start[1] - 0.5 + pad_y_before))
+            start[2] = int(round(start[2] - offset))
+
+            goal = stop_above
+            goal[0] = int(round(goal[0] - 0.5 + pad_x_before))
+            goal[1] = int(round(goal[1] - 0.5 + pad_y_before))
+            goal[2] = int(round(goal[2] - offset))
+            new_points = list(planner.get_path(start=tuple(start), goal=tuple(goal)))
+            new_points.pop(0)
+            previous_angles_2 = previous_angles_1
+            print(f"NEW POINTS: {new_points}")
+            for new_point in new_points:
+                new_point = list(new_point)
+                new_point[0] = new_point[0] + 0.5 - pad_x_before
+                new_point[1] = new_point[1] + 0.5 - pad_y_before
+                new_point[2] = new_point[2] + offset
+                print(f"MODIFIED POINT NEW: {new_point}")
+                previous_angles_2 = move_to_point(direction, new_point, robot, num_steps, baseID=baseID,
+                                                  previous_angles=previous_angles_2[-1].flatten().tolist()[0],
+                                                  holding_block=holding_block)
+            # previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, previous_angles=previous_angles_1[-1].flatten().tolist()[0], holding_block=holding_block)
             previous_angles_3 = move_to_point(direction, point, robot, num_steps, baseID=baseID, previous_angles=previous_angles_2[-1].flatten().tolist()[0], holding_block=holding_block)
 
         save_path = update_path(save_path, previous_angles_1, previous_angles_2, previous_angles_3)

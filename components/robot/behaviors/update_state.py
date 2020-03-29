@@ -6,6 +6,8 @@ import py_trees
 import time
 from components.robot.common.states import RobotBehaviors
 from logzero import logger
+
+
 ##############################################################################
 # Classes
 ##############################################################################
@@ -43,7 +45,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
             "location_to_move_to_key": location_to_move_to_key,
             "destination_reached": destination_reached,
             "blueprint_key": blueprint_key
-        }
+            }
         self.blackboard = self.attach_blackboard_client()
 
         self.blackboard.register_key(key=navigation_first_key, access=py_trees.common.Access.WRITE)
@@ -61,7 +63,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.communicator = robot_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
 
-        self.blueprint=blueprint
+        self.blueprint = blueprint
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
     def initialise(self):
@@ -95,7 +97,6 @@ class UpdateState(py_trees.behaviour.Behaviour):
             else:
                 raise Exception("Unknown message type received")
 
-
         new_status = py_trees.common.Status.SUCCESS
         # print(f"[{self.name.upper()}]: Updates received")
         return new_status
@@ -107,7 +108,6 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["destination_reached"], value=False)
         self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
 
-
     def handle_build_message(self, update):
         self.state.set(name=self.keys["blocks_to_move_key"], value=update.blocks_to_move)
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
@@ -115,11 +115,9 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["destination_reached"], value=False)
         self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
 
-
     def handle_wait_message(self, update):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
         self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
-
 
     def handle_move_message(self, update):
         self.state.set(name=self.keys["robot_state"], value=update.message_id)
@@ -127,7 +125,6 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.state.set(name=self.keys["location_to_move_to_key"], value=update.location_to_move_to)
         self.state.set(name=self.keys["destination_reached"], value=False)
         self.state.set(name=self.keys["blueprint_key"], value=update.blueprint)
-
 
 
 def create_update_behavior_root(robot_communicator, blueprint):
@@ -140,6 +137,7 @@ def create_update_behavior_root(robot_communicator, blueprint):
 
     root.add_children([update_state])
     return root
+
 
 ##############################################################################
 # Main
@@ -155,14 +153,10 @@ def main():
 
     root = create_update_behavior_root()
 
-
     ####################
     # Execute
     ####################
     behaviour_tree = py_trees.trees.BehaviourTree(root)
-
-
-
 
     writer = py_trees.blackboard.Client(name="Writer")
     writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
@@ -181,6 +175,7 @@ def main():
         except KeyboardInterrupt:
             break
     print("\n")
+
 
 if __name__ == '__main__':
     main()

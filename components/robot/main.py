@@ -168,7 +168,7 @@ if __name__ == '__main__':
     block2.set_next_location((3, 0, 2))
     block2.location = (3, 2, 1)
 
-    blocks = [block,block2
+    blocks = [block
             # Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
             # Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
             # Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),

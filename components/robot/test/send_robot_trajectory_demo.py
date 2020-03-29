@@ -1,8 +1,5 @@
-from components.robot.test.move_robot_new_test import robot_trajectory_serial_demo
-import numpy as np
-from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-import threading
-import time
+from components.robot.test.move_robot_new_test import \
+    robot_trajectory_serial_demo
 from collections import namedtuple
 
 Point = namedtuple('Point', 'x y z direction holding_block')
@@ -13,10 +10,12 @@ Point = namedtuple('Point', 'x y z direction holding_block')
 '''
 Change these variables for controlling serial parameters:
 
-SERIAL: Used to enable or disable sending commands to physical robots. Set to false if only want to simulate, 
+SERIAL: Used to enable or disable sending commands to physical robots. Set 
+to false if only want to simulate, 
         set to true if want to send to robot 
 
-PORT: A string representing port the usb is plugged into (check Arduino IDE for your port under Tools)
+PORT: A string representing port the usb is plugged into (check Arduino IDE 
+for your port under Tools)
 
 BAUD: The baud rate
 '''
@@ -29,46 +28,93 @@ if not SERIAL:
     PORT = None
 BAUD = 115200
 
-
-
 ##############################################################################
 # Trajectory Parameters
 ##############################################################################
 '''
 Change these parameters for adjusting trajectory parameters
 
-TIMEOUT: The rate each set of angles is sent at (ie new angles sent every 1s). Measured in seconds.
-        CAUTION: Be careful setting this number less than 0.2s. It is safe to try, but it may freak out
+TIMEOUT: The rate each set of angles is sent at (ie new angles sent every 
+1s). Measured in seconds.
+        CAUTION: Be careful setting this number less than 0.2s. It is safe 
+        to try, but it may freak out
 
-NUM_VIA_POINTS: The number of via points between each waypoint. Note that the total number of angles will be three 
-                times the number of via points, as there are three waypoints for every motion. 
+NUM_VIA_POINTS: The number of via points between each waypoint. Note that 
+the total number of angles will be three 
+                times the number of via points, as there are three waypoints 
+                for every motion. 
         CAUTION: Do not set this number less than 2
                  
 '''
 
-TIMEOUT = 0.02          # seconds 0.03
-NUM_VIA_POINTS = 10     # 25
-
+TIMEOUT = 0.02  # seconds 0.03
+NUM_VIA_POINTS = 40  # 25
 
 ##############################################################################
 # Path Selection
 ##############################################################################
 '''
-Use to select which path (trajectory) the robot will perform. Make sure that you comment out the paths that you do 
+Use to select which path (trajectory) the robot will perform. Make sure that 
+you comment out the paths that you do 
 not wish to run and uncomment the single path you do wish to run.
 '''
 
 # D link moves forward one step
-# path = [(3, 0, 0, 'top')]
+path = [Point(1, 0, 0, 'top', None), Point(0, 0, 0, 'top', None),
+        Point(3, 0, 0, 'top', None),
+        Point(5, 0, 0, 'top', None), Point(2, 0, 0, 'top', None),
+        Point(0, 0, 0, 'top', None), ]
 
-# D link moves forward one step and will stop at block height (use to reach block)
+path = [Point(2, 2, 0, 'top', None), Point(2, 4, 0, 'top', None),
+        Point(2, 6, 0, 'top', None), Point(2, 8, 0, 'top',
+                                           None), ]
+
+path = [Point(2, 2, 0, 'top', None), Point(4, 4, 0, 'top', None),
+        Point(6, 6, 0, 'top', None), Point(8, 8, 0, 'top',
+                                           None), ]
+
+# block_id = "1"
+# block_id_2 = "2"
+# block_id_3 = "3"
+# path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None),
+# Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
+#                                                                                                     None),
+#       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None),
+#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#                                                                                                      None), Point(0,
+#                                                                                                                    0,
+#                                                                                                                    1,
+#                                                                                                                    "top", None),
+#       Point(2, 0, 0, "top", None),
+#       Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+#       Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None),
+#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#                                                                                                      None), Point(0,
+#                                                                                                                    0,
+#                                                                                                                    1,
+#                                                                                                                    "top", None),
+#       Point(2, 0, 0, "top", None),
+#       Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
+# Point(5, 0, 2, "top", None), Point(4, 0, 1, "top",None),Point(5,1,3,"top",
+# None),
+# Point(5, 0, 2, "top", None), Point(4, 2, 3, "top", None), Point(5, 1, 3,
+# "top", None),
+#       Point(3, 1, 1, "top", None), Point(4, 1, 2, "top", None), Point(2,
+#       0, 0, "top", None),
+#
+#       Point(0, 0, 0, "top", None),
+#
+#       ]
+# D link moves forward one step and will stop at block height (use to reach
+# block)
 # path = [(3, 0, 1, 'top')]
 
 # Inch from start to end
 ## NOTE: Grippers must either be enabled or disengaged for this to work
-# path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0, "top"), (5, 0, 0, "top"), (3, 0, 0, "top")]
+# path = [(3, 0, 0, "top"), (1, 0, 0, "top"), (4, 0, 0, "top"), (2, 0, 0,
+# "top"), (5, 0, 0, "top"), (3, 0, 0, "top")]
 
-# path = [(3, 0, 0, 'top'), (1, 0, 0, "top")]
+# path = [Point(3, 0, 0, 'top', None), Point(1, 0, 0, "top", None)]
 
 # Move block forward
 ## NOTE: Grippers must either be enabled or disengaged for this to work
@@ -80,41 +126,51 @@ not wish to run and uncomment the single path you do wish to run.
 ## NOTE: Grippers must either be enabled or disengaged for this to work
 ## NOTE: Block must be placed underneath for robot to step on
 
-block_id = "1"
-block_id_2 = "2"
-block_id_3 = "3"
-path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
-                                                                                                    None),
-      Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
-                                                                                                     None), Point(0,
-                                                                                                                   0,
-                                                                                                                   1,
-                                                                                                                   "top", None),
-      Point(2, 0, 0, "top", None),
-      Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
-      Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
-                                                                                                     None), Point(0,
-                                                                                                                   0,
-                                                                                                                   1,
-                                                                                                                   "top", None),
-      Point(2, 0, 0, "top", None),
-      Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
-      Point(5, 0, 2, "top", None), Point(4, 0, 1, "top",None), Point(5,1,3,"top", None),
-      Point(5, 0, 2, "top", None), Point(4, 2, 3, "top", None), Point(5, 1, 3, "top", None),
-      Point(3, 1, 1, "top", None), Point(4, 1, 2, "top", None), Point(2, 0, 0, "top", None),
-      Point(3, 1, 1, "top", None), Point(1, 0, 0, "top", None), Point(2, 0, 0, "top", None),
-      Point(0, 0, 0, "top", None),
-      ]
+# block_id = "1"
+# block_id_2 = "2"
+# block_id_3 = "3"
+# path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None),
+# Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
+#                                                                                                     None),
+#       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None),
+#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#                                                                                                      None), Point(0,
+#                                                                                                                    0,
+#                                                                                                                    1,
+#                                                                                                                    "top", None),
+#       Point(2, 0, 0, "top", None),
+#       Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+#       Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None),
+#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#                                                                                                      None), Point(0,
+#                                                                                                                    0,
+#                                                                                                                    1,
+#                                                                                                                    "top", None),
+#       Point(2, 0, 0, "top", None),
+#       Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
+#       Point(5, 0, 2, "top", None), Point(4, 0, 1, "top",None), Point(5,1,
+#       3,"top", None),
+#       Point(5, 0, 2, "top", None), Point(4, 2, 3, "top", None), Point(5,
+#       1, 3, "top", None),
+#       Point(3, 1, 1, "top", None), Point(4, 1, 2, "top", None), Point(2,
+#       0, 0, "top", None),
+#       Point(3, 1, 1, "top", None), Point(1, 0, 0, "top", None), Point(2,
+#       0, 0, "top", None),
+#       Point(0, 0, 0, "top", None),
+#       ]
 
 
-# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1,
+# "top"), (5, 1, 3, "top"), (4, 1, 2,
 #                                                                                                        "top")]
-# path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0, "top"), (5, 0, 1, "top"), (4, 0, 1,
+# path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0,
+# "top"), (5, 0, 1, "top"), (4, 0, 1,
 #                                                                                                        "top"), (6, 0,
 #                                                                                                                 2,
 #                                                                                                                 "top"), (5, 0, 1, "top"), (7, 0, 3, "top"), (6, 0, 2, "top")]
 
-# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1,
+# "top"), (5, 1, 3, "top"), (4, 1, 2,
 #                                                                                                    "top")]
 ##############################################################################
 # Gripper Control
@@ -124,13 +180,13 @@ Used to select whether the grippers are actually used.
 
 
 USE_GRIPPERS: True if grippers are to be used, False if they are not to be used
-    CAUTION: The grippers may not detach completely, and the robot may try and move while the gripper(s) are still 
-             engaged. Make sure that you are watching for this and unplug the robot before the motors stall     
+    CAUTION: The grippers may not detach completely, and the robot may try 
+    and move while the gripper(s) are still 
+             engaged. Make sure that you are watching for this and unplug 
+             the robot before the motors stall     
 '''
 
 USE_GRIPPERS = False
-
-
 
 
 def read_angles_from_robot(read_serial):
@@ -145,26 +201,30 @@ def read_angles_from_robot(read_serial):
                 continue
 
 
-
-
-
-
-# are the datas shared through stigmergy guaranteed to be global across all robots (ie do all robots have access to
+# are the datas shared through stigmergy guaranteed to be global across all
+# robots (ie do all robots have access to
 # the exact same information?
 
-    # are there any race conditions, where robots might be acting on old information?
+# are there any race conditions, where robots might be acting on old
+# information?
 
 
-# how is the distance between robots calculated (ie ultrasonic, lidar, rangefinders)
+# how is the distance between robots calculated (ie ultrasonic, lidar,
+# rangefinders)
 
-# The example shown in the slides only showed the distance between robots as a scalar, is it in fact a vector?
+# The example shown in the slides only showed the distance between robots as
+# a scalar, is it in fact a vector?
 
-# How do robots know how to update their own distances if they receive data from multiple other robots? Is there some
-# kind of filtering that is being used to determine which robots to listen to regarding distance?
+# How do robots know how to update their own distances if they receive data
+# from multiple other robots? Is there some
+# kind of filtering that is being used to determine which robots to listen
+# to regarding distance?
 
 
-# Based on the way buzz works with timesteps, are there chances that cause these timesteps to be slowed down,
-# ie if a certain operation takes longer than a single timestep? Does this mean timesteps will not be uniform
+# Based on the way buzz works with timesteps, are there chances that cause
+# these timesteps to be slowed down,
+# ie if a certain operation takes longer than a single timestep? Does this
+# mean timesteps will not be uniform
 
 def get_command_line_input(arguments, index):
     output = None
@@ -174,6 +234,7 @@ def get_command_line_input(arguments, index):
         pass
 
     return output
+
 
 def get_path(case):
     if case == "single_step":
@@ -185,16 +246,23 @@ def get_path(case):
     if case == "two_step_onto_block":
         return [Point(3, 0, 1, 'top', None), Point(1, 0, 0, "top", None)]
     if case == "full_playground_inch":
-        return [Point(3, 0, 0, "top", None), Point(1, 0, 0, "top", None), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(5, 0,
-                                                                                                                0,
-                                                                                                                  "top", None), Point(3, 0, 0, "top", None)]
+        return [Point(3, 0, 0, "top", None), Point(1, 0, 0, "top", None),
+                Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None),
+                Point(5, 0,
+                      0,
+                      "top", None), Point(3, 0, 0, "top", None)]
     if case == "stairs":
-        return [Point(3, 1, 1, "top", None), Point(2, 1, 0, "top", None), Point(4, 1, 2, "top", None), Point(3, 1, 1, "top", None), Point(5, 1, 3, "top", None), Point(4, 1, 2,
-                                                                                                       "top", None)]
+        return [Point(3, 1, 1, "top", None), Point(2, 1, 0, "top", None),
+                Point(4, 1, 2, "top", None), Point(3, 1, 1, "top", None),
+                Point(5, 1, 3, "top", None), Point(4, 1, 2,
+                                                   "top", None)]
     else:
         return [Point(3, 0, 0, 'top', None)]
+
+
 def convert_js_bool(output):
     return True if output == "true" else False
+
 
 if __name__ == '__main__':
     import sys
@@ -216,11 +284,11 @@ if __name__ == '__main__':
         NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
 
         output = get_command_line_input(sys.argv, 6)
-        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
+        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(
+            str(output))
 
         output = get_command_line_input(sys.argv, 7)
         path = path if output is None else get_path(str(output))
-
 
     print(f"Serial: {SERIAL}")
     print(f"Port: {PORT}")
@@ -232,11 +300,13 @@ if __name__ == '__main__':
 
     # if SERIAL:
     #     robot_serial = Serial(port=PORT, baudrate=BAUD, parity=PARITY_NONE,
-    #                           stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
-    #     reading = threading.Thread(target=read_angles_from_robot, args=(robot_serial,))
+    #                           stopbits=STOPBITS_ONE, bytesize=EIGHTBITS,
+    #                           timeout=3.0)
+    #     reading = threading.Thread(target=read_angles_from_robot,
+    #     args=(robot_serial,))
     #     reading.start()
     #
     # time.sleep(0.5)
-    robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD, serial=SERIAL, timeout=TIMEOUT, port=PORT,
+    robot_trajectory_serial_demo(num_steps=NUM_VIA_POINTS, baud=BAUD,
+                                 serial=SERIAL, timeout=TIMEOUT, port=PORT,
                                  path=path, use_grippers=USE_GRIPPERS)
-

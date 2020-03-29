@@ -121,7 +121,7 @@ def get_quintic_trajectory(points, set_points=30, start_time=0, end_time=1):
         for x, y, z in zip(x_l, y_l, z_l):
             final_values.append((x, y, z))
 
-    print(final_values)
+    # print(final_values)
 
     final_values_vel = []
     for x_l, y_l, z_l in zip(x_points_derivative, y_points_derivative, z_points_derivative):
