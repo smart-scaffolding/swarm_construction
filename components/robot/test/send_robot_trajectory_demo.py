@@ -47,8 +47,9 @@ the total number of angles will be three
                  
 '''
 
-TIMEOUT = 0.02  # seconds 0.03
-NUM_VIA_POINTS = 40  # 25
+
+TIMEOUT = 0.02          # seconds 0.03
+NUM_VIA_POINTS = 20     # 25
 
 ##############################################################################
 # Path Selection
@@ -128,40 +129,33 @@ path = [Point(2, 2, 0, 'top', None), Point(4, 4, 0, 'top', None),
 
 # block_id = "1"
 # block_id_2 = "2"
-# block_id_3 = "3"
-# path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None),
-# Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
+# path=[Point(3, 0, 1, "top", block_id), Point(2, 0, 0, "top", None), Point(4, 0, 1, "top", block_id), Point(3, 0, 0, "top",
 #                                                                                                     None),
-#       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None),
-#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#       Point(5, 0, 1, "top", block_id), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
 #                                                                                                      None), Point(0,
 #                                                                                                                    0,
 #                                                                                                                    1,
 #                                                                                                                    "top", None),
 #       Point(2, 0, 0, "top", None),
 #       Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
-#       Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None),
-#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
+#       Point(5, 0, 2, "top", block_id_2), Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",
 #                                                                                                      None), Point(0,
 #                                                                                                                    0,
 #                                                                                                                    1,
 #                                                                                                                    "top", None),
 #       Point(2, 0, 0, "top", None),
-#       Point(4, 0, 1, "top", block_id_3), Point(3, 0, 0, "top", None),
-#       Point(5, 0, 2, "top", None), Point(4, 0, 1, "top",None), Point(5,1,
-#       3,"top", None),
-#       Point(5, 0, 2, "top", None), Point(4, 2, 3, "top", None), Point(5,
-#       1, 3, "top", None),
-#       Point(3, 1, 1, "top", None), Point(4, 1, 2, "top", None), Point(2,
-#       0, 0, "top", None),
-#       Point(3, 1, 1, "top", None), Point(1, 0, 0, "top", None), Point(2,
-#       0, 0, "top", None),
-#       Point(0, 0, 0, "top", None),
+#       Point(4, 0, 1, "top", block_id_2), Point(3, 0, 0, "top", None),
+#       Point(2, 0, 0, "top", None), Point(3, 0, 0, "top",None), Point(0,
+#                                                                                                                       0,
+#                                                                                                                       0,
+#                                                                                                                       "top",
+#                                                                                                                       None),
 #       ]
 
 
-# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1,
-# "top"), (5, 1, 3, "top"), (4, 1, 2,
+
+
+# path = [(3, 1, 1, "top"), (2, 1, 0, "top"), (4, 1, 2, "top"), (3, 1, 1, "top"), (5, 1, 3, "top"), (4, 1, 2,
 #                                                                                                        "top")]
 # path = [(3, 0, 1, "top"), (2, 0, 0, "top"), (4, 0, 1, "top"), (3, 0, 0,
 # "top"), (5, 0, 1, "top"), (4, 0, 1,

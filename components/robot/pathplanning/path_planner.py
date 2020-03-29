@@ -13,7 +13,7 @@ class PathPlanner:
             self.planner = AStar(self.blueprint)
 
     def get_path(self, start, goal):
-        return self.planner.get_path(start=start, goal=goal)
+        return self.planner.get_path(start=tuple(start), goal=tuple(goal))
 
 
 # class PathPlannerImp:

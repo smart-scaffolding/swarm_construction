@@ -11,7 +11,10 @@ from components.simulator.model.model import Inchworm
 from components.simulator.model.graphics import *
 from components.simulator.model.create_actors import *
 # from components.simulator.model.graphics import *
-from components.simulator.common.common import create_homogeneous_transform_from_point, create_point_from_homogeneous_transform
+from components.simulator.common.common import (
+    create_homogeneous_transform_from_point,
+    create_point_from_homogeneous_transform,
+    )
 from components.simulator.common.transforms import np2vtk
 from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.communication.messages import AnimationUpdateMessage
@@ -28,7 +31,7 @@ from blueprint_factory import BluePrintFactory
 POINTS = False
 ROBOTS = 1
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_12x12x1").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
@@ -38,9 +41,9 @@ COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
 # COLORS[0][1][0] = [vtk_named_colors(["Blue"])[0]]
 # print(COLORS)
-    # colors[0]4][1] = vtk_named_colors(["Blue"])
-    # colors[0][4][4] = vtk_named_colors(["Blue"])
-    # colors[0][4][7] = vtk_named_colors(["Blue"])
+# colors[0]4][1] = vtk_named_colors(["Blue"])
+# colors[0][4][4] = vtk_named_colors(["Blue"])
+# colors[0][4][7] = vtk_named_colors(["Blue"])
 
 
 loc = pkg_resources.resource_filename("components", '/'.join(('simulator', 'media', "block.stl")))
@@ -48,7 +51,6 @@ reader_list = vtk.vtkSTLReader()
 reader_list.SetFileName(loc)
 block_file_location = vtk.vtkPolyDataMapper()
 block_file_location.SetInputConnection(reader_list.GetOutputPort())
-
 
 move_block_loc = pkg_resources.resource_filename("components", '/'.join(('simulator', 'media', "robot_block.stl")))
 reader_list = vtk.vtkSTLReader()
@@ -78,6 +80,8 @@ text_representation.GetPosition2Coordinate().SetValue(0.2, 1.8)
 text_representation.GetSize([2, 0.5])
 text_representation.SetWindowLocation(text_representation.UpperLeftCorner)
 start_time = time.time()
+
+
 # text_representation.S
 
 # Create the TextWidget
@@ -102,7 +106,6 @@ class WorkerThread(threading.Thread):
         self.pipeline = pipeline
         self.block_q = block_q
 
-
     def run(self):
         while not self.stoprequest.isSet():
             try:
@@ -119,8 +122,8 @@ class WorkerThread(threading.Thread):
                         # print("[Worker thread]: Received new robot connection, adding to queue")
                         self.robot_actors[topic] = Queue()
                         self.robot_actors[topic].put((topic, messagedata))
-                        self.filter_q.put((topic, messagedata, self.robot_actors[topic])) # add new robot
-                        #create new worker here
+                        self.filter_q.put((topic, messagedata, self.robot_actors[topic]))  # add new robot
+                        # create new worker here
 
                         # self.result_q.put((topic, messagedata))
                     else:
@@ -154,12 +157,10 @@ class CalculatorThread(WorkerThread):
                 # print("[Calculator thread] Getting robot to calculate")
                 actor, message = self.dir_q.get()
 
-
                 """
                 DISPLAY ROBOTS
                 """
                 if not POINTS:
-
                     # if isinstance(message.message, AnimationUpdateMessage): #TODO: Add this line back in
                     base = message.message.robot_base
                     trajectory = message.message.trajectory
@@ -170,37 +171,36 @@ class CalculatorThread(WorkerThread):
                     # if self.count % 150 == 0:
                     #     self.switch = True if not self.switch else False
 
-
-                # base = np.matrix([[1, 0, 0, 0.5],
-                #                  [0, 1, 0, 0.5],
-                #                  [0, 0, 1, 1.],
-                #                  [0, 0, 0, 1]])
-                # base1 = np.matrix([[1, 0, 0, 1.5],
-                #                   [0, 1, 0, 0.5],
-                #                   [0, 0, 1, 1.],
-                #                   [0, 0, 0, 1]])
-                # base2 = np.matrix([[1, 0, 0, 1.5],
-                #                   [0, 1, 0, 1.5],
-                #                   [0, 0, 1, 1.],
-                #                   [0, 0, 0, 1]])
-                # base3 = np.matrix([[1, 0, 0, 4.5],
-                #                   [0, 1, 0, 0.5],
-                #                   [0, 0, 1, 1.],
-                #                   [0, 0, 0, 1]])
-                # base4 = np.matrix([[1, 0, 0, 4.5],
-                #                   [0, 1, 0, 1.5],
-                #                   [0, 0, 1, 3.],
-                #                   [0, 0, 0, 1]])
-                # base5 = np.matrix([[1, 0, 0, 5.5],
-                #                   [0, 1, 0, 0.5],
-                #                   [0, 0, 1, 1.],
-                #                   [0, 0, 0, 1]])
-                #     if actor == b"ROBOT_1":
-                #         base = base
-                #     elif actor == b"ROBOT_2":
-                #         base = base5
-                #     else:
-                #         base = base4
+                    # base = np.matrix([[1, 0, 0, 0.5],
+                    #                  [0, 1, 0, 0.5],
+                    #                  [0, 0, 1, 1.],
+                    #                  [0, 0, 0, 1]])
+                    # base1 = np.matrix([[1, 0, 0, 1.5],
+                    #                   [0, 1, 0, 0.5],
+                    #                   [0, 0, 1, 1.],
+                    #                   [0, 0, 0, 1]])
+                    # base2 = np.matrix([[1, 0, 0, 1.5],
+                    #                   [0, 1, 0, 1.5],
+                    #                   [0, 0, 1, 1.],
+                    #                   [0, 0, 0, 1]])
+                    # base3 = np.matrix([[1, 0, 0, 4.5],
+                    #                   [0, 1, 0, 0.5],
+                    #                   [0, 0, 1, 1.],
+                    #                   [0, 0, 0, 1]])
+                    # base4 = np.matrix([[1, 0, 0, 4.5],
+                    #                   [0, 1, 0, 1.5],
+                    #                   [0, 0, 1, 3.],
+                    #                   [0, 0, 0, 1]])
+                    # base5 = np.matrix([[1, 0, 0, 5.5],
+                    #                   [0, 1, 0, 0.5],
+                    #                   [0, 0, 1, 1.],
+                    #                   [0, 0, 0, 1]])
+                    #     if actor == b"ROBOT_1":
+                    #         base = base
+                    #     elif actor == b"ROBOT_2":
+                    #         base = base5
+                    #     else:
+                    #         base = base4
                     # base = choice([base, base4])
                     # trajectory1 = np.array([[0, 0, 0, 0]])
                     # trajectory2 = np.array([[0, 0, np.pi/2, 0]])
@@ -215,13 +215,17 @@ class CalculatorThread(WorkerThread):
                     # # trajectory_choice = choice([trajectory1, trajectory2, trajectory3, trajectory4, trajectory5])
                     robot = Inchworm(base=base)
                     #
-                    # forward_1 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][0]), trajectory_choice[0][0],
+                    # forward_1 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][0]), trajectory_choice[
+                    # 0][0],
                     #                                                  num_points)))
-                    # forward_2 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][1]), trajectory_choice[0][1],
+                    # forward_2 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][1]), trajectory_choice[
+                    # 0][1],
                     #                                                  num_points)))
-                    # forward_3 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][2]), trajectory_choice[0][2],
+                    # forward_3 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][2]), trajectory_choice[
+                    # 0][2],
                     #                                                  num_points)))
-                    # forward_4 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][3]), trajectory_choice[0][3],
+                    # forward_4 = np.transpose(np.asmatrix(np.linspace(float(trajectory1[0][3]), trajectory_choice[
+                    # 0][3],
                     #                                                  num_points)))
                     #
                     # multiple_trajectories = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=1)
@@ -231,7 +235,6 @@ class CalculatorThread(WorkerThread):
                     transform, robot_actors = robot.fkine(stance=trajectory, apply_stance=True,
                                                           standing_on_block=standing_on_block, num_links=4)
 
-
                     text_position = np.eye(4)
                     text_position[0, 3] = base[0, 3] + 1
                     text_position[1, 3] = base[1, 3]
@@ -239,12 +242,10 @@ class CalculatorThread(WorkerThread):
                     text_position = np2vtk(text_position)
                     self.result_q.put((actor, robot_actors, text_position, path, block_on_ee))
 
-
                 """
                 DISPLAY POINTS
                 """
                 if POINTS:
-
                     # base1 = np.matrix([[1, 0, 0, 1.5],
                     #                    [0, 1, 0, 0.5],
                     #                    [0, 0, 1, 1.],
@@ -282,9 +283,6 @@ class CalculatorThread(WorkerThread):
             #     continue
 
 
-
-
-
 class vtkTimerCallback():
     def __init__(self, renderer, renderWindow, queue, new_actors, dir_q, result_q, socket, pipeline, block_q):
         self.timer_count = 0
@@ -304,7 +302,6 @@ class vtkTimerCallback():
         self.block_q = block_q
         self.previous_path = []
 
-
     def add_robot_to_sim(self, robot, result_queue):
         base = np.matrix([[1, 0, 0, 0.5],
                           [0, 1, 0, 0.5],
@@ -314,7 +311,7 @@ class vtkTimerCallback():
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
         robot_actor, rendered_id = setup_pipeline_objs(colors=self.colors, robot_id=robot, points=POINTS,
-                                                block_on_end_effector=False)
+                                                       block_on_end_effector=False)
         for link in robot_actor:
             self.pipeline.add_actor(link)
 
@@ -352,7 +349,7 @@ class vtkTimerCallback():
         self.worker_pool.append(calculate_thread)
         calculate_thread.start()
 
-    def execute(self,obj,event):
+    def execute(self, obj, event):
         # string = self.socket.recv()
         # topic, messagedata = string.split()
         # print(topic, messagedata)
@@ -362,96 +359,94 @@ class vtkTimerCallback():
                             f"Robots: {len(self.robot_actors)}\nNumber of Blocks Placed: {len(self.blocks)}")
 
         if self.timer_count % 100 == 0:
-           logger.debug(self.timer_count)
+            logger.debug(self.timer_count)
 
         self.timer_count += 1
         while not self.new_actors.empty():
-           topic, message, queue = self.new_actors.get()
-           result_q = Queue()
-           logger.debug(f"Callback: Creating new thread for actor: {topic} {queue}")
-           self.create_new_thread(queue, result_q)
-           logger.debug(f"Callback: Adding new actor to sim: {topic}")
-           self.add_robot_to_sim(topic, result_q)
+            topic, message, queue = self.new_actors.get()
+            result_q = Queue()
+            logger.debug(f"Callback: Creating new thread for actor: {topic} {queue}")
+            self.create_new_thread(queue, result_q)
+            logger.debug(f"Callback: Adding new actor to sim: {topic}")
+            self.add_robot_to_sim(topic, result_q)
 
         for robot in self.robot_actors:
             actors, model, robot_queue, rendered_id = self.robot_actors[robot]
             if not robot_queue.empty():
-        # if not self.queue.empty():
-        #     for i in range(5):
-               robot_id, transforms, text_position, path, block_on_ee = robot_queue.get()
+                # if not self.queue.empty():
+                #     for i in range(5):
+                robot_id, transforms, text_position, path, block_on_ee = robot_queue.get()
+
+                # print(f"Callback: Moving position of robot: {robot_id}")
+                # print(f"Known actors in callback: {self.robot_actors}")
+
+                for index in range(len(transforms)):
+                    assembly = vtk.vtkAssembly()
+                    assembly.GetParts()
+                    """
+                    ROBOT
+                    """
+                    if not POINTS:
+                        # print(index)
+                        if index == 4:
+                            # actors[-1] = cubeForPath((0, 0, 0, 'top'))
+                            # self.pipeline.add_actor(actors[-1])
+
+                            if not block_on_ee in self.blocks:
+
+                                new_block_tool, _, _ = add_block((0, 0, 0),
+                                                                 block_file_location=move_block_file_location)
+                                logger.info(len(actors))
+                                # if len(actors) > 4:
+                                #    self.pipeline.remove_actor(actors[-1])
+                                actors.append(new_block_tool)
+                                # self.pipeline.add_actor(new_block_tool)
+                                new_block_tool.SetUserMatrix(transforms[index])
+                                new_block_tool.SetScale(0.013)
+                                print("Updating block end position")
+                                self.pipeline.ren.AddActor(new_block_tool)
+                                self.blocks[block_on_ee] = (transforms[index], new_block_tool)
+
+                            else:
+                                _, new_block_tool = self.blocks[block_on_ee]
+                                new_block_tool.SetUserMatrix(transforms[index])
+                                new_block_tool.SetScale(0.013)
+                                self.blocks[block_on_ee] = (transforms[index], new_block_tool)
+                            # if topic in self.blocks:
+                            #     # print("Moving block from existing location")
+                            #     # print(self.blocks)
+                            #     location, actor = self.blocks[topic]
+                            #     actor.SetUserMatrix(transforms[index])
+                            #     actor.SetScale(0.013)
+                            #     # actor.SetPosition(message.message.location)
+                            #     self.blocks[message.message.id] = (transforms[index], actor)
+                            #     # self.pipeline.animate()
+                            # else:
+                            #     actor, _, _ = add_block(message.message.location,
+                            #                             block_file_location=block_file_location)
+                            #     self.blocks[message.message.id] = (message.message.location, actor)
+                            #     self.pipeline.add_actor(actor)
+                            #     self.pipeline.animate()
 
 
-               # print(f"Callback: Moving position of robot: {robot_id}")
-               # print(f"Known actors in callback: {self.robot_actors}")
-
-               for index in range(len(transforms)):
-                   assembly = vtk.vtkAssembly()
-                   assembly.GetParts()
-                   """
-                   ROBOT
-                   """
-                   if not POINTS:
-                       # print(index)
-                       if index == 4:
-                           # actors[-1] = cubeForPath((0, 0, 0, 'top'))
-                           # self.pipeline.add_actor(actors[-1])
-
-                        if not block_on_ee in self.blocks:
-
-                            new_block_tool, _, _ = add_block((0, 0, 0),
-                                                       block_file_location=move_block_file_location)
-                            logger.info(len(actors))
+                        elif index <= 3:
                             # if len(actors) > 4:
-                            #    self.pipeline.remove_actor(actors[-1])
-                            actors.append(new_block_tool)
-                            # self.pipeline.add_actor(new_block_tool)
-                            new_block_tool.SetUserMatrix(transforms[index])
-                            new_block_tool.SetScale(0.013)
-                            print("Updating block end position")
-                            self.pipeline.ren.AddActor(new_block_tool)
-                            self.blocks[block_on_ee] = (transforms[index], new_block_tool)
+                            #     self.pipeline.remove_actor(actors[-1])
+                            if index == 0:
+                                # base = transforms[index].GetData()
+                                rendered_id.SetUserMatrix(text_position)
+                            # print("Updating robot with new transforms")
+                            actors[index].SetUserMatrix(transforms[index])
+                            actors[index].SetScale(0.013)
 
-                        else:
-                            _, new_block_tool = self.blocks[block_on_ee]
-                            new_block_tool.SetUserMatrix(transforms[index])
-                            new_block_tool.SetScale(0.013)
-                            self.blocks[block_on_ee] = (transforms[index], new_block_tool)
-                           # if topic in self.blocks:
-                           #     # print("Moving block from existing location")
-                           #     # print(self.blocks)
-                           #     location, actor = self.blocks[topic]
-                           #     actor.SetUserMatrix(transforms[index])
-                           #     actor.SetScale(0.013)
-                           #     # actor.SetPosition(message.message.location)
-                           #     self.blocks[message.message.id] = (transforms[index], actor)
-                           #     # self.pipeline.animate()
-                           # else:
-                           #     actor, _, _ = add_block(message.message.location,
-                           #                             block_file_location=block_file_location)
-                           #     self.blocks[message.message.id] = (message.message.location, actor)
-                           #     self.pipeline.add_actor(actor)
-                           #     self.pipeline.animate()
+                    """
+                    POINT
+                    """
+                    if POINTS:
+                        assembly = actors[index]
+                        assembly.SetUserMatrix(transforms[index])
 
-
-                       elif index <=3:
-                           # if len(actors) > 4:
-                           #     self.pipeline.remove_actor(actors[-1])
-                           if index == 0:
-                               # base = transforms[index].GetData()
-                               rendered_id.SetUserMatrix(text_position)
-                           # print("Updating robot with new transforms")
-                           actors[index].SetUserMatrix(transforms[index])
-                           actors[index].SetScale(0.013)
-
-
-                   """
-                   POINT
-                   """
-                   if POINTS:
-                       assembly = actors[index]
-                       assembly.SetUserMatrix(transforms[index])
-
-               if path:
+                if path:
                     logger.debug(f"Path in Callback: {path}")
                     logger.debug(f"Previous path: {self.previous_path}")
                     for i in self.previous_path:
@@ -462,8 +457,8 @@ class vtkTimerCallback():
                         self.previous_path.append(self.pipeline.add_actor(cubeForPath(point)))
                     self.pipeline.animate()
 
-               # x, y, z = edit_actor.GetPosition()
-               # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)
+                # x, y, z = edit_actor.GetPosition()
+                # self.robot_actors[actor].SetPosition(x + int(message), y + int(message), 0)
         while not self.block_q.empty():
             topic, message = self.block_q.get()
             # print(f"Block Message: {message.message}")
@@ -522,7 +517,6 @@ class Simulate:
     #     self.create_new_thread(robot)
     #     self.renderWindow.Render()
 
-
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
         global BLUEPRINT
         global COLORS
@@ -532,7 +526,7 @@ class Simulate:
             COLORS = colors
         else:
             # while True:
-                # try:
+            # try:
             [topic, message] = self.socket.recv_multipart()
             message = zlib.decompress(message)
             messagedata = pickle.loads(message)
@@ -542,7 +536,7 @@ class Simulate:
                 COLORS = messagedata.message.colors
                 print(BLUEPRINT)
                 print(COLORS)
-                    # break
+                # break
                 # except:
             #     continue
         self.simulate()
@@ -567,8 +561,7 @@ class Simulate:
             "cube_axes_y_bounds": np.array([[0, len(BLUEPRINT[0])]]),
             "cube_axes_z_bounds": np.array([[0, len(BLUEPRINT[0][0])]]),
             "floor_position": np.array([[0, 0, 0]])
-        }
-
+            }
 
         cube_axes = axesCubeFloor(self.pipeline.ren,
                                   self.param.get("cube_axes_x_bounds"),
@@ -577,12 +570,6 @@ class Simulate:
                                   self.param.get("floor_position"))
 
         self.pipeline.add_actor(cube_axes)
-
-
-
-
-
-
 
         # self.renderer = vtk.vtkRenderer()
         # self.renderer.SetBackground(0.15, 0.15, 0.15)  # Background color white
@@ -602,8 +589,6 @@ class Simulate:
         #
         # # Initialize must be called prior to creating timer events.
         # renderWindowInteractor.Initialize()
-
-
 
         # Sign up to receive TimerEvent
         cb = vtkTimerCallback(new_actors=self.new_actors, renderer=self.pipeline.ren,
@@ -630,7 +615,8 @@ class Simulate:
 
         # '/Users/calebwagner/SmartScaffoldingMQP_Code/zmq_vtk/components/simulator/media/block.stl'
         # print(f"DISPLAYING STRUCTURE {BLUEPRINT} {COLORS}")
-        setup_structure_display(blueprint=BLUEPRINT, pipeline=self.pipeline, color=COLORS, block_file_location=block_file_location)
+        setup_structure_display(blueprint=BLUEPRINT, pipeline=self.pipeline, color=COLORS,
+                                block_file_location=block_file_location)
         # self.pipeline.add_actor(text_actor)
         text_widget = vtk.vtkTextWidget()
         text_widget.SetRepresentation(text_representation)
@@ -662,13 +648,12 @@ class Simulate:
         #     thread.start()
 
         self.pool = [WorkerThread(dir_q=self.dir_q, result_q=self.result_q, filter_q=self.new_actors, socket=socket,
-                             pipeline=self.pipeline, block_q=self.block_q)]
+                                  pipeline=self.pipeline, block_q=self.block_q)]
 
         # Start all threads
         for thread in self.pool:
             thread.start()
             logger.info("Started worker thread")
-
 
         signal(SIGINT, self.save_video_end_program)
         try:
@@ -715,7 +700,6 @@ def axesUniversal():
     return axes_uni
 
 
-
 if __name__ == '__main__':
     port = "5559"
     if len(sys.argv) > 1:
@@ -737,7 +721,7 @@ if __name__ == '__main__':
 
     # if len(sys.argv) > 2:
     #     socket.connect(f"tcp://localhost:{port1}")
-        # socket1.connect(f"tcp://localhost:{port1}")
+    # socket1.connect(f"tcp://localhost:{port1}")
 
     # Subscribe to zipcode, default is NYC, 10001
     # topicfilter = [b"10001", b"10002", b"10003", b"10004", b"10005", b"10006"]
