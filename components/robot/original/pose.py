@@ -3,8 +3,8 @@ from random import uniform, randint
 
 import numpy as np
 
-from components.robot.test import check_args, transforms
-from components.robot.test.super_pose import SuperPose
+from components.robot.original import check_args, transforms
+from components.robot.original.super_pose import SuperPose
 
 
 # TODO Implement argument checking for all poses

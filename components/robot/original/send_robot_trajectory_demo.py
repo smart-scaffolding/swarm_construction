@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from components.robot.test.move_robot_new_test import robot_trajectory_serial_demo
+from components.robot.original.move_robot_new import robot_trajectory_serial_demo
 
 Point = namedtuple("Point", "x y z direction holding_block")
 

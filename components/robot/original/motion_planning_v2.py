@@ -7,16 +7,16 @@ from datetime import datetime
 import zmq
 
 import components.robot.config as config
-import components.robot.test.model as model
+import components.robot.original.model as model
 from components.robot.communication.messages import *
 from components.robot.pathplanning.searches.face_star import *
-from components.robot.test.common import (
+from components.robot.original.common import (
     create_point_from_homogeneous_transform,
     flip_base,
     round_end_effector_position,
 )
-from components.robot.test.minimum_jerk_trajectory_planner import *
-from components.robot.test.quintic_trajectory_planner import *
+from components.robot.original.minimum_jerk_trajectory_planner import *
+from components.robot.original.quintic_trajectory_planner import *
 
 
 class AnimationUpdate:

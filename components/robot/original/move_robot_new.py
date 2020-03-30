@@ -5,16 +5,16 @@ import zlib
 # Comms
 import zmq
 
-import components.robot.test.model as model
+import components.robot.original.model as model
 from components.robot.common.states import PathPlanners
 from components.robot.communication.messages import *
 from components.robot.pathplanning.path_planner import PathPlanner
-from components.robot.test.common import (
+from components.robot.original.common import (
     create_point_from_homogeneous_transform,
     flip_base,
     round_end_effector_position,
 )
-from components.robot.test.quintic_trajectory_planner import *
+from components.robot.original.quintic_trajectory_planner import *
 from defined_blueprints import *
 
 accuracy = 1e-7

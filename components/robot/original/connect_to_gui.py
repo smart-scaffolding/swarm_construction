@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 
-from components.robot.test.move_robot_new_test import robot_trajectory_serial_demo
+from components.robot.original.move_robot_new import robot_trajectory_serial_demo
 
 Point = namedtuple("Point", "x y z direction holding_block")
 

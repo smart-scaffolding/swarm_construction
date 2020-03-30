@@ -3,7 +3,7 @@ from abc import ABC
 import numpy as np
 import numpy.testing as npt
 
-from components.robot.test import check_args, pose
+from components.robot.original import check_args, pose
 
 
 class SuperPose(ABC):

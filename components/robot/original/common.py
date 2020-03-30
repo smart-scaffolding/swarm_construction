@@ -3,8 +3,8 @@ import math
 import numpy as np
 import numpy.testing as npt
 
-import components.robot.test.transforms as tr
-from components.robot.test import check_args
+import components.robot.original.transforms as tr
+from components.robot.original import check_args
 
 
 def ishomog(tr, dim, rtest=""):
@@ -29,8 +29,8 @@ def ishomog(tr, dim, rtest=""):
         if flag and rtest == "valid":
             flag = is_valid(
                 tr[0]
-            )  # As in matlab code only first matrix is passed for validity test
-            # TODO-Do we need to test all matrices in list for validity of rotation submatrix -- Yes
+            )  # As in matlab code only first matrix is passed for validity original
+            # TODO-Do we need to original all matrices in list for validity of rotation submatrix -- Yes
     elif isinstance(tr, np.matrix):
         if tr.shape[0] == dim[0] and tr.shape[1] == dim[0]:
             if flag and rtest == "valid":

@@ -1262,7 +1262,7 @@ def np2vtk(mat):
 
 # ---------------------------------------------------------------------------------------#
 # if __name__ == '__main__':
-#     # When run as main, initialise test cases in test_classes_to_tun and runs them
+#     # When run as main, initialise original cases in test_classes_to_tun and runs them
 #     # Refer
 #     # https://stackoverflow.com/questions/5360833/how-to-run-multiple-classes-in-single-test-suite-in-python-unit
 #     -testing
