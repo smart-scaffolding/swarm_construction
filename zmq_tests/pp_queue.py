@@ -1,25 +1,27 @@
 #
-##  Paranoid Pirate queue
+#  Paranoid Pirate queue
 #
 #   Author: Daniel Lundin <dln(at)eintr(dot)org>
 #
 
-from collections import OrderedDict
 import time
+from collections import OrderedDict
 
 import zmq
 
-HEARTBEAT_LIVENESS = 3     # 3..5 is reasonable
-HEARTBEAT_INTERVAL = 1.0   # Seconds
+HEARTBEAT_LIVENESS = 3  # 3..5 is reasonable
+HEARTBEAT_INTERVAL = 1.0  # Seconds
 
 #  Paranoid Pirate Protocol constants
-PPP_READY = b"\x01"      # Signals worker is ready
+PPP_READY = b"\x01"  # Signals worker is ready
 PPP_HEARTBEAT = b"\x02"  # Signals worker heartbeat
+
 
 class Worker(object):
     def __init__(self, address):
         self.address = address
         self.expiry = time.time() + HEARTBEAT_INTERVAL * HEARTBEAT_LIVENESS
+
 
 class WorkerQueue(object):
     def __init__(self):
@@ -45,11 +47,12 @@ class WorkerQueue(object):
         address, worker = self.queue.popitem(False)
         return address
 
+
 context = zmq.Context(1)
 
-frontend = context.socket(zmq.ROUTER) # ROUTER
+frontend = context.socket(zmq.ROUTER)  # ROUTER
 backend = context.socket(zmq.ROUTER)  # ROUTER
-frontend.bind("tcp://*:5555") # For clients
+frontend.bind("tcp://*:5555")  # For clients
 backend.bind("tcp://*:5556")  # For workers
 
 poll_workers = zmq.Poller()

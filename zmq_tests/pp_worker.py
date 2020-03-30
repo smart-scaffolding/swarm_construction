@@ -1,11 +1,11 @@
 #
-##  Paranoid Pirate worker
+#  Paranoid Pirate worker
 #
 #   Author: Daniel Lundin <dln(at)eintr(dot)org>
 #
 
-from random import randint
 import time
+from random import randint
 
 import zmq
 
@@ -15,19 +15,21 @@ INTERVAL_INIT = 1
 INTERVAL_MAX = 32
 
 #  Paranoid Pirate Protocol constants
-PPP_READY = b"\x01"      # Signals worker is ready
+PPP_READY = b"\x01"  # Signals worker is ready
 PPP_HEARTBEAT = b"\x02"  # Signals worker heartbeat
+
 
 def worker_socket(context, poller):
     """Helper function that returns a new configured socket
        connected to the Paranoid Pirate queue"""
-    worker = context.socket(zmq.DEALER) # DEALER
+    worker = context.socket(zmq.DEALER)  # DEALER
     identity = b"%04X-%04X" % (randint(0, 0x10000), randint(0, 0x10000))
     worker.setsockopt(zmq.IDENTITY, identity)
     poller.register(worker, zmq.POLLIN)
     worker.connect("tcp://localhost:5556")
     worker.send(PPP_READY)
     return worker
+
 
 context = zmq.Context(1)
 poller = zmq.Poller()
@@ -49,7 +51,7 @@ while True:
         #  - 1-part HEARTBEAT -> heartbeat
         frames = worker.recv_multipart()
         if not frames:
-            break # Interrupted
+            break  # Interrupted
 
         if len(frames) == 3:
             # Simulate various problems, after a few cycles

@@ -131,8 +131,9 @@
 # #     print(f"{topic} {z}")
 # #     socket.send_multipart([topic, z])
 
-import zmq
 import json
+
+import zmq
 
 ports = ["tcp://127.0.0.1:9998", "tcp://127.0.0.1:9999"]
 
@@ -152,7 +153,7 @@ for index in range(len(ports)):
 # socket[0].setsockopt(zmq.LINGER, 0)
 # for index in range(len(sockets)):
 
-    # socket.connect("%s" % port)
+# socket.connect("%s" % port)
 
 for request in range(len(ports)):
     print("Sending request ", request, "...")
@@ -174,7 +175,11 @@ for request in range(len(ports)):
             sockets[request].recv()  # discard delimiter
             msg_json = sockets[request].recv()  # actual message
             sens = json.loads(msg_json)
-            response = "Sensor: %s :: Data: %s :: Client: %s" % (sens['sensor'], sens['data'], sens['client'])
+            response = "Sensor: %s :: Data: %s :: Client: %s" % (
+                sens["sensor"],
+                sens["data"],
+                sens["client"],
+            )
             print("Received reply ", request, "[", response, "]")
         except IOError:
             print("Could not connect to machine")

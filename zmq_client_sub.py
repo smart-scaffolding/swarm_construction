@@ -107,11 +107,12 @@
 #     # print(z)
 #
 
-import zmq
-import time
 import json
+import time
 
-port = "9998" # multiple similar clients but just with different ports
+import zmq
+
+port = "9998"  # multiple similar clients but just with different ports
 
 context = zmq.Context()
 # socket = context.socket(zmq.REP)
@@ -128,9 +129,9 @@ while True:
     print("Received request: ", message)
     time.sleep(1)
     msgDict = {
-        'sensor': "123123123",
-        'data': "123456789",
-        'client': "6666",
+        "sensor": "123123123",
+        "data": "123456789",
+        "client": "6666",
     }
     msg_json = json.dumps(msgDict)
     socket.send_string(msg_json)

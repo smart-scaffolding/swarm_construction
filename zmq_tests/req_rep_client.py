@@ -4,7 +4,6 @@
 #   Sends "Hello" to server, expects "World" back
 #
 import zmq
-import time
 
 # context = zmq.Context()
 # socket = context.socket(zmq.REP)
