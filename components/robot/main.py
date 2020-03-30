@@ -2,10 +2,12 @@ import argparse
 from random import choice
 
 import numpy as np
+import py_trees
+from logzero import logger
 
 import components.robot.config as config
 from blueprint_factory import BluePrintFactory
-from components.robot import *
+from components.robot.behaviors.move_blocks import create_move_blocks_root
 from components.robot.behaviors.move_robot import create_move_robot_root
 from components.robot.behaviors.update_state import create_update_behavior_root
 from components.robot.behaviors.wait import create__waiting_root
@@ -16,6 +18,7 @@ from components.robot.communication.communicate_with_simulator import (
 from components.robot.communication.communicate_with_structure import (
     StructureCommunication,
 )
+from components.robot.communication.heartbeat import start_heartbeat
 from components.robot.communication.messages import *
 from components.robot.motionplanning import model, helpers
 from components.robot.pathplanning.searches.face_star import BlockFace
@@ -29,9 +32,7 @@ class RobotMain:
         self.configuration = config
         try:
             self.id = config.ROBOT_ID.encode("UTF-8")
-            self.heartbeat_connection_in = config.communication[
-                "heartbeat_connection_in"
-            ]
+            self.heartbeat_connection_in = config.communication["heartbeat_connection_in"]
             self.heartbeat_connection_out = config.communication[
                 "heartbeat_connection_out"
             ]
@@ -141,9 +142,7 @@ def command_line_argument_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "-r", "--receive", type=int, help="Select port to receive values"
-    )
+    parser.add_argument("-r", "--receive", type=int, help="Select port to receive values")
     parser.add_argument("-s", "--send", type=int, help="Select port to send values")
     parser.add_argument("-i", "--robot_id", type=str, help="Robot id")
     parser.add_argument(
@@ -202,9 +201,7 @@ if __name__ == "__main__":
         key="state/location_to_move_to", access=py_trees.common.Access.WRITE
     )
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
-    writer.register_key(
-        key="state/current_position", access=py_trees.common.Access.WRITE
-    )
+    writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/robot", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/blueprint", access=py_trees.common.Access.WRITE)
     writer.register_key(
