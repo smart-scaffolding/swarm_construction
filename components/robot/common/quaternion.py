@@ -1,12 +1,11 @@
-# Author: Aditya Dua
-# 28 January, 2018
 from __future__ import print_function
-from .common import *
-# from .common import ishomog
+
 from math import sqrt
+
 from numpy import trace
+
+from .common import *
 from .transforms import *
-# from ..tests.test_common import *
 
 
 class Quaternion:
@@ -96,24 +95,27 @@ class Quaternion:
         y = self.v[0, 1]
         z = self.v[0, 2]
 
-        return np.matrix([[1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - s * z), 2 * (x * z + s * y)],
-                          [2 * (x * y + s * z), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - s * x)],
-                          [2 * (x * z - s * y), 2 * (y * z + s * x), 1 - 2 * (x ** 2 + y ** 2)]])
+        return np.matrix(
+            [
+                [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - s * z), 2 * (x * z + s * y)],
+                [2 * (x * y + s * z), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - s * x)],
+                [2 * (x * z - s * y), 2 * (y * z + s * x), 1 - 2 * (x ** 2 + y ** 2)],
+            ]
+        )
 
     def matrix(self):
         s = self.s
         x = self.v[0, 0]
         y = self.v[0, 1]
         z = self.v[0, 2]
-        return np.matrix([[s, -x, -y, -z],
-                          [x, s, -z, y],
-                          [y, z, s, -x],
-                          [z, -y, x, s]])
+        return np.matrix([[s, -x, -y, -z], [x, s, -z, y], [y, z, s, -x], [z, -y, x, s]])
 
     def __mul__(self, other):
-        assert isinstance(other, Quaternion) \
-               or isinstance(other, int) \
-               or isinstance(other, float), "Can be multiplied with Quaternion, int or a float. "
+        assert (
+            isinstance(other, Quaternion)
+            or isinstance(other, int)
+            or isinstance(other, float)
+        ), "Can be multiplied with Quaternion, int or a float. "
         if type(other) is Quaternion:
             qr = Quaternion()
         else:
@@ -177,10 +179,11 @@ class Quaternion:
         return Quaternion(s=self.s - other.s, v=self.v - other.v)
 
     def __truediv__(self, other):
-        assert isinstance(other, Quaternion) or isinstance(other, int) or isinstance(other,
-                                                                                     float), "Can be divided by a " \
-                                                                                             "Quaternion, " \
-                                                                                             "int or a float "
+        assert (
+            isinstance(other, Quaternion)
+            or isinstance(other, int)
+            or isinstance(other, float)
+        ), ("Can be divided by a " "Quaternion, " "int or a float ")
         qr = Quaternion()
         if type(other) is Quaternion:
             qr = self * other.inv()
@@ -235,23 +238,23 @@ class UnitQuaternion(Quaternion):
         return cls(arg_in.s, arg_in.v)
 
     @classmethod
-    def eul(cls, arg_in, unit='rad'):
+    def eul(cls, arg_in, unit="rad"):
         assert isvec(arg_in, 3)
         return cls.rot(eul2r(phi=arg_in, unit=unit))
 
     @classmethod
-    def rpy(cls, arg_in, unit='rad'):
+    def rpy(cls, arg_in, unit="rad"):
         return cls.rot(rpy2r(thetas=arg_in, unit=unit))
 
     @classmethod
-    def angvec(cls, theta, v, unit='rad'):
+    def angvec(cls, theta, v, unit="rad"):
         assert isvec(v, 3)
         assert type(theta) is float or type(theta) is int
         uq = UnitQuaternion()
-        if unit == 'deg':
+        if unit == "deg":
             theta = theta * math.pi / 180
-        uq.s = math.cos(theta/2)
-        uq.v = math.sin(theta/2) * unitize(v)
+        uq.s = math.cos(theta / 2)
+        uq.v = math.sin(theta / 2) * unitize(v)
         return uq
 
     @classmethod
@@ -263,15 +266,15 @@ class UnitQuaternion(Quaternion):
         return cls(s=s, v=v)
 
     @classmethod
-    def Rx(cls, angle, unit='rad'):
+    def Rx(cls, angle, unit="rad"):
         return cls.rot(rotx(angle, unit=unit))
 
     @classmethod
-    def Ry(cls, angle, unit='rad'):
+    def Ry(cls, angle, unit="rad"):
         return cls.rot(roty(angle, unit=unit))
 
     @classmethod
-    def Rz(cls, angle, unit='rad'):
+    def Rz(cls, angle, unit="rad"):
         return cls.rot(rotz(angle, unit=unit))
 
     @classmethod
@@ -286,19 +289,20 @@ class UnitQuaternion(Quaternion):
     def dot(self, omega):
         E = self.s * np.asmatrix(np.eye(3, 3)) - skew(self.v)
         qd = -self.v * omega
-        return 0.5 * np.r_[qd, E*omega]
+        return 0.5 * np.r_[qd, E * omega]
 
     def dotb(self, omega):
         E = self.s * np.asmatrix(np.eye(3, 3)) + skew(self.v)
         qd = -self.v * omega
-        return 0.5 * np.r_[qd, E*omega]
+        return 0.5 * np.r_[qd, E * omega]
 
     def plot(self):
         from .pose import SO3
+
         SO3.np(self.r()).plot()
 
     def animate(self, qr=None, duration=5, gif=None):
-        self.pipeline = VtkPipeline(total_time_steps=duration*60, gif_file=gif)
+        self.pipeline = VtkPipeline(total_time_steps=duration * 60, gif_file=gif)
         axis = vtk.vtkAxesActor()
         axis.SetAxisLabels(0)
         self.pipeline.add_actor(axis)
@@ -318,10 +322,17 @@ class UnitQuaternion(Quaternion):
             nonlocal axis
             self.pipeline.timer_tick()
 
-            axis.SetUserMatrix(np2vtk(q1.interp(q2, r=1/self.pipeline.total_time_steps * self.pipeline.timer_count).q2tr()))
+            axis.SetUserMatrix(
+                np2vtk(
+                    q1.interp(
+                        q2,
+                        r=1 / self.pipeline.total_time_steps * self.pipeline.timer_count,
+                    ).q2tr()
+                )
+            )
             self.pipeline.iren.GetRenderWindow().Render()
 
-        self.pipeline.iren.AddObserver('TimerEvent', execute)
+        self.pipeline.iren.AddObserver("TimerEvent", execute)
         self.pipeline.animate()
 
     def matrix(self):
@@ -341,14 +352,14 @@ class UnitQuaternion(Quaternion):
 
         q1 = self.double()
         q2 = qr.double()
-        dot = q1*np.transpose(q2)
+        dot = q1 * np.transpose(q2)
 
         # If the dot product is negative, the quaternions
         # have opposite handed-ness and slerp won't take
         # the shorter path. Fix by reversing one quaternion.
         if shortest:
             if dot < 0:
-                q1 = - q1
+                q1 = -q1
                 dot = -dot
 
         dot = np.clip(dot, -1, 1)  # Clip within domain of acos()
@@ -368,7 +379,7 @@ class UnitQuaternion(Quaternion):
     def to_rpy(self):
         return tr2rpy(self.r())
 
-    def to_angvec(self, unit='rad'):
+    def to_angvec(self, unit="rad"):
         vec, theta = 0, 0
         if np.linalg.norm(self.v) < 10 * np.spacing([1])[0]:
             vec = np.matrix([[0, 0, 0]])
@@ -377,17 +388,19 @@ class UnitQuaternion(Quaternion):
             vec = unitize(vec)
             theta = 2 * math.atan2(np.linalg.norm(self.v), self.s)
 
-        if unit == 'deg':
+        if unit == "deg":
             theta = theta * 180 / math.pi
         return theta, vec
 
     def to_so3(self):
         from .pose import SO3
+
         return SO3.np(self.r())
 
     def to_se3(self):
         from .pose import SE3
         from .pose import SO3
+
         return SE3(so3=SO3.np(self.r()))
 
     def to_rot(self):
@@ -396,9 +409,13 @@ class UnitQuaternion(Quaternion):
         x = q[0, 1]
         y = q[0, 2]
         z = q[0, 3]
-        return np.matrix([[1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - s * z), 2 * (x * z + s * y)],
-                          [2 * (x * y + s * z), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - s * x)],
-                          [2 * (x * z - s * y), 2 * (y * z + s * x), 1 - 2 * (x ** 2 + y ** 2)]])
+        return np.matrix(
+            [
+                [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - s * z), 2 * (x * z + s * y)],
+                [2 * (x * y + s * z), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - s * x)],
+                [2 * (x * z - s * y), 2 * (y * z + s * x), 1 - 2 * (x ** 2 + y ** 2)],
+            ]
+        )
 
     def q2r(self):
         return self.to_rot()
@@ -425,17 +442,17 @@ class UnitQuaternion(Quaternion):
             kx1 = t[0, 0] - t[1, 1] - t[2, 2] + 1  # Nx - Oy - Az + 1
             ky1 = t[1, 0] + t[0, 1]  # Ny + Ox
             kz1 = t[2, 0] + t[0, 2]  # Nz + Ax
-            add = (kx >= 0)
+            add = kx >= 0
         elif t[1, 1] >= t[2, 2]:
             kx1 = t[1, 0] + t[0, 1]  # Ny + Ox
             ky1 = t[1, 1] - t[0, 0] - t[2, 2] + 1  # Oy - Nx - Az + 1
             kz1 = t[2, 1] + t[1, 2]  # Oz + Ay
-            add = (ky >= 0)
+            add = ky >= 0
         else:
             kx1 = t[2, 0] + t[0, 2]  # Nz + Ax
             ky1 = t[2, 1] + t[1, 2]  # Oz + Ay
             kz1 = t[2, 2] - t[0, 0] - t[1, 1] + 1  # Az - Nx - Oy + 1
-            add = (kz >= 0)
+            add = kz >= 0
 
         if add:
             kx = kx + kx1

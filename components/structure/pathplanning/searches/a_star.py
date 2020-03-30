@@ -1,6 +1,8 @@
-import numpy as np
 import heapq
 import logging
+
+import numpy as np
+
 from components.structure.pathplanning.path_planner import PathPlannerImp
 
 
@@ -28,28 +30,46 @@ class AStar(PathPlannerImp):
         self.blueprint = blueprint
         self.building_dimensions = self.blueprint.shape
         print("\nBuilding Dimensions: {}\n".format(self.building_dimensions))
-        self.colors = np.array([[['#424ef5']*self.building_dimensions[2]] *
-                   self.building_dimensions[1]]*self.building_dimensions[0])
+        self.colors = np.array(
+            [[["#424ef5"] * self.building_dimensions[2]] * self.building_dimensions[1]]
+            * self.building_dimensions[0]
+        )
 
         self.route = None
 
-        self.logger = logging.getLogger('PathPlanning')
+        self.logger = logging.getLogger("PathPlanning")
 
     def heuristic(self, a, b):
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
 
-
     def astar(self, array, start, goal):
 
-        neighbors = [(0, 1, 0), (0, 1, -1), (0, 1, 1),
-                     (0, -1, 0), (0, -1, -1), (0, -1, 1),
-                     (1, 0, 0), (1, 0, -1), (1, 0, 1),
-                     (-1, 0, 0), (-1, 0, -1), (-1, 0, 1),
-                     (1, 1, 0), (1, 1, -1), (1, 1, 1),
-                     (1, -1, 0), (1, -1, -1), (1, -1, 1),
-                     (-1, 1, 0), (-1, 1, -1), (-1, 1, 1),
-                     (-1, -1, 0), (-1, -1, -1), (-1, -1, 1)
-                     ]
+        neighbors = [
+            (0, 1, 0),
+            (0, 1, -1),
+            (0, 1, 1),
+            (0, -1, 0),
+            (0, -1, -1),
+            (0, -1, 1),
+            (1, 0, 0),
+            (1, 0, -1),
+            (1, 0, 1),
+            (-1, 0, 0),
+            (-1, 0, -1),
+            (-1, 0, 1),
+            (1, 1, 0),
+            (1, 1, -1),
+            (1, 1, 1),
+            (1, -1, 0),
+            (1, -1, -1),
+            (1, -1, 1),
+            (-1, 1, 0),
+            (-1, 1, -1),
+            (-1, 1, 1),
+            (-1, -1, 0),
+            (-1, -1, -1),
+            (-1, -1, 1),
+        ]
 
         close_set = set()
         came_from = {}
@@ -89,20 +109,24 @@ class AStar(PathPlannerImp):
                 if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
                     continue
 
-                if tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
+                if tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [
+                    i[1] for i in oheap
+                ]:
                     came_from[neighbor] = current
                     gscore[neighbor] = tentative_g_score
-                    fscore[neighbor] = tentative_g_score + \
-                        self.heuristic(neighbor, goal)
+                    fscore[neighbor] = tentative_g_score + self.heuristic(neighbor, goal)
                     heapq.heappush(oheap, (fscore[neighbor], neighbor))
-
 
     def get_path(self, start, goal):
         self.start = start
         self.goal = goal
         route = self.astar(self.blueprint, self.start, self.goal)
         if route is None:
-            self.logger.error("Unable to find route between points {} and {}".format(self.start, self.goal))
+            self.logger.error(
+                "Unable to find route between points {} and {}".format(
+                    self.start, self.goal
+                )
+            )
             raise Exception("Path planning unable to find route")
         route = route + [self.start]
         route = route[::-1]
@@ -112,8 +136,7 @@ class AStar(PathPlannerImp):
 
     def display_path(self):
         for i in self.route:
-            self.colors[i] = '#ff0000ff'
+            self.colors[i] = "#ff0000ff"
 
-        self.colors[self.route[-1]] = '#03fc62'
+        self.colors[self.route[-1]] = "#03fc62"
         return self.colors
-

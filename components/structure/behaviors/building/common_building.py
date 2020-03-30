@@ -6,8 +6,22 @@ import numpy as np
 
 @total_ordering
 class Division:
-    def __init__(self, x_range, y_range, z_range, id=None, wavefront_order=None, status="UNCLAIMED", owner=None,
-                 centroid=None, child=None, direction=None, pos=None, num_blocks=9, path_to_node=None):
+    def __init__(
+        self,
+        x_range,
+        y_range,
+        z_range,
+        id=None,
+        wavefront_order=None,
+        status="UNCLAIMED",
+        owner=None,
+        centroid=None,
+        child=None,
+        direction=None,
+        pos=None,
+        num_blocks=9,
+        path_to_node=None,
+    ):
         self.x_range = x_range
         self.y_range = y_range
         self.z_range = z_range
@@ -45,12 +59,13 @@ class Division:
         else:
             return self.order < other.order
 
-
     def __repr__(self):
-        return f"\nID: {self.id}\nOrder: {self.order}\n\tChildren: {self.children}\n\tDirection: {self.direction}\n\t" \
-            f"Num Blocks: {self.num_blocks}\n\tPosition: {self.pos}\n\tX_Range: {self.x_range}"\
-            f"\n\tY_Range: {self.y_range}\n\tZ_Range: {self.z_range}\n\t\tCentroid: {self.centroid}\n\t\tArea: "\
+        return (
+            f"\nID: {self.id}\nOrder: {self.order}\n\tChildren: {self.children}\n\tDirection: {self.direction}\n\t"
+            f"Num Blocks: {self.num_blocks}\n\tPosition: {self.pos}\n\tX_Range: {self.x_range}"
+            f"\n\tY_Range: {self.y_range}\n\tZ_Range: {self.z_range}\n\t\tCentroid: {self.centroid}\n\t\tArea: "
             f"{self.area}\n\n\n\tPath to node: {self.path_to_node}"
+        )
 
     def change_status(self, new_status):
         self.status = new_status
@@ -59,7 +74,7 @@ class Division:
         self.owner = owner
 
     def calculate_centroid(self):
-        x = (self.x_range[0] + self.x_range[1])/2
+        x = (self.x_range[0] + self.x_range[1]) / 2
         y = (self.y_range[0] + self.y_range[1]) / 2
         z = (self.z_range[0] + self.z_range[1]) / 2
         return (x, y, z)
@@ -69,11 +84,11 @@ class Division:
         y_start, y_end = self.y_range
         z_start, z_end = self.z_range
 
-        x = x_end-x_start
-        y = y_end-y_start
-        z = z_end-z_start
+        x = x_end - x_start
+        y = y_end - y_start
+        z = z_end - z_start
 
-        return x*y*z
+        return x * y * z
 
     def __add__(self, other):
         x = self.x_range + other.x_range
@@ -109,8 +124,10 @@ class Block:
         return self
 
     def __repr__(self):
-        return f"\n\nBlock: {self.id}\n\tCurrent Loc: {self.location}\n\tNext Loc: {self.next_destination}\n\tFinal " \
+        return (
+            f"\n\nBlock: {self.id}\n\tCurrent Loc: {self.location}\n\tNext Loc: {self.next_destination}\n\tFinal "
             f"Dest: {self.final_destination}"
+        )
 
 
 @total_ordering
@@ -158,8 +175,11 @@ class Robot:
         return self.desired_target_distance < other.desired_target_distance
 
     def __repr__(self):
-        return f"\n Robot ID: {self.id}\n\tPos: {self.pos}\n\tClaimed: {self.claimed_division}" \
-                f"\n\tTarget: {self.target}\n\tDesired Target: {self.desired_target}\n\tClosest points: {self.closest_points}"
+        return (
+            f"\n Robot ID: {self.id}\n\tPos: {self.pos}\n\tClaimed: {self.claimed_division}"
+            f"\n\tTarget: {self.target}\n\tDesired Target: {self.desired_target}"
+            f"\n\tClosest points: {self.closest_points}"
+        )
 
     def __hash__(self):
         return hash(self.id)
@@ -181,68 +201,72 @@ def spiral_sort():
     layer = spiral_sort_helper(rows, columns, blueprint[:, :])
     layer = layer[::-1]
     sorted_blueprint.append(layer)
-        # for block in layer:
-        #     print(f"Spiral sorted block at {block.position[0]}-{block.position[1]}-{block.position[2]}")
+    # for block in layer:
+    #     print(f"Spiral sorted block at {block.position[0]}-{block.position[1]}-{block.position[2]}")
     print(sorted_blueprint)
     return sorted_blueprint[::-1]
 
 
-def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, block_placed=1):
+def spiral_sort_helper(
+    m, n, a, level=1, x_offset=0, y_offset=0, z_offset=0, block_placed=1
+):
     sorted_array = []
     new_positions = []
     k = 0
-    l = 0
+    starting_column_index = 0
 
-    ''' k - starting row index 
-        m - ending row index 
-        l - starting column index 
-        n - ending column index 
-        i - iterator '''
+    """
+    k - starting row index
+    m - ending row index
+    l - starting column index
+    n - ending column index
+    i - iterator
+    """
 
-    while (k < m and l < n):
+    while k < m and starting_column_index < n:
 
-        for i in range(l, n):
+        for i in range(starting_column_index, n):
             # print(a[k][i], end=" ")
             if a[k][i] == block_placed:
                 sorted_array.append(a[k][i])
                 print(f"{a[k][i]}: ({k},{i})")
-                new_positions.append((k+x_offset, i+y_offset, level+z_offset))
+                new_positions.append((k + x_offset, i + y_offset, level + z_offset))
         k += 1
-
 
         for i in range(k, m):
             # print(a[i][n - 1], end=" ")
-            if a[i][n-1] == block_placed:
-                sorted_array.append(a[i][n-1])
+            if a[i][n - 1] == block_placed:
+                sorted_array.append(a[i][n - 1])
                 print(f"{a[i][n-1]}: ({i},{n-1})")
-                new_positions.append((i+x_offset, n-1+y_offset, level+z_offset))
+                new_positions.append((i + x_offset, n - 1 + y_offset, level + z_offset))
 
         n -= 1
 
-        if (k < m):
+        if k < m:
 
-            for i in range(n - 1, (l - 1), -1):
+            for i in range(n - 1, (starting_column_index - 1), -1):
                 # print(a[m - 1][i], end=" ")
-                if a[m-1][i] == block_placed:
-                    sorted_array.append(a[m-1][i])
+                if a[m - 1][i] == block_placed:
+                    sorted_array.append(a[m - 1][i])
                     print(f"{a[m-1][i]}: ({m-1},{i})")
-                    new_positions.append((m-1+x_offset, i+y_offset, level+z_offset))
+                    new_positions.append(
+                        (m - 1 + x_offset, i + y_offset, level + z_offset)
+                    )
             m -= 1
 
-        if (l < n):
+        if starting_column_index < n:
             for i in range(m - 1, k - 1, -1):
                 # print(a[i][l], end=" ")
-                if a[i][l] == block_placed:
-                    sorted_array.append(a[i][l])
-                    print(f"{a[i][l]}: ({i},{l})")
-                    new_positions.append((i+x_offset, l+y_offset, level+z_offset))
-            l += 1
+                if a[i][starting_column_index] == block_placed:
+                    sorted_array.append(a[i][starting_column_index])
+                    print(f"{a[i][starting_column_index]}: ({i},{starting_column_index})")
+                    new_positions.append((i + x_offset, starting_column_index + y_offset, level + z_offset))
+            starting_column_index += 1
     return sorted_array, new_positions
 
-if __name__ == '__main__':
-    blueprint2 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
+
+if __name__ == "__main__":
+    blueprint2 = np.array([[[1] * 1] * 10] * 10)
 
     blueprint2[0, :, :] = 0
     blueprint2[1, :, :] = 0

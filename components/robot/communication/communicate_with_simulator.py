@@ -1,19 +1,17 @@
 from __future__ import print_function
-# import vtk
-# from time import sleep
-# from vtk import vtkCallbackCommand
-# from multiprocessing import Process
-from .messages import MessageWrapper
-# import threading
-import zmq
-import sys
-import math
-import os, time
-from queue import Queue
+
+import pickle
 import threading
 import zlib
-import pickle
+from queue import Queue
+
+import zmq
+
+from .messages import MessageWrapper
+
+
 # import cPickle as pickle
+
 
 class SendTopicToSimulatorThread(threading.Thread):
     def __init__(self, dir_q, socket_port, topics):
@@ -27,15 +25,14 @@ class SendTopicToSimulatorThread(threading.Thread):
         self.socket_port = socket_port
         self.topics = topics
 
-
     def run(self):
         while not self.stoprequest.isSet():
-           """
-           Uncommment the try except will developing, add back in for final. Otherwise, will not see 
-           errors in thread
-           """
-           # try:
-           if not self.dir_q.empty():
+            """
+            Uncommment the try except will developing, add back in for final. Otherwise, will not see
+            errors in thread
+            """
+            # try:
+            if not self.dir_q.empty():
                 topic, messagedata = self.dir_q.get()
                 message_obj = MessageWrapper(topic=topic, message=messagedata)
 
@@ -43,13 +40,14 @@ class SendTopicToSimulatorThread(threading.Thread):
                 messagedata_compressed = zlib.compress(message_pickle)
 
                 self.socket.send_multipart([topic, messagedata_compressed])
-                    # print(f"[SendTopicToSimulatorThread]: Sending communication to structure -> {topic} {messagedata}")
+                # print(f"[SendTopicToSimulatorThread]: Sending communication to structure -> {topic} {messagedata}")
             # except:
             #     continue
 
     def join(self, timeout=None):
         self.stoprequest.set()
         super(SendTopicToSimulatorThread, self).join(timeout)
+
 
 class SimulatorCommunication:
     def __init__(self, send_messages_socket, send_topics):
@@ -61,8 +59,11 @@ class SimulatorCommunication:
         self.send_messages_queue.put((topic, message))
 
     def initialize_communication_with_simulator(self):
-        self.send_messages_thread = SendTopicToSimulatorThread(dir_q=self.send_messages_queue,
-                                                    socket_port=self.send_messages_socket, topics=self.send_topics)
+        self.send_messages_thread = SendTopicToSimulatorThread(
+            dir_q=self.send_messages_queue,
+            socket_port=self.send_messages_socket,
+            topics=self.send_topics,
+        )
         pool = [self.send_messages_thread]
         for thread in pool:
             thread.start()

@@ -1,53 +1,17 @@
-# Created by: Aditya Dua
-# 13 June, 2017
-
 """Common Module contains code shared by robotics and machine vision toolboxes"""
-import numpy as np
-# from . import check_args
-import numpy.testing as npt
 import math
-# from . import transforms as tr
 
-def ishomog(tr, dim, rtest=''):
-    """ISHOMOG Test if SE(3) homogeneous transformation matrix.
-    ISHOMOG(T) is true if the argument T is of dimension 4x4 or 4x4xN, else false.
-    ISHOMOG(T, 'valid') as above, but also checks the validity of the rotation sub-matrix.
-    See Also: isrot, ishomog2, isvec"""
-    try:
-        assert type(tr) is np.matrix, "Argument should be a numpy matrix"
-        assert dim == (3, 3) or dim == (4, 4)
-    except AssertionError:
-        return False
-    is_valid = None
-    if rtest == 'valid':
-        is_valid = lambda matrix: abs(np.linalg.det(matrix) - 1) < np.spacing([1])[0]
-    flag = True
-    if check_args.is_mat_list(tr):
-        for matrix in tr:
-            if not (matrix.shape[0] == dim[0] and matrix.shape[1] == dim[0]):
-                flag = False
-        # if rtest = 'valid'
-        if flag and rtest == 'valid':
-            flag = is_valid(tr[0])  # As in matlab code only first matrix is passed for validity test
-            # TODO-Do we need to test all matrices in list for validity of rotation submatrix -- Yes
-    elif isinstance(tr, np.matrix):
-        if tr.shape[0] == dim[0] and tr.shape[1] == dim[0]:
-            if flag and rtest == 'valid':
-                flag = is_valid(tr)
-        else:
-            flag = False
-    else:
-        raise ValueError('Invalid data type passed to common.ishomog()')
-    return flag
+import numpy as np
+import numpy.testing as npt
 
 
-def isvec(v, l=3):
+def isvec(v, length=3):
     """
     ISVEC Test if vector
     """
     assert type(v) is np.matrix
     d = v.shape
-    h = len(d) == 2 and min(v.shape) == 1 and v.size == l
+    h = len(d) == 2 and min(v.shape) == 1 and v.size == length
 
     return h
 
@@ -85,6 +49,7 @@ def isrot2(rot, dtest=False):
                 return False
     return True
 
+
 def get_rotation_from_homogeneous_transform(transform):
     """Extract the rotation section of the homogeneous transformation
 
@@ -97,9 +62,9 @@ def get_rotation_from_homogeneous_transform(transform):
     """
     s = transform.shape
     if s[0] != s[1]:
-        raise ValueError('Matrix must be a 4x4 homogenous transformation', s)
+        raise ValueError("Matrix must be a 4x4 homogenous transformation", s)
     n = s[0]
-    rotation = transform[0:n - 1, 0:n - 1]
+    rotation = transform[0: n - 1, 0: n - 1]
     return rotation
 
 
@@ -112,11 +77,11 @@ def create_homogeneous_transform_from_point(p):
     :returns: 4x4 Homogeneous Transform of a point
     :rtype: numpy.matrix
     """
-    I = np.identity(3)
-    T = np.vstack((I, np.zeros((3,))))
+    Identity = np.identity(3)
+    Transform = np.vstack((Identity, np.zeros((3,))))
     p = np.hstack((p, np.ones(1))).reshape((4, 1))
-    T = np.hstack((T, p))
-    return T
+    Transform = np.hstack((Transform, p))
+    return Transform
 
 
 def create_point_from_homogeneous_transform(T):
@@ -151,13 +116,13 @@ def create_point_from_homogeneous_transform(T):
 #
 #     return ee_pos
 
+
 def round_end_effector_position(ee_pos, direction, point, offset=None):
     if point is None:
         print("POINT IS NONE")
         if direction == "top" or direction == "bottom":
             ee_pos[0] = math.floor(ee_pos[0]) + 0.5
             ee_pos[2] = round(ee_pos[2])
-
 
         if direction == "left" or direction == "right":
             ee_pos[0] = math.ceil(ee_pos[0]) - 0.5
@@ -172,39 +137,3 @@ def round_end_effector_position(ee_pos, direction, point, offset=None):
 
     ee_pos = np.copy(point)
     return ee_pos
-
-def flip_base(ee_pos, direction, value, animation=False):
-    # ee_pos = np.copy(ee_pos).tolist()[0]
-    # ee_pos[0] = math.floor(ee_pos[0])
-    # ee_pos[2] = round(ee_pos[2])
-
-    if direction == "top" or direction =="bottom":
-        # ee_pos[0] = ee_pos[0] + 0.5
-        new_base = tr.trotz(value, unit="deg", xyz=ee_pos)
-        # if animation:
-        #     new_base[0, 3] = new_base[0, 3] + 0.5 #+0.5
-        #     new_base[2, 3] = new_base[2, 3] + 0.5 #+0.5
-
-    if direction =="left" or direction=="right":
-        # ee_pos[0] = ee_pos[0] + 0.5
-        # ee_pos[2] = ee_pos[2]
-        new_base = tr.troty(value, unit="deg", xyz=ee_pos)
-
-        new_base = tr.troty(-90, unit="deg", xyz=ee_pos)
-
-        new_pos = create_point_from_homogeneous_transform(new_base)
-        new_base = new_base * tr.trotz(value, unit="deg", xyz=ee_pos)
-
-        new_base[0:3, 3] = new_pos
-        # if animation:
-        #     new_base[0, 3] = new_base[0, 3] + 0.5 #+0.5
-        #     new_base[2, 3] = new_base[2, 3] + 0.5 #+0.5
-        # else:
-        new_base[0, 3] = new_base[0, 3] + 1.37 #+1.37
-        new_base[2, 3] = new_base[2, 3] + 1.37 #+1.37
-
-
-    if direction =="front" or direction=="back":
-        new_base = tr.trotx(value, unit="deg", xyz=ee_pos)
-
-    return new_base

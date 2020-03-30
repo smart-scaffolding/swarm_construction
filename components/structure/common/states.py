@@ -12,7 +12,6 @@ class Block(object):
 
 
 class BlockFace:
-
     def __init__(self, xPos, yPos, zPos, face, blockWidth=0.49):
         self.xPos = xPos
         self.yPos = yPos
@@ -22,17 +21,17 @@ class BlockFace:
 
     def get_face_coordinate(self):
         coordinate = [self.xPos, self.yPos, self.zPos]
-        if self.face == 'front':
+        if self.face == "front":
             coordinate[1] = coordinate[1] - self.blockWidth
-        elif self.face == 'back':
+        elif self.face == "back":
             coordinate[1] = coordinate[1] + self.blockWidth
-        elif self.face == 'left':
+        elif self.face == "left":
             coordinate[0] = coordinate[0] - self.blockWidth
-        elif self.face == 'right':
+        elif self.face == "right":
             coordinate[0] = coordinate[0] + self.blockWidth
-        elif self.face == 'top':
+        elif self.face == "top":
             coordinate[2] = coordinate[2] + self.blockWidth
-        elif self.face == 'bottom':
+        elif self.face == "bottom":
             coordinate[2] = coordinate[2] - self.blockWidth
         else:
             return None
@@ -61,9 +60,6 @@ class MoveBlocksStore(object):
         self.division = division
         self.locations_to_place_blocks = division.get_locations_to_place_blocks()
 
-    # def __str__(self):
-    #     return str(self.__dict__)
-
 
 class RobotCommunicator:
     def __init__(self, robot_communicator, robot_id):
@@ -75,12 +71,14 @@ class PathPlanners(Enum):
     FaceStar = 0
     AStar = 1
 
+
 class RobotBehaviors(Enum):
     FERRY = 0
     WAIT = 1
     MOVE = 2
     BUILD = 3
     UPDATE = 4
+
 
 class BuildingStates(IntEnum):
     WAITING_FOR_FERRYING = 0

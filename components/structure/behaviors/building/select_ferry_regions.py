@@ -1,13 +1,21 @@
-import numpy as np
 from copy import copy
-from components.structure.behaviors.building.common_building import Block
+
+import numpy as np
 
 
-def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRONT"),
-                            ferry_region_size=5, block_placed=1, x_offset=0, y_offset=0, z_offset=1, num_blocks={
-            "FRONT": 25,
-                                                                                                     "RIGHT": 25,
-            "BACK": 0, "LEFT": 0}, print_output=False):
+def determine_ferry_regions(
+    level,
+    num_rows,
+    num_cols,
+    direction=("RIGHT", "FRONT"),
+    ferry_region_size=5,
+    block_placed=1,
+    x_offset=0,
+    y_offset=0,
+    z_offset=1,
+    num_blocks={"FRONT": 25, "RIGHT": 25, "BACK": 0, "LEFT": 0},
+    print_output=False,
+):
     """
     Used to determine the locations in a 2d array where blocks can be placed to be ferried
 
@@ -26,24 +34,16 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
     print(f"Direction: {direction}")
     starting_row_index, starting_column_index = 0, 0
 
-
     row = copy(num_rows)
     column = copy(num_cols)
 
     level_ferry_regions = [[0] * num_cols for i in range(num_rows)]
-    x = 'X'
 
     # count = 1
 
     num_blocks_to_place = np.sum(np.asarray(list(num_blocks.values())))
 
-
-    new_block_locations = {
-        "FRONT": [],
-        "RIGHT": [],
-        "BACK": [],
-        "LEFT": []
-    }
+    new_block_locations = {"FRONT": [], "RIGHT": [], "BACK": [], "LEFT": []}
 
     while num_blocks_to_place > 0:
         starting_row_index, starting_column_index = 0, 0
@@ -66,8 +66,13 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
                         # print(f"Front: ({x_offset+ starting_row_index}, {y_offset + i}, "
                         #       f"{z_offset + level_ferry_regions[starting_row_index][i]})")
 
-                        new_block_locations["LEFT"].append((x_offset + starting_row_index, y_offset + i, z_offset +
-                                                             level_ferry_regions[starting_row_index][i]))
+                        new_block_locations["LEFT"].append(
+                            (
+                                x_offset + starting_row_index,
+                                y_offset + i,
+                                z_offset + level_ferry_regions[starting_row_index][i],
+                            )
+                        )
                         num_blocks_to_place -= 1
                         num_blocks_to_place_left -= 1
                 starting_row_index += 1
@@ -83,8 +88,13 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
                         # print(f"Right: ({x_offset + i}, {y_offset + num_cols - 1}, "
                         #       f"{z_offset + level_ferry_regions[i][num_cols - 1]})")
 
-                        new_block_locations["RIGHT"].append((x_offset + i, y_offset + num_cols - 1,
-                                                             z_offset + level_ferry_regions[i][num_cols - 1]))
+                        new_block_locations["RIGHT"].append(
+                            (
+                                x_offset + i,
+                                y_offset + num_cols - 1,
+                                z_offset + level_ferry_regions[i][num_cols - 1],
+                            )
+                        )
                         num_blocks_to_place -= 1
                         num_blocks_to_place_right -= 1
                 num_cols -= 1
@@ -97,9 +107,13 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
                             break
                         if level[num_rows - 1][i] == block_placed:
                             level_ferry_regions[num_rows - 1][i] += 1
-                            new_block_locations["FRONT"].append((x_offset + num_rows - 1, y_offset +
-                                                                i,
-                                                                z_offset + level_ferry_regions[num_rows - 1][i]))
+                            new_block_locations["FRONT"].append(
+                                (
+                                    x_offset + num_rows - 1,
+                                    y_offset + i,
+                                    z_offset + level_ferry_regions[num_rows - 1][i],
+                                )
+                            )
                             num_blocks_to_place -= 1
                             num_blocks_to_place_front -= 1
                     num_rows -= 1
@@ -112,8 +126,14 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
                             break
                         if level[i][starting_column_index] == block_placed:
                             level_ferry_regions[i][starting_column_index] += 1
-                            new_block_locations["BACK"].append((x_offset + i, y_offset + starting_column_index,
-                                                                 z_offset + level_ferry_regions[i][starting_column_index]))
+                            new_block_locations["BACK"].append(
+                                (
+                                    x_offset + i,
+                                    y_offset + starting_column_index,
+                                    z_offset
+                                    + level_ferry_regions[i][starting_column_index],
+                                )
+                            )
                             num_blocks_to_place -= 1
                             num_blocks_to_place_back -= 1
                     starting_column_index += 1
@@ -149,13 +169,15 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
         blocks.reverse()
         new_block_locations[location] = blocks
 
-    flattened_locations = [val for sublist in list(new_block_locations.values()) for val in sublist]
+    flattened_locations = [
+        val for sublist in list(new_block_locations.values()) for val in sublist
+    ]
     # flattened_locations.reverse()
 
     return np.array(level_ferry_regions), new_block_locations, flattened_locations
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # level = np.array([[1, 1, 1, 1, 1, 1, 0],
     #          [1, 1, 1, 1, 1, 1, 1],
@@ -167,8 +189,7 @@ if __name__ == '__main__':
     #          [1, 1, 1, 1, 1, 1, 1],
     #          [1, 1, 1, 1, 1, 1, 1]])
 
-    level = np.array([[1] * 10,
-                     ] * 10)
+    level = np.array([[1] * 10] * 10)
 
     # level = np.array([[0, 0, 0],
     #    [0, 0, 0],
@@ -176,9 +197,7 @@ if __name__ == '__main__':
     #    [0, 0, 1],
     #    [0, 1, 1],
     #    [0, 1, 1]])
-    blueprint2 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
+    blueprint2 = np.array([[[1] * 1] * 10] * 10)
 
     blueprint2[0, :, :] = 0
     blueprint2[1, :, :] = 0
@@ -193,15 +212,18 @@ if __name__ == '__main__':
 
     m, n = level.shape
     print(m, n)
-    new_blueprint, new_block_locations, flattend_locations = determine_ferry_regions(level, num_rows=m, num_cols=n,
-                                                                               direction=("FRONT", "RIGHT", "BACK",
-                                                                                          "LEFT"),
-                            ferry_region_size=4, x_offset=0, y_offset=0, z_offset=1,
-                            num_blocks={
-                                "FRONT": 25,
-                                "RIGHT": 25,
-                                "BACK": 25,
-                                "LEFT": 25}, print_output=False)
+    new_blueprint, new_block_locations, flattend_locations = determine_ferry_regions(
+        level,
+        num_rows=m,
+        num_cols=n,
+        direction=("FRONT", "RIGHT", "BACK", "LEFT"),
+        ferry_region_size=4,
+        x_offset=0,
+        y_offset=0,
+        z_offset=1,
+        num_blocks={"FRONT": 25, "RIGHT": 25, "BACK": 25, "LEFT": 25},
+        print_output=False,
+    )
     # print(new_block_locations)
     # print(flattend_locations)
     print(new_blueprint)

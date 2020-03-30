@@ -57,8 +57,16 @@ class BlockLocationMessage:
 
 
 class AnimationUpdateMessage(Message):
-    def __init__(self, robot_base, direction=None, trajectory=None, path=None, placedObstacle=False,
-                 obstacle=None, block_on_ee=False):
+    def __init__(
+        self,
+        robot_base,
+        direction=None,
+        trajectory=None,
+        path=None,
+        placedObstacle=False,
+        obstacle=None,
+        block_on_ee=False,
+    ):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base
         self.direction = direction
@@ -73,6 +81,7 @@ class FerryBlocksStatusFinished(Message):
     def __init__(self):
         super().__init__(message_id=RobotBehaviors.FERRY)
         self.finished = True
+
 
 class MessageWrapper:
     def __init__(self, topic, message):

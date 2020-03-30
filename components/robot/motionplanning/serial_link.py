@@ -1,19 +1,15 @@
 from __future__ import print_function
+
+import time
 from abc import ABC
-import math
-from math import pi
+from math import pi, cos, sin, atan2, acos, sqrt
+
 import numpy as np
-import vtk
-import pkg_resources
-from scipy.optimize import minimize
-# import robopy.base.transforms as tr
+from scipy.spatial.transform import Rotation as R
+from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
+
 import components.robot.motionplanning.transforms as transforms
 from components.robot.motionplanning.common import *
-from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-import time
-import random
-from math import cos, sin, atan2, acos, asin, sqrt
-from scipy.spatial.transform import Rotation as R
 
 
 class SerialLink:
@@ -21,10 +17,21 @@ class SerialLink:
     SerialLink object class.
     """
 
-    def __init__(self, links, a_link_starting_pos, d_link_starting_pos, name=None, tool=None,
-                 stl_files=None, q=None,
-                 colors=None, param=None,
-                 blueprint=None, port=None, baud=9600):
+    def __init__(
+        self,
+        links,
+        a_link_starting_pos,
+        d_link_starting_pos,
+        name=None,
+        tool=None,
+        stl_files=None,
+        q=None,
+        colors=None,
+        param=None,
+        blueprint=None,
+        port=None,
+        baud=9600,
+    ):
         """
         Creates a SerialLink object.
         :param links: a list of links that will constitute SerialLink object.
@@ -55,7 +62,7 @@ class SerialLink:
         else:
             self.stl_files = stl_files
         if name is None:
-            self.name = ''
+            self.name = ""
         else:
             self.name = name
 
@@ -66,7 +73,7 @@ class SerialLink:
                 "cube_axes_x_bounds": np.matrix([[-1.5, 1.5]]),
                 "cube_axes_y_bounds": np.matrix([[-1.5, 1.5]]),
                 "cube_axes_z_bounds": np.matrix([[-1.5, 1.5]]),
-                "floor_position": np.matrix([[0, 0, 0]])
+                "floor_position": np.matrix([[0, 0, 0]]),
             }
         else:
             self.param = param
@@ -76,10 +83,16 @@ class SerialLink:
         else:
             self.blueprint = blueprint
 
-        self.scale = .013
+        self.scale = 0.013
         if port is not None:
-            self.serial = Serial(port=port, baudrate=baud, parity=PARITY_NONE,
-                                 stopbits=STOPBITS_ONE, bytesize=EIGHTBITS, timeout=3.0)
+            self.serial = Serial(
+                port=port,
+                baudrate=baud,
+                parity=PARITY_NONE,
+                stopbits=STOPBITS_ONE,
+                bytesize=EIGHTBITS,
+                timeout=3.0,
+            )
         else:
             self.serial = None
 
@@ -88,8 +101,10 @@ class SerialLink:
         # Robot state variables
         self.AEE_POSE = None
         self.DEE_POSE = None
-        self.primary_ee = 'D'
-        self.update_angles(np.array([1.61095456e-15,  6.18966422e+01, -1.23793284e+02, -2.80564688e+01]))
+        self.primary_ee = "D"
+        self.update_angles(
+            np.array([1.61095456e-15, 6.18966422e01, -1.23793284e02, -2.80564688e01])
+        )
         self.resetEEStartingPoses(a_link_starting_pos, d_link_starting_pos)
 
     time.sleep(2)
@@ -104,7 +119,7 @@ class SerialLink:
         """
         self.update_angles(self.q)
 
-    def get_current_joint_config(self, unit='rad'):
+    def get_current_joint_config(self, unit="rad"):
         """Gets the current joint configuration from the links
 
         :returns: 1xN vector of current joint config
@@ -113,11 +128,11 @@ class SerialLink:
         q = np.zeros(self.length)
         for i, link in enumerate(self.links):
             q[i] = link.theta
-        if unit == 'deg':
+        if unit == "deg":
             q = q * 180 / pi
         return q
 
-    def update_angles(self, new_angles, save=False, unit='rad'):
+    def update_angles(self, new_angles, save=False, unit="rad"):
         """Updates all the link's angles
 
         :param new_angles: 1xN vector of new link angles
@@ -129,13 +144,12 @@ class SerialLink:
         :rtype: None
         """
 
-        ##THIS EXPECTS EVERYTHING TO BE IN DEGREES
-        ##SETS LINK ANGLES TO RADIANS
+        # THIS EXPECTS EVERYTHING TO BE IN DEGREES
+        # SETS LINK ANGLES TO RADIANS
         for link, new_theta in zip(self.links, new_angles):
-            if unit == 'deg':
+            if unit == "deg":
                 new_theta = new_theta * np.pi / 180
             link.set_theta(new_theta)
-
 
     def update_link_angle(self, link, new_angle, save=False):
         """Updates the given link's angle with the given angle
@@ -152,7 +166,6 @@ class SerialLink:
         :rtype: None
         """
         self.links[link].set_theta(new_angle)
-
 
     # TODO: Acceleration over time seems like a weird way to update this
     def update_link_velocity(self, link, accel, time):
@@ -173,7 +186,6 @@ class SerialLink:
         self.links[link].update_velocity(accel, time)
         # self.update_link_positions()
 
-
     def end_effector_position(self, q=None, transform=False, num_links=None):
         """Return end effector position
 
@@ -187,7 +199,7 @@ class SerialLink:
         if q is None:
             q = self.get_current_joint_config()
 
-        if num_links == None:
+        if num_links is None:
             num_links = self.length
 
         t = self.fkine(stance=q, num_links=num_links)
@@ -223,12 +235,22 @@ class SerialLink:
         lower_vel_bound = (total_num_points / 3) - offset
         upper_vel_bound = total_num_points / 3
         num_via_points = total_num_points / 3
-        if index % num_via_points >= lower_vel_bound and index % num_via_points <= upper_vel_bound:
+        if (
+            index % num_via_points >= lower_vel_bound
+            and index % num_via_points <= upper_vel_bound
+        ):
             return 0
         return 1
 
-
-    def send_to_robot(self, angle, index, total_num_points, velocity_offset=2, delay=2.0, open_gripper="00"):
+    def send_to_robot(
+        self,
+        angle,
+        index,
+        total_num_points,
+        velocity_offset=2,
+        delay=2.0,
+        open_gripper="00",
+    ):
         """
         NOTE: Expects all angles to be in degrees
         Sends a single angle to robot and then delays for a certain amount of time
@@ -236,8 +258,12 @@ class SerialLink:
         :param angle: Expects angles in degrees
         :param delay: delay after sending to robot
         """
-        velocity_controller_term = self.get_velocity_controller_term(index, total_num_points, velocity_offset)
-        targetAngles = self.map_angles_to_robot(angle, open_gripper, velocity_controller_term)
+        velocity_controller_term = self.get_velocity_controller_term(
+            index, total_num_points, velocity_offset
+        )
+        targetAngles = self.map_angles_to_robot(
+            angle, open_gripper, velocity_controller_term
+        )
         self.serial.write(targetAngles)
         time.sleep(delay)
 
@@ -257,12 +283,19 @@ class SerialLink:
         # if open_gripper:
         gripper = str(velocity_controller_term) + "0" + open_gripper
 
-        targetAngles = f'{qTemp[1]:4.2f} '.zfill(8) + f'{qTemp[2]:4.2f} '.zfill(8) + f'{qTemp[3]:4.2f} '.zfill(8) + \
-                       gripper + '\n'
+        targetAngles = (
+            f"{qTemp[1]:4.2f} ".zfill(8)
+            + f"{qTemp[2]:4.2f} ".zfill(8)
+            + f"{qTemp[3]:4.2f} ".zfill(8)
+            + gripper
+            + "\n"
+        )
         print(targetAngles)
         return str.encode(targetAngles)
 
-    def gripper_control_commands(self, engage_gripper, disengage_gripper, flip_pid, toggle_gripper):
+    def gripper_control_commands(
+        self, engage_gripper, disengage_gripper, flip_pid, toggle_gripper
+    ):
 
         if engage_gripper:
             gripper_control = "0"
@@ -281,8 +314,19 @@ class SerialLink:
 
         return "0" + pid + select_gripper + gripper_control
 
-    def fkine(self, stance, unit='rad', apply_stance=False, actor_list=None, timer=None, num_steps=0, num_links=4,
-              directions=None, orientation=None, update=None):
+    def fkine(
+        self,
+        stance,
+        unit="rad",
+        apply_stance=False,
+        actor_list=None,
+        timer=None,
+        num_steps=0,
+        num_links=4,
+        directions=None,
+        orientation=None,
+        update=None,
+    ):
         """
         Calculates forward kinematics for a list of joint angles.
         :param stance: stance is list of joint angles.
@@ -299,7 +343,7 @@ class SerialLink:
             raise Exception("Must have data to update with")
         if type(stance) is np.ndarray:
             stance = np.asmatrix(stance)
-        if unit == 'deg':
+        if unit == "deg":
             stance = stance * pi / 180
         if timer is None:
             timer = 0
@@ -317,7 +361,6 @@ class SerialLink:
         if apply_stance:
             actor_list[0].SetUserMatrix(transforms.np2vtk(t))
             actor_list[0].SetScale(self.scale)
-        prev_t = t
         for i in range(1, num_links, 1):
             # print("I: {}".format(i))
             # print("\tT: {}".format(t))
@@ -336,10 +379,12 @@ class SerialLink:
 
     # Units: inches, radians
     # inputs should be in the global reference frame
-    def ikin(self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, placeBlock=False):
+    def ikin(
+        self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, placeBlock=False
+    ):
 
         if self.DEBUG:
-            print(f'(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}')
+            print(f"(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}")
         # Robot Parameters
         # L1 = 4.125  # L1 in inches
         # L2 = 6.43  # L2 in inches
@@ -347,15 +392,17 @@ class SerialLink:
         L1 = self.links[0].length
         L2 = self.links[1].length
 
-        relativePos, localGamma = self.handlePlaneChanges(goalPos=goalPos, gamma=gamma, baseID=baseID, placeBlock=placeBlock)
+        relativePos, localGamma = self.handlePlaneChanges(
+            goalPos=goalPos, gamma=gamma, baseID=baseID, placeBlock=placeBlock
+        )
         # x, y, z, dummy = relativePos * blockWidth  # dummy value should always 1
         x, y, z, dummy = relativePos  # dummy value should always 1
 
         if self.DEBUG:
-            print(f'x y z: {x} {y} {z}')
-            print(f'gamma: {gamma}')
-            print(f'localGamma: {localGamma}')
-            print(f'relativePos: {relativePos}')
+            print(f"x y z: {x} {y} {z}")
+            print(f"gamma: {gamma}")
+            print(f"localGamma: {localGamma}")
+            print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
         if q1 < -179.8:
@@ -363,12 +410,14 @@ class SerialLink:
 
         new_z = z - L1  # take away the height of the first link (vertical)
         # new_x = x / cos(q1)
-        new_x = sqrt(x**2+y**2)
+        new_x = sqrt(x ** 2 + y ** 2)
 
         x3 = new_x - L1 * cos(localGamma)
         z3 = new_z - L1 * sin(localGamma)  # reduce to the 2dof planar robot
 
-        beta = acos((L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2)))
+        beta = acos(
+            (L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))
+        )
 
         if elbow_up == 1:
             q3 = 2 * beta
@@ -384,18 +433,18 @@ class SerialLink:
 
         # check which ee is requested and flip angles accordingly
         if not simHuh:
-            if baseID == 'D':
+            if baseID == "D":
                 q = np.array([q5, q4, q3, q2, q1])
 
         if self.DEBUG:
-            print(f'ikin output q: {q}\n\n')
+            print(f"ikin output q: {q}\n\n")
         return q
 
     def handlePlaneChanges(self, goalPos, gamma, baseID, placeBlock=False):
 
         if self.DEBUG:
-            print(f'Pre plane handling:\n AEE_POSE: {self.AEE_POSE}')
-            print(f'DEE POS: {self.DEE_POSE}')
+            print(f"Pre plane handling:\n AEE_POSE: {self.AEE_POSE}")
+            print(f"DEE POS: {self.DEE_POSE}")
 
         relativePos = np.zeros(3)
         baseOri = np.zeros(3)
@@ -403,12 +452,12 @@ class SerialLink:
         goalRot = np.zeros(3)
 
         # gets the relativePos, basePos, and baseOri in the global reference frame
-        if baseID == 'A':  # requested base is A
+        if baseID == "A":  # requested base is A
             basePos = self.AEE_POSE[:3, 3].T
-            baseOri = R.from_matrix(self.AEE_POSE[:3, :3]).as_euler('xyz', degrees=True)
-        elif baseID == 'D':  # requested base is D
+            baseOri = R.from_matrix(self.AEE_POSE[:3, :3]).as_euler("xyz", degrees=True)
+        elif baseID == "D":  # requested base is D
             basePos = self.DEE_POSE[:3, 3].T
-            baseOri = R.from_matrix(self.DEE_POSE[:3, :3]).as_euler('xyz', degrees=True)
+            baseOri = R.from_matrix(self.DEE_POSE[:3, :3]).as_euler("xyz", degrees=True)
 
         relativePos = np.append(goalPos - basePos, [1])
 
@@ -423,8 +472,8 @@ class SerialLink:
         # !! This needs to be done before switching relativePos into local frame
         armFacing = atan2(relativePos[1], relativePos[0])
         if self.DEBUG:
-            print(f'relativePos: {relativePos}')
-            print(f'armFacing: {armFacing}')
+            print(f"relativePos: {relativePos}")
+            print(f"armFacing: {armFacing}")
 
         # rotates relativePos from global reference frame to local reference frame
         if baseOri[0] > 0.1:  # local +z facing global +x, rotate -90 around y
@@ -441,7 +490,7 @@ class SerialLink:
             relativePos = np.dot(self.getRy(pi), relativePos)
 
         if self.DEBUG:
-            print(f'relativePos in local frame: {relativePos}')
+            print(f"relativePos in local frame: {relativePos}")
         localGamma = gamma
 
         # updates goal orientation and
@@ -499,14 +548,15 @@ class SerialLink:
             else:  # base ee horizontal
                 # TODO: test if using all() would work
                 # if baseOri.all() != goalRot.all():
-                if baseOri.all() != R.from_matrix(goalRot[:3]).as_euler('xyz', degrees=True):
+                if baseOri.all() != R.from_matrix(goalRot[:3]).as_euler(
+                    "xyz", degrees=True
+                ):
                     localGamma = pi / 2
                 else:
                     localGamma = -pi / 2
 
         # sets the goalPos and goalOri to the moving ee
 
-        goalPos_list = list(goalPos)
         # if self.last_placed_block:
         #     goalPos_list[2] = goalPos_list[2] - 1
         #     goalPos = tuple(goalPos_list)
@@ -517,20 +567,20 @@ class SerialLink:
         #     # goalPos = tuple(goalPos_list)
         #     self.last_placed_block = True
 
-        if baseID == 'A':  # requested ee is A, update D to match goal
+        if baseID == "A":  # requested ee is A, update D to match goal
             # DEEPOS = goalPos
             # DEEORI = goalOri
             self.DEE_POSE[:3, 3] = np.array(goalPos)
             self.DEE_POSE[:3, :3] = goalRot[:3, :3]
-        elif baseID == 'D':  # requested ee is D, update A to match goal
+        elif baseID == "D":  # requested ee is D, update A to match goal
             # AEEPOS = goalPos
             # AEEORI = goalOri
             self.AEE_POSE[:3, 3] = np.array(goalPos)
             self.AEE_POSE[:3, :3] = goalRot[:3, :3]
 
         if self.DEBUG:
-            print(f'Post plane handling:\n AEE_POSE: {self.AEE_POSE}')
-            print(f'DEE POS: {self.DEE_POSE}')
+            print(f"Post plane handling:\n AEE_POSE: {self.AEE_POSE}")
+            print(f"DEE POS: {self.DEE_POSE}")
         return relativePos, localGamma
 
     def getRx(self, theta):
@@ -598,17 +648,21 @@ class SerialLink:
         """
         J = np.zeros((6, self.length))
         U = self.tool
-        I = range(self.length - 1, -1, -1)
+        I_term = range(self.length - 1, -1, -1)
 
-        for i, link in zip(I, self.links[::-1]):
+        for i, link in zip(I_term, self.links[::-1]):
             if np.any(q):
                 U = link.A(q[i]) * U
             else:
                 U = link.transform_matrix * U
 
-            d = np.array([-U[0, 0] * U[1, 3] + U[1, 0] * U[0, 3],
-                          -U[0, 1] * U[1, 3] + U[1, 1] * U[0, 3],
-                          -U[0, 2] * U[1, 3] + U[1, 2] * U[0, 3]])
+            d = np.array(
+                [
+                    -U[0, 0] * U[1, 3] + U[1, 0] * U[0, 3],
+                    -U[0, 1] * U[1, 3] + U[1, 1] * U[0, 3],
+                    -U[0, 2] * U[1, 3] + U[1, 2] * U[0, 3],
+                ]
+            )
             delta = U[2, 0:3]
 
             J[:, i] = np.vstack((d, delta)).flatten()
@@ -642,13 +696,25 @@ class SerialLink:
     #         return np.asmatrix(sol.x)
 
 
-
 class Link(ABC):
     """
     Link object class.
     """
 
-    def __init__(self, j, theta, d, a, alpha, length, offset=None, kind='', mdh=0, flip=None, qlim=None):
+    def __init__(
+        self,
+        j,
+        theta,
+        d,
+        a,
+        alpha,
+        length,
+        offset=None,
+        kind="",
+        mdh=0,
+        flip=None,
+        qlim=None,
+    ):
         """
         initialises the link object.
         :param j:
@@ -708,20 +774,19 @@ class Link(ABC):
         if new_velocity <= self.max_velocity:
             self.velocity = new_velocity
             new_theta = self.theta + (new_velocity * time)
-            new_theta = math.atan2(math.sin(new_theta),
-                                   math.cos(new_theta))
+            new_theta = math.atan2(math.sin(new_theta), math.cos(new_theta))
             self.set_theta(new_theta)
 
-    def display(self, unit='rad'):
+    def display(self, unit="rad"):
         """Display the link's properties nicely
 
         :rtype: None
         """
         angle = self.theta
-        if unit == 'deg':
+        if unit == "deg":
             angle = angle * 180 / pi
-        print('Link angle: {}'.format(angle))
-        print('Link length: {}'.format(self.length))
+        print("Link angle: {}".format(angle))
+        print("Link length: {}".format(self.length))
 
     def A(self, q):
         sa = math.sin(self.alpha)
@@ -733,21 +798,25 @@ class Link(ABC):
         st = 0
         ct = 0
         d = 0
-        if self.kind == 'r':
+        if self.kind == "r":
             st = math.sin(q)
             ct = math.cos(q)
             d = self.d
-        elif self.kind == 'p':
+        elif self.kind == "p":
             st = math.sin(self.theta)
             ct = math.cos(self.theta)
             d = q
 
         se3_np = 0
         if self.mdh == 0:
-            se3_np = np.matrix([[ct, -st * ca, st * sa, self.a * ct],
-                                [st, ct * ca, -ct * sa, self.a * st],
-                                [0, sa, ca, d],
-                                [0, 0, 0, 1]])
+            se3_np = np.matrix(
+                [
+                    [ct, -st * ca, st * sa, self.a * ct],
+                    [st, ct * ca, -ct * sa, self.a * st],
+                    [0, sa, ca, d],
+                    [0, 0, 0, 1],
+                ]
+            )
 
         return se3_np
 
@@ -768,7 +837,17 @@ class Revolute(Link):
         :param offset:
         :param qlim:
         """
-        super().__init__(j=j, theta=theta, d=d, a=a, alpha=alpha, offset=offset, kind='r', qlim=qlim, length=length)
+        super().__init__(
+            j=j,
+            theta=theta,
+            d=d,
+            a=a,
+            alpha=alpha,
+            offset=offset,
+            kind="r",
+            qlim=qlim,
+            length=length,
+        )
         pass
 
 
@@ -788,7 +867,17 @@ class Prismatic(Link):
         :param offset:
         :param qlim:
         """
-        super().__init__(j=j, theta=theta, d=d, a=a, alpha=alpha, offset=offset, kind='p', qlim=qlim, length=length)
+        super().__init__(
+            j=j,
+            theta=theta,
+            d=d,
+            a=a,
+            alpha=alpha,
+            offset=offset,
+            kind="p",
+            qlim=qlim,
+            length=length,
+        )
         pass
 
     pass

@@ -1,24 +1,17 @@
-from components.structure.communication import RobotCommunication
-from components.structure.communication import SimulatorCommunication
-from components.structure.communication.heartbeater import start_hearbeat_detector
-from components.structure.communication.messages import *
-from components.robot.communication.messages import StatusUpdateMessagePayload as RobotStatusUpdateMessagePayload, \
-    BlockLocationMessage, FerryBlocksStatusFinished
-from components.structure.common.common import create_point_from_homogeneous_transform
+import time
+from multiprocessing import Queue
+from queue import PriorityQueue, Empty
+
+import numpy as np
+
 import components.structure.config as config
 from components.simulator.model.graphics import vtk_named_colors
-from components.structure.behaviors.building.assign_robots_min_distance import assign_robots_closest_point
+from components.structure.behaviors.building.assign_robots_min_distance import (
+    assign_robots_closest_point,
+)
 from components.structure.behaviors.building.common_building import Block, Robot
-from queue import PriorityQueue, Empty
-from functools import total_ordering
 from components.structure.behaviors.building.merge_paths import Node
 from components.structure.pathplanning.searches.wavefront import Wavefront
-from random import sample, choice
-import time
-# from queue import Queue
-# import asyncio
-from multiprocessing import Queue
-import numpy as np
 
 configuration = None
 
@@ -29,28 +22,26 @@ class StructureMain:
         self.robot_queue = Queue()
         self.known_robots = {}
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     structure = StructureMain()
 
-    blueprint = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
+    blueprint = np.array(
+        [
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+            [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+            [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+        ]
+    )
 
     bx, by, bz = blueprint.shape
     colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-
-    blueprint = [
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ]
+    blueprint = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
     feeding_location = (0, 0)
 
@@ -66,9 +57,12 @@ if __name__ == '__main__':
         (2, 2): Node(wavefront_order=5, id=9, pos=(7, 7)),
     }
 
-    wf = Wavefront(blueprint=blueprint, feeding_location=feeding_location, furthest_division=(len(blueprint),
-                                                                                              len(blueprint[0])),
-                   print=False)
+    wf = Wavefront(
+        blueprint=blueprint,
+        feeding_location=feeding_location,
+        furthest_division=(len(blueprint), len(blueprint[0])),
+        print=False,
+    )
 
     for division in divisions:
 
@@ -92,8 +86,13 @@ if __name__ == '__main__':
 
             actual_pos = divisions[pos].pos
 
-            new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point,
-                            direction=direction)
+            new_node = Node(
+                wavefront_order=wavefront_order,
+                id=node_id,
+                pos=actual_pos,
+                child=next_point,
+                direction=direction,
+            )
 
             previous_point = node_id
 
@@ -147,40 +146,111 @@ if __name__ == '__main__':
         goals.sort(key=lambda x: x.order)
         goal_ids = [values[item1].id, values[item2].id]
 
-
-
-
-
-        blocks_to_move = [Block(location=(2, 0, 2), next_destination=(2, 0, 2), final_destination=(6, 0, 1)),
-                          Block(location=(2, 1, 2), next_destination=(2, 1, 2), final_destination=(6, 1, 1)),
-                          Block(location=(2, 2, 2), next_destination=(2, 2, 2), final_destination=(6, 2, 1)),
-                          Block(location=(1, 0, 1), next_destination=(1, 0, 1), final_destination=(7, 0, 1)),
-                          Block(location=(1, 1, 1), next_destination=(1, 1, 1), final_destination=(7, 1, 1)),
-                          Block(location=(1, 2, 1), next_destination=(1, 2, 1), final_destination=(7, 2, 1)),
-                          Block(location=(2, 0, 1), next_destination=(2, 0, 1), final_destination=(8, 0, 1)),
-                          Block(location=(2, 1, 1), next_destination=(2, 1, 1), final_destination=(8, 1, 1)),
-                          Block(location=(2, 2, 1), next_destination=(2, 2, 1), final_destination=(8, 2, 1)),
-                          Block(location=(2, 0, 3), next_destination=(2, 0, 3), final_destination=(6, 0, 1)),
-                          Block(location=(2, 1, 3), next_destination=(2, 1, 3), final_destination=(6, 1, 1)),
-                          Block(location=(2, 2, 3), next_destination=(2, 2, 3), final_destination=(6, 2, 1)),
-                          Block(location=(1, 0, 2), next_destination=(1, 0, 2), final_destination=(7, 0, 1)),
-                          Block(location=(1, 1, 2), next_destination=(1, 1, 2), final_destination=(7, 1, 1)),
-                          Block(location=(1, 2, 2), next_destination=(1, 2, 2), final_destination=(7, 2, 1)),
-                          Block(location=(2, 0, 4), next_destination=(2, 0, 4), final_destination=(8, 0, 1)),
-                          Block(location=(2, 1, 4), next_destination=(2, 1, 4), final_destination=(8, 1, 1)),
-                          Block(location=(2, 2, 4), next_destination=(2, 2, 4), final_destination=(8, 2, 1)),
-                          ]
+        blocks_to_move = [
+            Block(
+                location=(2, 0, 2),
+                next_destination=(2, 0, 2),
+                final_destination=(6, 0, 1),
+            ),
+            Block(
+                location=(2, 1, 2),
+                next_destination=(2, 1, 2),
+                final_destination=(6, 1, 1),
+            ),
+            Block(
+                location=(2, 2, 2),
+                next_destination=(2, 2, 2),
+                final_destination=(6, 2, 1),
+            ),
+            Block(
+                location=(1, 0, 1),
+                next_destination=(1, 0, 1),
+                final_destination=(7, 0, 1),
+            ),
+            Block(
+                location=(1, 1, 1),
+                next_destination=(1, 1, 1),
+                final_destination=(7, 1, 1),
+            ),
+            Block(
+                location=(1, 2, 1),
+                next_destination=(1, 2, 1),
+                final_destination=(7, 2, 1),
+            ),
+            Block(
+                location=(2, 0, 1),
+                next_destination=(2, 0, 1),
+                final_destination=(8, 0, 1),
+            ),
+            Block(
+                location=(2, 1, 1),
+                next_destination=(2, 1, 1),
+                final_destination=(8, 1, 1),
+            ),
+            Block(
+                location=(2, 2, 1),
+                next_destination=(2, 2, 1),
+                final_destination=(8, 2, 1),
+            ),
+            Block(
+                location=(2, 0, 3),
+                next_destination=(2, 0, 3),
+                final_destination=(6, 0, 1),
+            ),
+            Block(
+                location=(2, 1, 3),
+                next_destination=(2, 1, 3),
+                final_destination=(6, 1, 1),
+            ),
+            Block(
+                location=(2, 2, 3),
+                next_destination=(2, 2, 3),
+                final_destination=(6, 2, 1),
+            ),
+            Block(
+                location=(1, 0, 2),
+                next_destination=(1, 0, 2),
+                final_destination=(7, 0, 1),
+            ),
+            Block(
+                location=(1, 1, 2),
+                next_destination=(1, 1, 2),
+                final_destination=(7, 1, 1),
+            ),
+            Block(
+                location=(1, 2, 2),
+                next_destination=(1, 2, 2),
+                final_destination=(7, 2, 1),
+            ),
+            Block(
+                location=(2, 0, 4),
+                next_destination=(2, 0, 4),
+                final_destination=(8, 0, 1),
+            ),
+            Block(
+                location=(2, 1, 4),
+                next_destination=(2, 1, 4),
+                final_destination=(8, 1, 1),
+            ),
+            Block(
+                location=(2, 2, 4),
+                next_destination=(2, 2, 4),
+                final_destination=(8, 2, 1),
+            ),
+        ]
 
         time.sleep(5)
         for node in path1:
             all_nodes[node.id] = (node, None)
             q.put(node)
 
-        currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve order
+        currently_claimed_set = (
+            []
+        )  # TODO: Ensure this data structure cannot be modified, important to preserve order
 
         robots = [
-            Robot(id=b'ROBOT_1', pos=(1.5, 1.5), claimed_division=1),
-            Robot(id=b'ROBOT_2', pos=(4.5, 1.5), claimed_division=2),
+            Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
+            Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
             # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
             # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
             # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
@@ -246,7 +316,7 @@ if __name__ == '__main__':
                     currently_claimed_set.append(new_node)
                     # currently_claimed_set.remove(node)
                     print("Done updating")
-                except(Empty):
+                except (Empty):
                     print("Queue is empty, continuing")
                     # continue
 
@@ -259,7 +329,9 @@ if __name__ == '__main__':
                 assign_robots_closest_point(robots, currently_claimed_set, None)
                 time.sleep(5)
                 print("Updating dictionary with new robot positions")
-                for bot in robots:  # update dictionary to include robot with claimed division
+                for (
+                    bot
+                ) in robots:  # update dictionary to include robot with claimed division
                     update_node, _ = all_nodes[bot.claimed_division.id]
                     all_nodes[bot.claimed_division.id] = (update_node, bot)
                 print("\n\n")
@@ -282,13 +354,23 @@ if __name__ == '__main__':
                             new_blocks = []
                             for block in old_blocks:
                                 block.location = block.next_destination
-                                block.next_destination = (notify_node.pos[0], notify_node.pos[1], 1)
+                                block.next_destination = (
+                                    notify_node.pos[0],
+                                    notify_node.pos[1],
+                                    1,
+                                )
 
-                                new_block = Block(location=block.location, next_destination=block.next_destination,
-                                                  final_destination=block.final_destination, id=block.id)
+                                new_block = Block(
+                                    location=block.location,
+                                    next_destination=block.next_destination,
+                                    final_destination=block.final_destination,
+                                    id=block.id,
+                                )
                                 new_blocks.append(new_block)
 
-                            next_id = currently_working[1].id  # TODO: REMOVE THIS AND GET THE ID THE RIGHT WAY
+                            next_id = currently_working[
+                                1
+                            ].id  # TODO: REMOVE THIS AND GET THE ID THE RIGHT WAY
 
                             blocks_to_move = new_blocks
                             # currently_claimed_set.remove

@@ -1,23 +1,29 @@
 from components.structure.pathplanning.path_planner import PathPlannerImp
-# from components.structure.behaviors.building.merge_paths import Node
-# from components.structure.behaviors.divide_structure import Division
-from queue import PriorityQueue, Empty
-import time
 
 
 class Wavefront(PathPlannerImp):
-    def __init__(self, blueprint, furthest_division, feeding_location, divisions=None, print=False):
+    def __init__(
+        self, blueprint, furthest_division, feeding_location, divisions=None, print=False
+    ):
         self.blueprint = blueprint
         self.layer = self.convert_blueprint_to_layer(blueprint)
         self.feeding_location = feeding_location
         self.furthest_division = furthest_division
-        self.initialize_wavefront(goal=self.feeding_location, start=self.furthest_division)
+        self.initialize_wavefront(
+            goal=self.feeding_location, start=self.furthest_division
+        )
         self.print = print
         if divisions:
             self.map_wavefront_values_to_divisions(divisions)
         if print:
-            self.layer.print_grid(grid=convert_layer_to_grid(self.blueprint, self.layer, self.feeding_location,
-                                                             self.furthest_division))
+            self.layer.print_grid(
+                grid=convert_layer_to_grid(
+                    self.blueprint,
+                    self.layer,
+                    self.feeding_location,
+                    self.furthest_division,
+                )
+            )
 
     def map_wavefront_values_to_divisions(self, divisions):
         for position in self.layer.positions:
@@ -38,8 +44,8 @@ class Wavefront(PathPlannerImp):
         xdim = len(blueprint)
         ydim = len(blueprint[1])
 
-        for y in range(ydim-1, -1, -1):
-            for x in range(xdim-1, -1, -1):
+        for y in range(ydim - 1, -1, -1):
+            for x in range(xdim - 1, -1, -1):
                 positions[(x, y)] = blueprint[x][y]
 
         print(positions)
@@ -81,7 +87,10 @@ class Wavefront(PathPlannerImp):
                         continue
 
                     if self.layer.positions[move] != 0:
-                        if self.layer.positions[move] == 1 and self.layer.positions[position] == current_wave - 1:
+                        if (
+                            self.layer.positions[move] == 1
+                            and self.layer.positions[position] == current_wave - 1
+                        ):
                             self.layer.positions[move] = current_wave
                             new_heap.append(move)
 
@@ -108,41 +117,57 @@ class Wavefront(PathPlannerImp):
         x_goal = x_goal % self.layer.xdim
         y_goal = y_goal % self.layer.ydim
 
-        return self.layer.navigate_to_goal((x_start, y_start), (x_goal, y_goal), display=self.print)
+        return self.layer.navigate_to_goal(
+            (x_start, y_start), (x_goal, y_goal), display=self.print
+        )
 
 
 class Layer(object):
-
     def __init__(self, xdim, ydim, positions, blueprint):
         self.xdim = xdim
         self.ydim = ydim
         self.positions = positions
         self.blueprint = blueprint
 
-    def columnize(self, word, width, align='Left'):
+    def columnize(self, word, width, align="Left"):
 
         nSpaces = width - len(word)
         if len(word) == 1:
-            word = " "+word
+            word = " " + word
         if nSpaces < 0:
             nSpaces = 0
-        if align == 'Left':
+        if align == "Left":
             return word + (" " * nSpaces)
-        if align == 'Right':
+        if align == "Right":
             return (" " * nSpaces) + word
         return (" " * int(nSpaces / 2)) + word + (" " * int(nSpaces - nSpaces / 2))
 
     def print_grid(self, grid, column=10):
         print()
-        print('%s%s' % (self.columnize('Table |', column * 2, 'Right'), \
-                        '|'.join([self.columnize('Col %d ' % i, column, 'Center') \
-                                  for i in range(0, len(grid[0]))])))
+        print(
+            "%s%s"
+            % (
+                self.columnize("Table |", column * 2, "Right"),
+                "|".join(
+                    [
+                        self.columnize("Col %d " % i, column, "Center")
+                        for i in range(0, len(grid[0]))
+                    ]
+                ),
+            )
+        )
         spaces = sum([column for i in range(len(grid[0]))]) + column * 2
-        print('=' * spaces)
+        print("=" * spaces)
         for i, item in enumerate(grid):
-            print('%s%s' % (self.columnize('Row %d |' % (i), column * 2, 'Right'), \
-                            '|'.join([self.columnize(str(num), column, 'Center') \
-                                      for num in item])))
+            print(
+                "%s%s"
+                % (
+                    self.columnize("Row %d |" % (i), column * 2, "Right"),
+                    "|".join(
+                        [self.columnize(str(num), column, "Center") for num in item]
+                    ),
+                )
+            )
 
     def navigate_to_goal(self, goal, start, display=False):
         """
@@ -196,19 +221,28 @@ class Layer(object):
 
             current = current - 1
             if display:
-                self.positions[self.pos] = 'X' # TODO: Comment this out, as it is for visualization only
+                self.positions[
+                    self.pos
+                ] = "X"  # TODO: Comment this out, as it is for visualization only
 
             path.append((moves[least_index], move_directions[least_index]))
             # print(f"Moved {move_directions[least_index]} {moves[least_index]}")
 
-            self.pos = moves[least_index]  # This will be converted to "move robot in x direction"
+            self.pos = moves[
+                least_index
+            ]  # This will be converted to "move robot in x direction"
 
         if display:
-        # TODO: Comment this out, as it is for visualization only
-            self.print_grid(convert_layer_to_grid(grid=self.blueprint, layer=self, goal=goal, start=start))
+            # TODO: Comment this out, as it is for visualization only
+            self.print_grid(
+                convert_layer_to_grid(
+                    grid=self.blueprint, layer=self, goal=goal, start=start
+                )
+            )
 
         path.reverse()
         return path
+
 
 def convert_layer_to_grid(grid, layer, start, goal):
     for key, value in layer.positions.items():
@@ -234,7 +268,7 @@ def convert_layer_to_grid(grid, layer, start, goal):
 #         self.position = position
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # blueprint = [
     #     [1, 0, 1, 1, 1, 1, 1, 1],
     #     [1, 1, 1, 1, 1, 1, 1, 1],
@@ -246,11 +280,7 @@ if __name__ == '__main__':
     #     [1, 1, 1, 1, 1, 1, 1, 1],
     # ]
 
-    blueprint = [
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ]
+    blueprint = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
     feeding_location = (0, 0)
 
@@ -296,7 +326,8 @@ if __name__ == '__main__':
     #
     #         actual_pos = divisions[pos].pos
     #
-    #         new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point, direction=direction)
+    #         new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point,
+    #         direction=direction)
     #
     #         previous_point = node_id
     #
@@ -354,7 +385,3 @@ if __name__ == '__main__':
     #
     # currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve order
     # # print(all_nodes)
-
-
-
-

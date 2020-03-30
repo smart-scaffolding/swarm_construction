@@ -1,35 +1,31 @@
 import logging
-from multiprocessing import Process
-import os
-import random
 import sys
-import time
 
 import zmq
-from zmq.log.handlers import PUBHandler
 
-LOG_LEVELS = (logging.DEBUG, logging.INFO,
-              logging.WARN, logging.ERROR, logging.CRITICAL)
+LOG_LEVELS = (logging.DEBUG, logging.INFO, logging.WARN, logging.ERROR, logging.CRITICAL)
 
 LOGNAME = "smartscaffolding.log"
+
 
 def sub_logger(port, level=logging.DEBUG):
     ctx = zmq.Context()
     sub = ctx.socket(zmq.SUB)
-    sub.bind('tcp://127.0.0.1:%i' % port)
+    sub.bind("tcp://127.0.0.1:%i" % port)
     sub.setsockopt(zmq.SUBSCRIBE, b"")
     logging.basicConfig(level=level, filename=LOGNAME, filemode="a")
 
     while True:
         print("WAINTING TO RECEIVE")
         level, message = sub.recv_multipart()
-        message = message.decode('ascii')
-        if message.endswith('\n'):
+        message = message.decode("ascii")
+        if message.endswith("\n"):
             # trim trailing newline, which will get appended again
             message = message[:-1]
         # log = getattr(logging, level.lower().decode('ascii'))
         print(message)
         logging.log(message)
+
 
 #
 # def log_worker(port, interval=1, level=logging.DEBUG):
@@ -50,7 +46,7 @@ def sub_logger(port, level=logging.DEBUG):
 #         logging.log(level, "Hello from %i!" % os.getpid())
 #         time.sleep(interval)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) > 1:
         n = int(sys.argv[1])
     else:

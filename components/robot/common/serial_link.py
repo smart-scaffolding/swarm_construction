@@ -1,33 +1,29 @@
-# Created by: Aditya Dua
-# 30 September 2017
 from __future__ import print_function
+
 from abc import ABC
 from math import pi
-# import vtk
+
 from . import transforms
-# from .graphics import VtkPipeline
-# from .graphics import axesCube
-# from .graphics import axesCubeFloor
-# from .graphics import vtk_named_colors
-# from .graphics import cubeForPath, circleForTrajectory
-# from .graphics import MakeAxesActor
-# from .graphics import vtk_named_colors
-# import pkg_resources
-# from scipy.optimize import minimize
-# import robopy.base.transforms as tr
 from .common import *
-# from scipy.spatial.transform import Rotation as R
-# from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-# import time
-# import random
+
 
 class SerialLink:
     """
     SerialLink object class.
     """
 
-    def __init__(self, links, name=None, base=None, tool=None, stl_files=None, q=None, colors=None, param=None,
-                 blueprint=None):
+    def __init__(
+        self,
+        links,
+        name=None,
+        base=None,
+        tool=None,
+        stl_files=None,
+        q=None,
+        colors=None,
+        param=None,
+        blueprint=None,
+    ):
         """
         Creates a SerialLink object.
         :param links: a list of links that will constitute SerialLink object.
@@ -58,7 +54,7 @@ class SerialLink:
         # else:
         #     self.stl_files = stl_files
         if name is None:
-            self.name = ''
+            self.name = ""
         else:
             self.name = name
         # if colors is None:
@@ -81,7 +77,8 @@ class SerialLink:
         # else:
         #     self.blueprint = blueprint
 
-        self.scale = .013
+        self.scale = 0.013
+
     # time.sleep(2)
 
     def __iter__(self):
@@ -96,10 +93,7 @@ class SerialLink:
         # return len(self.links)
         return 4
 
-
-
-
-    def fkine(self, stance, unit='rad', apply_stance=False, num_links=4):
+    def fkine(self, stance, unit="rad", apply_stance=False, num_links=4):
         """
         Calculates forward kinematics for a list of joint angles.
         :param stance: stance is list of joint angles.
@@ -116,7 +110,7 @@ class SerialLink:
             raise Exception("Must have data to update with")
         if type(stance) is np.ndarray:
             stance = np.asmatrix(stance)
-        if unit == 'deg':
+        if unit == "deg":
             stance = stance * pi / 180
         # if timer is None:
         timer = 0
@@ -134,7 +128,6 @@ class SerialLink:
             actors.append(transforms.np2vtk(t))
             # actor_list[0].SetUserMatrix(transforms.np2vtk(t))
             # actor_list[0].SetScale(self.scale)
-        prev_t = t
         for i in range(1, num_links, 1):
             # print("I: {}".format(i))
             # print("\tT: {}".format(t))
@@ -150,11 +143,9 @@ class SerialLink:
                 # actor_list[i].SetUserMatrix(transforms.np2vtk(t))
                 # actor_list[i].SetScale(self.scale)
 
-
         t = t * self.tool
 
         return t, actors
-
 
 
 class Link(ABC):
@@ -162,7 +153,20 @@ class Link(ABC):
     Link object class.
     """
 
-    def __init__(self, j, theta, d, a, alpha, length, offset=None, kind='', mdh=0, flip=None, qlim=None):
+    def __init__(
+        self,
+        j,
+        theta,
+        d,
+        a,
+        alpha,
+        length,
+        offset=None,
+        kind="",
+        mdh=0,
+        flip=None,
+        qlim=None,
+    ):
         """
         initialises the link object.
         :param j:
@@ -222,22 +226,19 @@ class Link(ABC):
         if new_velocity <= self.max_velocity:
             self.velocity = new_velocity
             new_theta = self.theta + (new_velocity * time)
-            new_theta = math.atan2(math.sin(new_theta),
-                                   math.cos(new_theta))
+            new_theta = math.atan2(math.sin(new_theta), math.cos(new_theta))
             self.set_theta(new_theta)
 
-
-    def display(self, unit='rad'):
+    def display(self, unit="rad"):
         """Display the link's properties nicely
 
         :rtype: None
         """
         angle = self.theta
-        if unit == 'deg':
+        if unit == "deg":
             angle = angle * 180 / pi
-        print('Link angle: {}'.format(angle))
-        print('Link length: {}'.format(self.length))
-
+        print("Link angle: {}".format(angle))
+        print("Link length: {}".format(self.length))
 
     def A(self, q):
         sa = math.sin(self.alpha)
@@ -249,21 +250,25 @@ class Link(ABC):
         st = 0
         ct = 0
         d = 0
-        if self.kind == 'r':
+        if self.kind == "r":
             st = math.sin(q)
             ct = math.cos(q)
             d = self.d
-        elif self.kind == 'p':
+        elif self.kind == "p":
             st = math.sin(self.theta)
             ct = math.cos(self.theta)
             d = q
 
         se3_np = 0
         if self.mdh == 0:
-            se3_np = np.matrix([[ct, -st * ca, st * sa, self.a * ct],
-                                [st, ct * ca, -ct * sa, self.a * st],
-                                [0, sa, ca, d],
-                                [0, 0, 0, 1]])
+            se3_np = np.matrix(
+                [
+                    [ct, -st * ca, st * sa, self.a * ct],
+                    [st, ct * ca, -ct * sa, self.a * st],
+                    [0, sa, ca, d],
+                    [0, 0, 0, 1],
+                ]
+            )
 
         return se3_np
 
@@ -284,7 +289,17 @@ class Revolute(Link):
         :param offset:
         :param qlim:
         """
-        super().__init__(j=j, theta=theta, d=d, a=a, alpha=alpha, offset=offset, kind='r', qlim=qlim, length=length)
+        super().__init__(
+            j=j,
+            theta=theta,
+            d=d,
+            a=a,
+            alpha=alpha,
+            offset=offset,
+            kind="r",
+            qlim=qlim,
+            length=length,
+        )
         pass
 
 
@@ -304,7 +319,17 @@ class Prismatic(Link):
         :param offset:
         :param qlim:
         """
-        super().__init__(j=j, theta=theta, d=d, a=a, alpha=alpha, offset=offset, kind='p', qlim=qlim,length=length)
+        super().__init__(
+            j=j,
+            theta=theta,
+            d=d,
+            a=a,
+            alpha=alpha,
+            offset=offset,
+            kind="p",
+            qlim=qlim,
+            length=length,
+        )
         pass
 
     pass

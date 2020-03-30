@@ -1,4 +1,4 @@
-# #!/usr/bin/env python
+#!/usr/bin/env python
 #
 # import time
 # import zmq
@@ -146,19 +146,22 @@
 #             print(queue.get())
 #         time.sleep(0.5)
 
-#!/usr/bin/env python
 
 import time
+from multiprocessing import Process, Queue
+
 import zmq
+from logzero import logger
 from zmq.eventloop import ioloop, zmqstream
+
 import components.structure.config as config
+
+
 # from queue import Queue
 # import threading
 
-from multiprocessing import Process, Queue
-from logzero import logger
 
-class HeartBeater():
+class HeartBeater:
     def __init__(self, robot_queue, period=1000):
         context = zmq.Context()
         pub = context.socket(zmq.PUB)
@@ -196,7 +199,7 @@ class HeartBeater():
 
     def beat(self):
         toc = time.time()
-        self.lifetime += toc-self.tic
+        self.lifetime += toc - self.tic
         self.tic = toc
 
         goodhearts = self.hearts.intersection(self.responses)
@@ -209,7 +212,7 @@ class HeartBeater():
             self.handle_heart_failure(heartfailures)
         self.responses = set()
 
-        logger.debug("%i beating hearts: %s"%(len(self.hearts),self.hearts))
+        logger.debug("%i beating hearts: %s" % (len(self.hearts), self.hearts))
         self.pingstream.send(str(self.lifetime).encode())
 
     def handle_new_heart(self, heart):
@@ -224,7 +227,7 @@ class HeartBeater():
         while len(heart) > 0:
             logger.warning("HEART FAILURE")
             heart_failure = heart.pop()
-            if heart_failure == b'SIMULATOR':
+            if heart_failure == b"SIMULATOR":
                 logger.warning("The simulator has disconnected")
             elif "ROBOT" in str(heart_failure):
                 logger.warning(f"A robot has been disconnected, {heart_failure}")
@@ -242,7 +245,7 @@ class HeartBeater():
 
 
 def create_heartbeat_detector(robot_queue):
-    hb = HeartBeater(robot_queue)
+    HeartBeater(robot_queue)
 
 
 def start_hearbeat_detector(robot_queue):
@@ -251,9 +254,7 @@ def start_hearbeat_detector(robot_queue):
     return p
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     # loop = ioloop.IOLoop()
     # context = zmq.Context()
     # pub = context.socket(zmq.PUB)

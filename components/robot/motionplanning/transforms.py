@@ -1,10 +1,10 @@
 import math
+
 import numpy as np
-from scipy.linalg import expm
-from components.robot.motionplanning import check_args
-from components.robot.motionplanning import common
-import unittest
 import vtk
+from scipy.linalg import expm
+
+from components.robot.motionplanning import check_args, common
 
 
 # ---------------------------------------------------------------------------------------#
@@ -164,7 +164,7 @@ def r2t(rmat):
     assert isinstance(rmat, np.matrix)
     dim = rmat.shape
     if dim[0] != dim[1]:
-        raise ValueError(' Matrix Must be square ')
+        raise ValueError(" Matrix Must be square ")
     elif dim[0] == 2:
         tmp = np.r_[rmat, np.zeros((1, 2))]
         mat = np.c_[tmp, np.array([[0], [0], [1]])]
@@ -176,7 +176,7 @@ def r2t(rmat):
         mat = np.asmatrix(mat.round(15))
         return mat
     else:
-        raise ValueError(' Value must be a rotation matrix ')
+        raise ValueError(" Value must be a rotation matrix ")
 
 
 # ---------------------------------------------------------------------------------------#
@@ -197,7 +197,7 @@ def t2r(tmat):
     assert isinstance(tmat, np.matrix)
     dim = tmat.shape
     if dim[0] != dim[1]:
-        raise ValueError(' Matrix Must be square ')
+        raise ValueError(" Matrix Must be square ")
     elif dim[0] == 3:
         tmp = np.delete(tmat, [2], axis=0)
         mat = np.delete(tmp, [2], axis=1)
@@ -209,11 +209,11 @@ def t2r(tmat):
         mat = np.asmatrix(mat.round(15))
         return mat
     else:
-        raise ValueError('Value must be a rotation matrix ')
+        raise ValueError("Value must be a rotation matrix ")
 
 
 # ---------------------------------------------------------------------------------------#
-def rot2(theta, unit='rad'):
+def rot2(theta, unit="rad"):
     """
     ROT2 SO(2) Rotational Matrix
 
@@ -235,7 +235,7 @@ def rot2(theta, unit='rad'):
 
 
 # ---------------------------------------------------------------------------------------#
-def trot2(theta, unit='rad'):
+def trot2(theta, unit="rad"):
     """
     TROT2 SE2 rotation matrix
 
@@ -256,7 +256,7 @@ def trot2(theta, unit='rad'):
 
 
 # ---------------------------------------------------------------------------------------#
-def rpy2r(thetas, order='zyx', unit='rad'):
+def rpy2r(thetas, order="zyx", unit="rad"):
     """
     RPY2R Roll-pitch-yaw angles to rotation matrix
 
@@ -295,14 +295,16 @@ def rpy2r(thetas, order='zyx', unit='rad'):
         # All are list. OR one element is int or float then all are either int or float
         thetas = [thetas]  # Put list in a list
 
-    if unit == 'deg':
-        thetas = [[(angles * math.pi / 180) for angles in each_rpy] for each_rpy in thetas]
+    if unit == "deg":
+        thetas = [
+            [(angles * math.pi / 180) for angles in each_rpy] for each_rpy in thetas
+        ]
     if type(thetas[0]) is list:
         roll = [theta[0] for theta in thetas]
         pitch = [theta[1] for theta in thetas]
         yaw = [theta[2] for theta in thetas]
 
-        if order == 'xyz' or order == 'arm':
+        if order == "xyz" or order == "arm":
             x = [rotx(theta) for theta in yaw]
             y = [roty(theta) for theta in pitch]
             z = [rotz(theta) for theta in roll]
@@ -312,7 +314,7 @@ def rpy2r(thetas, order='zyx', unit='rad'):
                 return xyz[0]
             else:
                 return xyz
-        if order == 'zyx' or order == 'vehicle':
+        if order == "zyx" or order == "vehicle":
             z = [rotz(theta) for theta in yaw]
             y = [roty(theta) for theta in pitch]
             x = [rotx(theta) for theta in roll]
@@ -322,7 +324,7 @@ def rpy2r(thetas, order='zyx', unit='rad'):
                 return zyx[0]
             else:
                 return zyx
-        if order == 'yxz' or order == 'camera':
+        if order == "yxz" or order == "camera":
             y = [roty(theta) for theta in yaw]
             x = [rotx(theta) for theta in pitch]
             z = [rotz(theta) for theta in roll]
@@ -333,12 +335,14 @@ def rpy2r(thetas, order='zyx', unit='rad'):
             else:
                 return yxz
     else:
-        raise TypeError('thetas must be a list of roll pitch yaw angles\n'
-                        'OR a list of list of roll pitch yaw angles.')
+        raise TypeError(
+            "thetas must be a list of roll pitch yaw angles\n"
+            "OR a list of list of roll pitch yaw angles."
+        )
 
 
 # ---------------------------------------------------------------------------------------#
-def rpy2tr(thetas, order='zyx', unit='rad'):
+def rpy2tr(thetas, order="zyx", unit="rad"):
     """
     RPY2TR Roll-pitch-yaw angles to homogeneous transform
 
@@ -403,7 +407,9 @@ def skew(v):
     - These are the generator matrices for the Lie algebras so(2) and so(3).
     """
     if common.isvec(v, 3):
-        s = np.matrix([[0, -v[0, 2], v[0, 1]], [v[0, 2], 0, -v[0, 0]], [-v[0, 1], v[0, 0], 0]])
+        s = np.matrix(
+            [[0, -v[0, 2], v[0, 1]], [v[0, 2], 0, -v[0, 0]], [-v[0, 1], v[0, 0], 0]]
+        )
     elif common.isvec(v, 1):
         s = np.matrix([[0, -v[0, 0]], [v[0, 0], 0]])
     else:
@@ -443,8 +449,13 @@ def skewa(s):
         omega = np.concatenate((omega, [[0, 0, 0]]), axis=0)
         return omega
     elif s.size == 6:
-        omega = np.concatenate((skew(np.matrix([s[0, 3], s[0, 4], s[0, 5]])), [[s[0, 0]], [s[0, 1]], [s[0, 2]]]),
-                               axis=1)
+        omega = np.concatenate(
+            (
+                skew(np.matrix([s[0, 3], s[0, 4], s[0, 5]])),
+                [[s[0, 0]], [s[0, 1]], [s[0, 2]]],
+            ),
+            axis=1,
+        )
         omega = np.concatenate((omega, [[0, 0, 0, 0]]), axis=0)
         return omega
     else:
@@ -539,7 +550,9 @@ def vex(s):
     element of the matrix.
     """
     if s.shape == (3, 3):
-        return 0.5 * np.matrix([[s[2, 1] - s[1, 2]], [s[0, 2] - s[2, 0]], [s[1, 0] - s[0, 1]]])
+        return 0.5 * np.matrix(
+            [[s[2, 1] - s[1, 2]], [s[0, 2] - s[2, 0]], [s[1, 0] - s[0, 1]]]
+        )
     elif s.shape == (2, 2):
         return 0.5 * np.matrix([[s[1, 0] - s[0, 1]]])
     else:
@@ -639,8 +652,8 @@ def trlog(T):
             # rotation by +/- po, +/- 3pi ect
             mx = R.diagonal().max()
             k = R.diagonal().argmax()
-            I = np.eye(3)
-            col = R[:, k] + I[:, k]
+            Identity = np.eye(3)
+            col = R[:, k] + Identity[:, k]
             w = col / np.sqrt(2 * (1 + mx))
             theta = np.pi
         else:
@@ -656,35 +669,35 @@ def trlog(T):
         if (tr - 3) < 100 * np.spacing([1])[0]:
             # is identity matrix
             w = np.matrix([[0, 0, 0]])
-            v = t
             theta = 1
             skw = np.zeros(3)
         else:
             [theta, w] = trlog(R)
             skw = skew(w)
 
-        Ginv = np.eye(3) / theta - skw / 2 + (1 / theta - 1 / np.tan(theta / 2) / 2) * skw ** 2
-        v = Ginv * t
         return [theta, w]
     else:
         raise AttributeError("Expect SO(3) or SE(3) matrix")
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-def tr2angvec(tr, unit='rad'):
+def tr2angvec(tr, unit="rad"):
     """
     TR2ANGVEC Convert rotation matrix to angle-vector form
     :param tr: Rotation matrix
     :param unit: 'rad' or 'deg'
     :return: Angle-vector form
-    TR2ANGVEC(R, OPTIONS) is rotation expressed in terms of an angle THETA (1x1) about the axis V (1x3) equivalent to the orthonormal rotation matrix R (3x3).
+    TR2ANGVEC(R, OPTIONS) is rotation expressed in terms of an angle THETA (1x1) about the axis V (1x3) equivalent to
+    the orthonormal rotation matrix R (3x3).
     TR2ANGVEC(T, OPTIONS) as above but uses the rotational part of the homogeneous transform T (4x4).
-    If R (3x3xK) or T (4x4xK) represent a sequence then THETA (Kx1)is a vector of angles for corresponding elements of the sequence and V (Kx3) are the corresponding axes, one per row.
+    If R (3x3xK) or T (4x4xK) represent a sequence then THETA (Kx1)is a vector of angles for corresponding elements
+    of the sequence and V (Kx3) are the corresponding axes, one per row.
     Options::
     'deg'   Return angle in degrees
     Notes::
     - For an identity rotation matrix both THETA and V are set to zero.
-    - The rotation angle is always in the interval [0 pi], negative rotation is handled by inverting the direction of the rotation axis.
+    - The rotation angle is always in the interval [0 pi], negative rotation is handled by inverting the direction of
+    the rotation axis.
     - If no output arguments are specified the result is displayed.
     """
     check_args.unit_check(unit)
@@ -711,31 +724,33 @@ def tr2angvec(tr, unit='rad'):
                 [th, v] = trlog(tri)
                 theta[i, 0] = th
                 n[i, :] = v
-                if unit == 'deg':
+                if unit == "deg":
                     theta[i, 0] = theta[i, 0] * 180 / math.pi
-                print('Rotation: ', theta[i, 0], unit, 'x', '[', n[i, :], ']')
+                print("Rotation: ", theta[i, 0], unit, "x", "[", n[i, :], "]")
             else:
-                raise TypeError('Matrix in not orthonormal.')
+                raise TypeError("Matrix in not orthonormal.")
     else:
-        raise TypeError('Argument must be a SO(3) or SE(3) matrix.')
+        raise TypeError("Argument must be a SO(3) or SE(3) matrix.")
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-def tr2eul(tr, unit='rad', flip=False):
+def tr2eul(tr, unit="rad", flip=False):
     """
     TR2EUL Convert homogeneous transform to Euler angles
     :param tr: Homogeneous transformation
     :param unit: 'rad' or 'deg'
     :param flip: True or False
     :return: Euler angles
-    TR2EUL(T, OPTIONS) are the ZYZ Euler angles (1x3) corresponding to the rotational part of a homogeneous transform T (4x4). The 3 angles EUL=[PHI,THETA,PSI] correspond to sequential rotations about the Z, Y and Z axes respectively.
+    TR2EUL(T, OPTIONS) are the ZYZ Euler angles (1x3) corresponding to the rotational part of a homogeneous transform
+    T (4x4). The 3 angles EUL=[PHI,THETA,PSI] correspond to sequential rotations about the Z, Y and Z axes respectively.
     TR2EUL(R, OPTIONS) as above but the input is an orthonormal rotation matrix R (3x3).
     If R (3x3xK) or T (4x4xK) represent a sequence then each row of EUL corresponds to a step of the sequence.
     Options::
     'deg'   Compute angles in degrees (radians default)
     'flip'  Choose first Euler angle to be in quadrant 2 or 3.
     Notes::
-    - There is a singularity for the case where THETA=0 in which case PHI is arbitrarily set to zero and PSI is the sum (PHI+PSI).
+    - There is a singularity for the case where THETA=0 in which case PHI is arbitrarily set to zero and PSI is the
+    sum (PHI+PSI).
     - Translation component is ignored.
     """
     check_args.unit_check(unit)
@@ -754,7 +769,9 @@ def tr2eul(tr, unit='rad', flip=False):
         sp = 0
         cp = 0
         eul[0, 1] = math.atan2(cp * tr[0, 2] + sp * tr[1, 2], tr[2, 2])
-        eul[0, 2] = math.atan2(-sp * tr[0, 0] + cp * tr[1, 0], -sp * tr[0, 1] + cp * tr[1, 1])
+        eul[0, 2] = math.atan2(
+            -sp * tr[0, 0] + cp * tr[1, 0], -sp * tr[0, 1] + cp * tr[1, 1]
+        )
     else:
         if flip:
             eul[0, 0] = math.atan2(-tr[1, 2], -tr[0, 2])
@@ -763,23 +780,26 @@ def tr2eul(tr, unit='rad', flip=False):
         sp = math.sin(eul[0, 0])
         cp = math.cos(eul[0, 0])
         eul[0, 1] = math.atan2(cp * tr[0, 2] + sp * tr[1, 2], tr[2, 2])
-        eul[0, 2] = math.atan2(-sp * tr[0, 0] + cp * tr[1, 0], -sp * tr[0, 1] + cp * tr[1, 1])
+        eul[0, 2] = math.atan2(
+            -sp * tr[0, 0] + cp * tr[1, 0], -sp * tr[0, 1] + cp * tr[1, 1]
+        )
 
-    if unit == 'deg':
+    if unit == "deg":
         eul = eul * 180 / math.pi
 
     return eul
 
 
 # ------------------------------------------------------------------------------------------------------------------- #
-def tr2rpy(tr, unit='rad', order='zyx'):
+def tr2rpy(tr, unit="rad", order="zyx"):
     """
     TR2RPY Convert a homogeneous transform to roll-pitch-yaw angles
     :param tr: Homogeneous transformation
     :param unit: 'rad' or 'deg'
     :param order: 'xyz', 'zyx' or 'yxz'
     :return: Roll-pitch-yaw angle
-    TR2RPY(T, options) are the roll-pitch-yaw angles (1x3) corresponding to the rotation part of a homogeneous transform T. The 3 angles RPY=[R,P,Y] correspond to sequential rotations about the Z, Y and X axes respectively.
+    TR2RPY(T, options) are the roll-pitch-yaw angles (1x3) corresponding to the rotation part of a homogeneous
+    transform T. The 3 angles RPY=[R,P,Y] correspond to sequential rotations about the Z, Y and X axes respectively.
     TR2RPY(R, options) as above but the input is an orthonormal rotation matrix R (3x3).
     If R (3x3xK) or T (4x4xK) represent a sequence then each row of RPY corresponds to a step of the sequence.
     Options::
@@ -787,7 +807,8 @@ def tr2rpy(tr, unit='rad', order='zyx'):
     'xyz'   Return solution for sequential rotations about X, Y, Z axes
     'yxz'   Return solution for sequential rotations about Y, X, Z axes
     Notes::
-    - There is a singularity for the case where P=pi/2 in which case R is arbitrarily set to zero and Y is the sum (R+Y).
+    - There is a singularity for the case where P=pi/2 in which case R is arbitrarily set to zero and Y is the sum (
+    R+Y).
     - Translation component is ignored.
     - Toolbox rel 8-9 has the reverse default angle sequence as default
     """
@@ -803,7 +824,7 @@ def tr2rpy(tr, unit='rad', order='zyx'):
         rpy = np.zeros([1, 3])
 
     if common.isrot(tr) or common.ishomog(tr, dim=[4, 4]):
-        if order == 'xyz' or order == 'arm':
+        if order == "xyz" or order == "arm":
             if abs(abs(tr[0, 2]) - 1) < np.spacing([1])[0]:
                 rpy[0, 0] = 0
                 rpy[0, 1] = math.asin(tr[0, 2])
@@ -815,7 +836,7 @@ def tr2rpy(tr, unit='rad', order='zyx'):
                 rpy[0, 0] = -math.atan2(tr[0, 1], tr[0, 0])
                 rpy[0, 1] = math.atan2(tr[0, 2] * math.cos(rpy[0, 0]), tr[0, 0])
                 rpy[0, 2] = -math.atan2(tr[1, 2], tr[2, 2])
-        if order == 'zyx' or order == 'vehicle':
+        if order == "zyx" or order == "vehicle":
             if abs(abs(tr[2, 0]) - 1) < np.spacing([1])[0]:
                 rpy[0, 0] = 0
                 rpy[0, 1] = -math.asin(tr[2, 0])
@@ -827,7 +848,7 @@ def tr2rpy(tr, unit='rad', order='zyx'):
                 rpy[0, 0] = math.atan2(tr[2, 1], tr[2, 2])
                 rpy[0, 1] = math.atan2(-tr[2, 0] * math.cos(rpy[0, 0]), tr[2, 2])
                 rpy[0, 2] = math.atan2(tr[1, 0], tr[0, 0])
-        if order == 'yxz' or order == 'camera':
+        if order == "yxz" or order == "camera":
             if abs(abs(tr[1, 2]) - 1) < np.spacing([1])[0]:
                 rpy[0, 0] = 0
                 rpy[0, 1] = -math.asin(tr[1, 2])
@@ -840,9 +861,9 @@ def tr2rpy(tr, unit='rad', order='zyx'):
                 rpy[0, 1] = math.atan2(-math.cos(rpy[0, 0]) * tr[1, 2], tr[1, 1])
                 rpy[0, 2] = math.atan2(tr[0, 2], tr[2, 2])
     else:
-        raise TypeError('Argument must be a 3x3 or 4x4 matrix.')
+        raise TypeError("Argument must be a 3x3 or 4x4 matrix.")
 
-    if unit == 'deg':
+    if unit == "deg":
         rpy = rpy * 180 / math.pi
 
     return rpy
@@ -915,8 +936,7 @@ def trexp(S, theta=None):
             theta = np.linalg.norm(w)
             w = unitize(w)
         else:
-            i = 0
-            # todo ISUNIT
+            pass
         S = skew(w)
         T = np.eye(3) + np.sin(theta) * S + (1 - np.cos(theta)) * S ** 2
         return T
@@ -972,7 +992,11 @@ def trexp2(S, theta=None):
                 skw = skew(S[2])
             R = trexp2(skw, theta)
 
-            t = (np.eye(2) * theta + (1 - np.cos(theta)) * skw + (theta - np.sin(theta)) * skw * skw) * v
+            t = (
+                np.eye(2) * theta
+                + (1 - np.cos(theta)) * skw
+                + (theta - np.sin(theta)) * skw * skw
+            ) * v
             return rt2tr(R, t)
     else:
         if common.isrot2(S):
@@ -1015,7 +1039,13 @@ def oa2r(o, a=None):
     i = unitize(n)
     j = unitize(o)
     k = unitize(a)
-    R = np.matrix([[i[0, 0], j[0, 0], k[0, 0]], [i[0, 1], j[0, 1], k[0, 1]], [i[0, 2], j[0, 2], k[0, 2]]])
+    R = np.matrix(
+        [
+            [i[0, 0], j[0, 0], k[0, 0]],
+            [i[0, 1], j[0, 1], k[0, 1]],
+            [i[0, 2], j[0, 2], k[0, 2]],
+        ]
+    )
     return R
 
 
@@ -1130,7 +1160,7 @@ def transl2(x=None, y=None):
 
 
 # ---------------------------------------------------------------------------------------#
-def eul2r(phi, theta=None, psi=None, unit='rad'):
+def eul2r(phi, theta=None, psi=None, unit="rad"):
     """
     EUL2R Convert Euler angles to rotation matrix
 
@@ -1166,7 +1196,7 @@ def eul2r(phi, theta=None, psi=None, unit='rad'):
     if theta is None or psi is None:
         raise AttributeError("Invalid arguments, expecting, 3 inputs or 3-vector")
 
-    if unit == 'deg':
+    if unit == "deg":
         d2r = np.pi / 180
         phi = phi * d2r
         theta = theta * d2r
@@ -1177,12 +1207,12 @@ def eul2r(phi, theta=None, psi=None, unit='rad'):
     else:
         R = [phi.shape[0]]
         for i in range(0, phi.shape[0]):
-            R[i] = (rotz(phi[i, 0]) * roty(theta[i, 0]) * rotz(psi[i, 0]))
+            R[i] = rotz(phi[i, 0]) * roty(theta[i, 0]) * rotz(psi[i, 0])
         return R
 
 
 # ---------------------------------------------------------------------------------------#
-def eul2tr(phi, theta=None, psi=None, unit='rad'):
+def eul2tr(phi, theta=None, psi=None, unit="rad"):
     """
     EUL2TR Convert Euler angles to homogeneous transform
 
@@ -1224,22 +1254,3 @@ def np2vtk(mat):
             for j in range(4):
                 obj.SetElement(i, j, mat[i, j])
         return obj
-
-
-# ---------------------------------------------------------------------------------------#
-if __name__ == '__main__':
-    # When run as main, initialise test cases in test_classes_to_tun and runs them
-    # Refer
-    # https://stackoverflow.com/questions/5360833/how-to-run-multiple-classes-in-single-test-suite-in-python-unit-testing
-    test_classes_to_run = [test_transforms.TestRotx]
-
-    loader = unittest.TestLoader()
-
-    suits_list = []
-    for test_class in test_classes_to_run:
-        suits_list.append(loader.loadTestsFromTestCase(test_class))
-
-    big_suite = unittest.TestSuite(suits_list)
-
-    runner = unittest.TextTestRunner(verbosity=2)
-    results = runner.run(big_suite)

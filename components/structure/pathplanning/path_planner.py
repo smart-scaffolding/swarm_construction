@@ -1,6 +1,6 @@
-from components.robot.pathplanning.searches.face_star import FaceStar
-from components.robot.pathplanning.searches.a_star import AStar
 from components.robot.common.states import PathPlanners
+from components.robot.pathplanning.searches.a_star import AStar
+from components.robot.pathplanning.searches.face_star import FaceStar
 
 
 class PathPlanner:
@@ -18,4 +18,4 @@ class PathPlanner:
 
 class PathPlannerImp:
     def get_path(self, start, goal):
-        raise NotImplemented("Must overwrite get_path to return a path")
+        raise NotImplementedError("Must overwrite get_path to return a path")

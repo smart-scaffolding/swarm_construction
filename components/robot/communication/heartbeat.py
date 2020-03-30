@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 
 import time
+from random import randint
+
 import numpy
 import zmq
 from zmq import devices
-from random import randint
-import pickle
-import zlib
-from components.robot.communication.messages import HeartBeat
-import py_trees
-import sys
+
+
 # from zmq.utils.z85 import encode
-
-
-
 
 
 # def start_heartbeat(id, connection_in='tcp://127.0.0.1:5555', connection_out='tcp://127.0.0.1:5556'):
@@ -39,13 +34,16 @@ import sys
 #     dev.connect_out(connection_out)
 #     dev.start()
 
-def start_heartbeat(id, connection_in='tcp://127.0.0.1:5555', connection_out='tcp://127.0.0.1:5556'):
-    ctx = zmq.Context()
+
+def start_heartbeat(
+    id, connection_in="tcp://127.0.0.1:5555", connection_out="tcp://127.0.0.1:5556"
+):
+    zmq.Context()
 
     ID = id
     # if len(sys.argv) > 1:
     #     ID = sys.argv[1].encode('UTF-8')
-        # str(ID).encode('UTF-8')
+    # str(ID).encode('UTF-8')
 
     dev = devices.ThreadDevice(zmq.FORWARDER, zmq.SUB, zmq.DEALER)
     dev.setsockopt_in(zmq.SUBSCRIBE, b"")
@@ -54,8 +52,9 @@ def start_heartbeat(id, connection_in='tcp://127.0.0.1:5555', connection_out='tc
     dev.connect_out(connection_out)
     dev.start()
 
-if __name__ == '__main__':
-    start_heartbeat(id=b'ROBOT' + str(randint(1, 100)).encode('UTF-8'))
+
+if __name__ == "__main__":
+    start_heartbeat(id=b"ROBOT" + str(randint(1, 100)).encode("UTF-8"))
     # wait for connections
     time.sleep(1)
 
@@ -65,6 +64,3 @@ if __name__ == '__main__':
         tic = time.time()
         numpy.dot(A, A.transpose())
         print("blocked for %.3f s" % (time.time() - tic))
-
-
-

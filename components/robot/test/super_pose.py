@@ -1,8 +1,9 @@
+from abc import ABC
+
 import numpy as np
-from components.robot.test import check_args
-from abc import ABC, abstractmethod
 import numpy.testing as npt
-from components.robot.test import pose
+
+from components.robot.test import check_args, pose
 
 
 class SuperPose(ABC):
@@ -178,11 +179,14 @@ class SuperPose(ABC):
 
     def __repr__(self):
         if len(self.data) >= 1:
-            str = '-----------------------------------------\n'
+            str = "-----------------------------------------\n"
             for each in self._list:
                 array = np.asarray(each)
-                str = str + np.array2string(array) \
-                      + '\n-----------------------------------------\n'
+                str = (
+                    str
+                    + np.array2string(array)
+                    + "\n-----------------------------------------\n"
+                )
             return str.rstrip("\n")  # Remove trailing newline character
         else:
-            return 'No matrix found'
+            return "No matrix found"

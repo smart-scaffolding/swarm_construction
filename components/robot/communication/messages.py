@@ -64,8 +64,16 @@ class PlacedBlockUpdateMessagePayload:
 
 
 class AnimationUpdateMessage(Message):
-    def __init__(self, robot_base, direction=None, trajectory=None, path=None, placedObstacle=False,
-                 obstacle=None, block_on_ee=False):
+    def __init__(
+        self,
+        robot_base,
+        direction=None,
+        trajectory=None,
+        path=None,
+        placedObstacle=False,
+        obstacle=None,
+        block_on_ee=False,
+    ):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base
         self.direction = direction
@@ -87,6 +95,7 @@ class MessageWrapper:
     def __init__(self, topic, message):
         self.topic = topic
         self.message = message
+
 
 class HeartBeat:
     def __init__(self, id, position):

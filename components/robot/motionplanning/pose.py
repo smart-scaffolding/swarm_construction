@@ -1,10 +1,10 @@
-import numpy as np
 import math
-from components.robot.motionplanning import check_args
-from components.robot.motionplanning.super_pose import SuperPose
 from random import uniform, randint
-from components.robot.motionplanning import transforms
 
+import numpy as np
+
+from components.robot.motionplanning import check_args, transforms
+from components.robot.motionplanning.super_pose import SuperPose
 
 
 # TODO Implement argument checking for all poses
@@ -12,7 +12,7 @@ from components.robot.motionplanning import transforms
 class SO2(SuperPose):
     # --------------------------------------------------------------------------------------
 
-    def __init__(self, args_in=None, unit='rad', null=False):
+    def __init__(self, args_in=None, unit="rad", null=False):
 
         check_args.unit_check(unit)
         check_args.so2_input_types_check(args_in)
@@ -25,10 +25,16 @@ class SO2(SuperPose):
         elif args_in is None:
             self._list.append(np.asmatrix(np.eye(2, 2)))
         elif isinstance(args_in, int) or isinstance(args_in, float):
-            if unit == 'deg':
+            if unit == "deg":
                 args_in = args_in * math.pi / 180
-            self._list.append(np.matrix([[math.cos(args_in), -math.sin(args_in)],
-                                         [math.sin(args_in), math.cos(args_in)]]))
+            self._list.append(
+                np.matrix(
+                    [
+                        [math.cos(args_in), -math.sin(args_in)],
+                        [math.sin(args_in), math.cos(args_in)],
+                    ]
+                )
+            )
         elif isinstance(args_in, SO2):
             check_args.so2_valid(args_in)
             for each_matrix in args_in:
@@ -44,14 +50,16 @@ class SO2(SuperPose):
             for each_angle in angles_deg:
                 self._list.append(transforms.rot2(each_angle))
         else:
-            raise AttributeError("\nINVALID instantiation. Valid scenarios:-\n"
-                                 "SO2(angle)\n"
-                                 "SO2(list of angles)\n"
-                                 "SO2(angle, unit)\n"
-                                 "SO2(list of angles, unit)\n"
-                                 "SO2()\n"
-                                 "SO2(so2)\n"
-                                 "SO2(np.matrix)\n")
+            raise AttributeError(
+                "\nINVALID instantiation. Valid scenarios:-\n"
+                "SO2(angle)\n"
+                "SO2(list of angles)\n"
+                "SO2(angle, unit)\n"
+                "SO2(list of angles, unit)\n"
+                "SO2()\n"
+                "SO2(so2)\n"
+                "SO2(np.matrix)\n"
+            )
         # Round all matrices to 15 decimal places
         # Removes eps values
         for i in range(len(self._list)):
@@ -60,9 +68,11 @@ class SO2(SuperPose):
     @staticmethod
     def is_valid(obj):
         """Checks if a np.matrix is a valid SO2 pose."""
-        if type(obj) is np.matrix \
-                and obj.shape == (2, 2) \
-                and abs(np.linalg.det(obj) - 1) < np.spacing([1])[0]:
+        if (
+            type(obj) is np.matrix
+            and obj.shape == (2, 2)
+            and abs(np.linalg.det(obj) - 1) < np.spacing([1])[0]
+        ):
             return True
         else:
             return False
@@ -79,43 +89,45 @@ class SO2(SuperPose):
             err = None
             try:
                 check_args.so2_valid(obj)
-            except AssertionError as err:
+            except AssertionError:
                 pass
             if err is None:
                 return SO2(obj)
             else:
-                raise ValueError('INVALID SO2 object.')
+                raise ValueError("INVALID SO2 object.")
         elif type(obj) is SE2:
             err = None
             try:
                 check_args.se2_valid(obj)
-            except AssertionError as err:
+            except AssertionError:
                 pass
             if err is None:
                 return SE2(obj)
             else:
-                raise ValueError('INVALID SE2 object')
+                raise ValueError("INVALID SE2 object")
         elif type(obj) is np.matrix and obj.shape == (2, 2):
             if SO2.is_valid(obj):
                 return SO2(obj)
             else:
-                raise ValueError('INVALID 2x2 np.matrix')
+                raise ValueError("INVALID 2x2 np.matrix")
         elif type(obj) is np.matrix and obj.shape == (3, 3):
             if SE2.is_valid(obj):
                 return SE2(obj)
             else:
-                raise ValueError('INVALID 3x3 np.matrix')
+                raise ValueError("INVALID 3x3 np.matrix")
         else:
-            raise ValueError("\nINVALID argument.\n"
-                             "check(obj) accepts valid:\n"
-                             "- SO2\n"
-                             "- SE2\n"
-                             "- np.matrix (2, 2)\n"
-                             "- np.matrix (3, 3)\n")
+            raise ValueError(
+                "\nINVALID argument.\n"
+                "check(obj) accepts valid:\n"
+                "- SO2\n"
+                "- SE2\n"
+                "- np.matrix (2, 2)\n"
+                "- np.matrix (3, 3)\n"
+            )
 
     @classmethod
     def rand(cls):
-        obj = cls(uniform(0, 360), unit='deg')
+        obj = cls(uniform(0, 360), unit="deg")
         return obj
 
     @staticmethod
@@ -141,7 +153,7 @@ class SO2(SuperPose):
 
     @unit.setter  # TODO Remove if useless
     def unit(self, val):
-        assert val == 'deg' or val == 'rad'
+        assert val == "deg" or val == "rad"
         self._unit = val
 
     @property
@@ -201,40 +213,21 @@ class SO2(SuperPose):
             new_pose.append(each_matrix)
         return new_pose
 
-    def plot(self):
-
-        angles = self.angle
-        if type(angles) == int or type(angles) == float:
-            angles = [angles]
-        z = [0, ] * len(angles)
-        x = []
-        y = []
-        if type(self) is SO2:
-            x = [0, ] * len(angles)
-            y = [0, ] * len(angles)
-        elif type(self) is SE2:
-            for each in self.transl:
-                x.append(each[0])
-                y.append(each[1])
-        pose_se3 = SE3.Rz(theta=angles, x=x, y=y, z=z)
-        axes_pose = [graphics.axesActor2d() for each in pose_se3]
-        vtk_mat = [transforms.np2vtk(each) for each in pose_se3]
-        pipeline = VtkPipeline()
-        axis_x_y = graphics.axes_x_y(pipeline.ren)
-
-        for i in range(pose_se3.length):
-            axes_pose[i].SetUserMatrix(vtk_mat[i])
-            axes_pose[i].SetAxisLabels(0)
-            pipeline.add_actor(axes_pose[i])
-
-        pipeline.add_actor(axis_x_y)
-        pipeline.render()
-
 
 # ---------------------------------------------------------------------------------
 class SE2(SO2):
     # ---------------------------------------------------------------------------------
-    def __init__(self, theta=None, unit='rad', x=None, y=None, rot=None, so2=None, se2=None, null=False):
+    def __init__(
+        self,
+        theta=None,
+        unit="rad",
+        x=None,
+        y=None,
+        rot=None,
+        so2=None,
+        se2=None,
+        null=False,
+    ):
         check_args.unit_check(unit)
         check_args.se2_constructor_args_check(x, y, rot, theta, so2, se2)
         self._list = []
@@ -242,7 +235,7 @@ class SE2(SO2):
         self._unit = unit
         if theta is None:
             theta = 0
-        if unit == 'deg':
+        if unit == "deg":
             if isinstance(theta, list):
                 for i in range(len(theta)):
                     theta[i] = theta[i] * math.pi / 180
@@ -251,7 +244,13 @@ class SE2(SO2):
 
         if null:
             pass
-        elif x is not None and y is not None and rot is None and se2 is None and so2 is None:
+        elif (
+            x is not None
+            and y is not None
+            and rot is None
+            and se2 is None
+            and so2 is None
+        ):
             if isinstance(x, list) and isinstance(y, list):
                 for i in range(len(x)):
                     self._transl.append((x[i], y[i]))
@@ -268,7 +267,13 @@ class SE2(SO2):
                 mat = transforms.rot2(theta)
                 mat = SO2.form_trans_matrix(mat, (x, y))
                 self._list.append(mat)
-        elif x is not None and y is not None and rot is not None and se2 is None and so2 is None:
+        elif (
+            x is not None
+            and y is not None
+            and rot is not None
+            and se2 is None
+            and so2 is None
+        ):
             if isinstance(x, list) and isinstance(y, list) and isinstance(rot, list):
                 for i in range(len(x)):
                     self._transl.append((x[i], y[i]))
@@ -298,29 +303,52 @@ class SE2(SO2):
             for each_matrix in so2:
                 mat = SO2.form_trans_matrix(each_matrix, (0, 0))
                 self._list.append(mat)
-        elif x is None and y is None and rot is None and se2 is None and so2 is None and isinstance(theta, list):
+        elif (
+            x is None
+            and y is None
+            and rot is None
+            and se2 is None
+            and so2 is None
+            and isinstance(theta, list)
+        ):
             for i in range(len(theta)):
                 mat = transforms.rot2(theta[i])
                 mat = SO2.form_trans_matrix(mat, (0, 0))
                 self._list.append(mat)
                 self._transl.append((0, 0))
-        elif x is None and y is None and rot is None and se2 is None and so2 is None and theta != 0:
+        elif (
+            x is None
+            and y is None
+            and rot is None
+            and se2 is None
+            and so2 is None
+            and theta != 0
+        ):
             mat = transforms.rot2(theta)
             mat = SO2.form_trans_matrix(mat, (0, 0))
             self._list.append(mat)
             self._transl.append((0, 0))
-        elif x is None and y is None and rot is None and se2 is None and so2 is None and theta == 0:
+        elif (
+            x is None
+            and y is None
+            and rot is None
+            and se2 is None
+            and so2 is None
+            and theta == 0
+        ):
             self._list.append(np.asmatrix(np.eye(3, 3)))
             self._transl.append((0, 0))
         else:
-            raise AttributeError("\nINVALID instantiation. Valid scenarios:-\n"
-                                 "- SE2(x, y)\n"
-                                 "- SE2(x, y, rot)\n"
-                                 "- SE2(x, y, theta)\n"
-                                 "- SE2(se2)\n"
-                                 "- SE2(so2)\n"
-                                 "- SE2(theta)\n"
-                                 "- SE2(rot)\n")
+            raise AttributeError(
+                "\nINVALID instantiation. Valid scenarios:-\n"
+                "- SE2(x, y)\n"
+                "- SE2(x, y, rot)\n"
+                "- SE2(x, y, theta)\n"
+                "- SE2(se2)\n"
+                "- SE2(so2)\n"
+                "- SE2(theta)\n"
+                "- SE2(rot)\n"
+            )
         # Round all matrices to 15 decimal places
         # Removes eps values
         for i in range(len(self._list)):
@@ -373,13 +401,17 @@ class SE2(SO2):
 
         new_x = []
         new_y = []
-        for each in new_transl:  # Get all x and y translations from list of new translation vectors
+        for (
+            each
+        ) in (
+            new_transl
+        ):  # Get all x and y translations from list of new translation vectors
             new_x.append(each[0, 0])
             new_y.append(each[1, 0])
 
         return SE2(x=new_x, y=new_y, rot=new_rot)
 
-    def xyt(self, unit='rad'):
+    def xyt(self, unit="rad"):
         """Return list of 3x1 dimension vectors containing x, y translation components and theta"""
         check_args.unit_check(unit)
         val = []
@@ -388,9 +420,9 @@ class SE2(SO2):
             x = self._transl[i][0]
             y = self._transl[i][1]
             theta = 0
-            if unit == 'deg':
+            if unit == "deg":
                 theta = self.angle[i] * 180 / math.pi
-            elif unit == 'rad':
+            elif unit == "rad":
                 theta = self.angle[i]
             val.append(np.matrix([[x], [y], [theta]]))
         return val
@@ -404,7 +436,7 @@ class SE2(SO2):
         x = uniform(-2, 3)
         y = uniform(-2, 3)
         theta = uniform(0, 360)
-        obj = cls(x=x, y=y, theta=theta, unit='deg')
+        obj = cls(x=x, y=y, theta=theta, unit="deg")
         return obj
 
 
@@ -438,14 +470,16 @@ class SO3(SuperPose):
         elif type(args_in) is np.matrix:
             self.np(args_in)
         else:
-            raise AttributeError("\n INVALID instantiation. Valid scenarios:\n"
-                                 "- SO3()\n"
-                                 "- SO3(np.matrix_3x3)\n"
-                                 "- SO3([np.matrix, np.matrix, np.matrix])\n"
-                                 "- SO3(se3)\n"
-                                 "- SO3([se3, se3, se3])\n"
-                                 "- SO3(so3)\n"
-                                 "- SO3([so3, so3, so3])\n")
+            raise AttributeError(
+                "\n INVALID instantiation. Valid scenarios:\n"
+                "- SO3()\n"
+                "- SO3(np.matrix_3x3)\n"
+                "- SO3([np.matrix, np.matrix, np.matrix])\n"
+                "- SO3(se3)\n"
+                "- SO3([se3, se3, se3])\n"
+                "- SO3(so3)\n"
+                "- SO3([so3, so3, so3])\n"
+            )
         # Round all matrices to 15 decimal places
         # Removes eps values
         for i in range(len(self._list)):
@@ -493,16 +527,16 @@ class SO3(SuperPose):
     def rand(cls):
         ran = randint(1, 3)
         if ran == 1:
-            rot = transforms.rotx(uniform(0, 360), unit='deg')
-            return cls(null=True).__fill([transforms.rotx(uniform(0, 360), unit='deg')])
+            transforms.rotx(uniform(0, 360), unit="deg")
+            return cls(null=True).__fill([transforms.rotx(uniform(0, 360), unit="deg")])
         elif ran == 2:
-            return cls(null=True).__fill([transforms.roty(uniform(0, 360), unit='deg')])
+            return cls(null=True).__fill([transforms.roty(uniform(0, 360), unit="deg")])
         elif ran == 3:
-            return cls(null=True).__fill([transforms.rotz(uniform(0, 360), unit='deg')])
+            return cls(null=True).__fill([transforms.rotz(uniform(0, 360), unit="deg")])
 
     @classmethod
     def eul(cls, theta, unit="rad"):
-        if unit == 'deg':
+        if unit == "deg":
             theta = [(each * math.pi / 180) for each in theta]
         z1_rot = transforms.rotz(theta[0])
         y_rot = transforms.roty(theta[1])
@@ -511,8 +545,10 @@ class SO3(SuperPose):
         return cls(null=True).__fill([zyz])
 
     @classmethod
-    def rpy(cls, thetas, order='zyx', unit='rad'):
-        return cls(null=True).__fill([transforms.rpy2r(thetas=thetas, order=order, unit=unit)])
+    def rpy(cls, thetas, order="zyx", unit="rad"):
+        return cls(null=True).__fill(
+            [transforms.rpy2r(thetas=thetas, order=order, unit=unit)]
+        )
 
     @classmethod
     def oa(cls, o, a):
@@ -525,17 +561,19 @@ class SO3(SuperPose):
         if type(theta) is float or type(theta) is int:
             theta = [theta]
         if type(theta) is list:
-            if unit == 'deg':
+            if unit == "deg":
                 theta = [(each * math.pi / 180) for each in theta]
                 return theta
             else:
                 return theta
         else:
-            raise AttributeError("\nInvalid argument type.\n"
-                                 "theta must be of type: \n"
-                                 "float, \n"
-                                 "int, or \n"
-                                 "list of float or int")
+            raise AttributeError(
+                "\nInvalid argument type.\n"
+                "theta must be of type: \n"
+                "float, \n"
+                "int, or \n"
+                "list of float or int"
+            )
 
     def __fill(self, data):
         for each in data:
@@ -547,66 +585,6 @@ class SO3(SuperPose):
         for each in self:
             pose_se3.append(transforms.r2t(each))
         return pose_se3
-
-    def plot(self):
-        pose_se3 = self
-        if type(self) is SO3:
-            pose_se3 = self.to_se3()
-        pipeline = VtkPipeline()
-        axes = [vtk.vtkAxesActor() for i in range(self.length)]
-        vtk_mat = [transforms.np2vtk(each) for each in pose_se3]
-        for i in range(len(axes)):
-            axes[i].SetUserMatrix(vtk_mat[i])
-            axes[i].SetAxisLabels(0)
-            pipeline.add_actor(axes[i])
-
-        pipeline.add_actor(graphics.axesCube(pipeline.ren))
-        pipeline.render(ui=False)
-        pipeline.screenshot()
-        pipeline.iren.Initialize()
-        pipeline.iren.Start()
-
-    def animate(self, other=None, duration=5, gif=None):
-        from .quaternion import UnitQuaternion
-        assert duration > 0
-        q1 = []
-        q2 = []
-        if other is not None:
-            assert type(other) is SO3
-            assert self.length == other.length
-            for i in range(self.length):
-                q1.append(UnitQuaternion.rot(self.data[i]))
-                q2.append(UnitQuaternion.rot(other.data[i]))
-        else:
-            for i in range(self.length):
-                q1.append(UnitQuaternion())
-                q2.append(UnitQuaternion.rot(self.data[i]))
-
-        self.pipeline = VtkPipeline(total_time_steps=duration*60, gif_file=gif)
-        axis_list = []
-        for i in range(self.length):
-            axis_list.append(vtk.vtkAxesActor())
-            axis_list[i].SetAxisLabels(0)
-            axis_list[i].SetUserMatrix(transforms.np2vtk(q1[i].q2tr()))
-            self.pipeline.add_actor(axis_list[i])
-
-        cube_axes = graphics.axesCube(self.pipeline.ren)
-        self.pipeline.add_actor(cube_axes)
-
-        def execute(obj, event):
-            nonlocal axis_list
-            self.pipeline.timer_tick()
-            print(self.pipeline.timer_count)
-
-            for i in range(len(axis_list)):
-                axis_list[i].SetUserMatrix(
-                    transforms.np2vtk(
-                        q1[i].interp(
-                            q2[i], r=1 / self.pipeline.total_time_steps * self.pipeline.timer_count).q2tr()))
-            self.pipeline.iren.GetRenderWindow().Render()
-
-        self.pipeline.iren.AddObserver('TimerEvent', execute)
-        self.pipeline.animate()
 
     def rotation(self):
         return self.mat
@@ -730,6 +708,7 @@ class SO3(SuperPose):
         from .util import ctraj
         from .common import ishomog
         from .transforms import r2t
+
         assert ishomog(T1, (3, 3)) or ishomog(T1, (4, 4)) or (type(self) == type(T1))
 
         T0 = self.data
@@ -737,9 +716,11 @@ class SO3(SuperPose):
             T1 = T1.data
 
         # Allow one to one, one to many, or many to one case.
-        assert (len(T0) == len(T1) == 1) \
-               or (len(T0) == 1 and len(T1) > 1) \
-               or (len(T0) > 1 and len(T1) == 1), " Allows only one to one, one to many, or many to one case."
+        assert (
+            (len(T0) == len(T1) == 1)
+            or (len(T0) == 1 and len(T1) > 1)
+            or (len(T0) > 1 and len(T1) == 1)
+        ), " Allows only one to one, one to many, or many to one case."
 
         if type(self) is SO3:
             for i in range(len(T0)):
@@ -765,9 +746,19 @@ class SE3(SO3):
         self._transl = []
         if null:
             pass
-        elif x is not None and y is not None and z is not None and rot is None and so3 is None and se3 is None:
-            if (type(x) is int or type(x) is float) and (type(y) is int or type(y) is float) and (
-                    type(z) is int or type(z) is float):
+        elif (
+            x is not None
+            and y is not None
+            and z is not None
+            and rot is None
+            and so3 is None
+            and se3 is None
+        ):
+            if (
+                (type(x) is int or type(x) is float)
+                and (type(y) is int or type(y) is float)
+                and (type(z) is int or type(z) is float)
+            ):
                 x = [x]
                 y = [y]
                 z = [z]
@@ -777,57 +768,112 @@ class SE3(SO3):
                     self._transl.append((x[i], y[i], z[i]))
                     rot = transforms.rotx(0)
                     self._list.append(SE3.form_trans_matrix(rot, (x[i], y[i], z[i])))
-        elif x is not None and y is not None and z is not None and rot is not None and so3 is None and se3 is None:
-            if (type(x) is int or type(x) is float) and \
-                    (type(y) is int or type(y) is float) and \
-                    (type(z) is int or type(z) is float) and \
-                    (type(rot) is np.matrix):
+        elif (
+            x is not None
+            and y is not None
+            and z is not None
+            and rot is not None
+            and so3 is None
+            and se3 is None
+        ):
+            if (
+                (type(x) is int or type(x) is float)
+                and (type(y) is int or type(y) is float)
+                and (type(z) is int or type(z) is float)
+                and (type(rot) is np.matrix)
+            ):
                 x = [x]
                 y = [y]
                 z = [z]
                 rot = [rot]
-            if isinstance(x, list) and isinstance(y, list) and isinstance(z, list) and isinstance(rot, list):
+            if (
+                isinstance(x, list)
+                and isinstance(y, list)
+                and isinstance(z, list)
+                and isinstance(rot, list)
+            ):
                 for i in range(len(x)):
                     self._transl.append((x[i], y[i], z[i]))
                     self._list.append(SE3.form_trans_matrix(rot[i], (x[i], y[i], z[i])))
-        elif x is not None and y is not None and z is not None and rot is None and so3 is not None and se3 is None:
-            if (type(x) is int or type(x) is float) and \
-                    (type(y) is int or type(y) is float) and \
-                    (type(z) is int or type(z) is float) and \
-                    (type(so3) is SO3):
+        elif (
+            x is not None
+            and y is not None
+            and z is not None
+            and rot is None
+            and so3 is not None
+            and se3 is None
+        ):
+            if (
+                (type(x) is int or type(x) is float)
+                and (type(y) is int or type(y) is float)
+                and (type(z) is int or type(z) is float)
+                and (type(so3) is SO3)
+            ):
                 x = [x]
                 y = [y]
                 z = [z]
             if isinstance(x, list) and isinstance(y, list) and isinstance(z, list):
                 for i in range(len(x)):
                     self._transl.append((x[i], y[i], z[i]))
-                    self._list.append(SE3.form_trans_matrix(so3.data[i], (x[i], y[i], z[i])))
-        elif x is None and y is None and z is None and rot is not None and so3 is None and se3 is None:
+                    self._list.append(
+                        SE3.form_trans_matrix(so3.data[i], (x[i], y[i], z[i]))
+                    )
+        elif (
+            x is None
+            and y is None
+            and z is None
+            and rot is not None
+            and so3 is None
+            and se3 is None
+        ):
             if type(rot) is np.matrix:
                 rot = [rot]
             if type(rot) is list:
                 for i in range(len(rot)):
                     self._transl.append((0, 0, 0))
                     self._list.append(SE3.form_trans_matrix(rot[i], (0, 0, 0)))
-        elif x is None and y is None and z is None and rot is None and so3 is not None and se3 is None:
+        elif (
+            x is None
+            and y is None
+            and z is None
+            and rot is None
+            and so3 is not None
+            and se3 is None
+        ):
             for each in so3:
                 self._transl.append((0, 0, 0))
                 self._list.append(SE3.form_trans_matrix(each, (0, 0, 0)))
-        elif x is None and y is None and z is None and rot is None and so3 is None and se3 is not None:
+        elif (
+            x is None
+            and y is None
+            and z is None
+            and rot is None
+            and so3 is None
+            and se3 is not None
+        ):
             for i in range(se3.length):
                 self._transl.append(se3.transl[i])
                 self._list.append(se3.data[i])
-        elif x is None and y is None and z is None and rot is None and so3 is None and se3 is None:
+        elif (
+            x is None
+            and y is None
+            and z is None
+            and rot is None
+            and so3 is None
+            and se3 is None
+        ):
             self._list.append(np.asmatrix(np.eye(4, 4)))
             self._transl.append((0, 0, 0))
         else:
-            raise AttributeError("\nINVALID instantiation. Valid scenarios:-\n"
-                                 "- SE3(x, y, z)\n"
-                                 "- SE3(x, y, z, rot)\n"
-                                 "- SE3(x, y, z, so3)\n"
-                                 "- SE3(so3)\n"
-                                 "- SE3(se3)\n"
-                                 "- SE3(rot)\n")
+            raise AttributeError(
+                "\nINVALID instantiation. Valid scenarios:-\n"
+                "- SE3(x, y, z)\n"
+                "- SE3(x, y, z, rot)\n"
+                "- SE3(x, y, z, so3)\n"
+                "- SE3(so3)\n"
+                "- SE3(se3)\n"
+                "- SE3(rot)\n"
+            )
 
         for i in range(len(self._list)):
             self._list[i] = np.asmatrix(self._list[i].round(15))
@@ -853,7 +899,7 @@ class SE3(SO3):
 
     @classmethod
     def se3(cls, args_in):
-        assert (type(args_in) is SE3)
+        assert type(args_in) is SE3
         pose_se3 = cls(null=True)
         for each in args_in:
             pose_se3.append(each)
@@ -863,6 +909,7 @@ class SE3(SO3):
     @classmethod
     def np(cls, arg_in):
         from .common import ishomog
+
         assert (type(arg_in) is np.matrix) or (type(arg_in) is list)
         se3 = cls(null=True)
         if type(arg_in) is list:
@@ -888,10 +935,11 @@ class SE3(SO3):
         y = uniform(-2, 2)
         z = uniform(-2, 2)
         if ran == 1:
-            return cls.Rx(theta, unit='deg', x=x, y=y, z=z)
+            return cls.Rx(theta, unit="deg", x=x, y=y, z=z)
         elif ran == 2:
-            return cls.Ry(theta, unit='deg', x=x, y=y, z=z)
+            return cls.Ry(theta, unit="deg", x=x, y=y, z=z)
         elif ran == 3:
-            return cls.Rz(theta, unit='deg', x=x, y=y, z=z)
+            return cls.Rz(theta, unit="deg", x=x, y=y, z=z)
+
 
 # ------------------------------------------------------------------------------------
