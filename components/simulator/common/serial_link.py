@@ -124,7 +124,7 @@ class SerialLink:
                 # actor_list[i].SetUserMatrix(transforms.np2vtk(t))
                 # actor_list[i].SetScale(self.scale)
 
-        t = t * self.tool
+        # t = t * self.tool
 
         if standing_on_block:
             actors.append(transforms.np2vtk(t))

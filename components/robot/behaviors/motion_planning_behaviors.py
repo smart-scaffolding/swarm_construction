@@ -46,12 +46,12 @@ def remove_block(
                 "SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS ARE BEING REMOVED"
             )
             logger.debug(f"BLOCK: {block_to_pick_up} {block_to_pick_up.location}")
-            simulator_communicator.robot_communicator.send_communication(
-                topic=block_to_pick_up.id,
-                message=BlockLocationMessage(
-                    block_id=block_to_pick_up.id, location=block_to_pick_up.location
-                ),
-            )
+            # simulator_communicator.robot_communicator.send_communication(
+            #     topic=block_to_pick_up.id,
+            #     message=BlockLocationMessage(
+            #         block_id=block_to_pick_up.id, location=block_to_pick_up.location
+            #     ),
+            # )
         # structure_communicator.robot_communicator.send_communication(topic=block_to_pick_up.id,
         #                                                              message=BlockLocationMessage(
         #                                                                  block_id=block_to_pick_up.id,
@@ -96,12 +96,12 @@ def place_block(
                 "SENDING COMMUNICATION TO SIMULATOR THAT BLOCKS HAVE BEEN PLACED"
             )
             logger.debug(f"BLOCK: {block} {block.location}")
-            simulator_communicator.robot_communicator.send_communication(
-                topic=block.id,
-                message=BlockLocationMessage(
-                    block_id=block.id, location=block.next_destination
-                ),
-            )
+            # simulator_communicator.robot_communicator.send_communication(
+            #     topic=block.id,
+            #     message=BlockLocationMessage(
+            #         block_id=block.id, location=block.next_destination
+            #     ),
+            # )
             # Change base not to none
 
         # structure_communicator.robot_communicator.send_communication(topic=block.id, message=BlockLocationMessage(
@@ -123,7 +123,21 @@ def move_to_point(
     previous_angles=None,
     robot_id=b"ROBOT_1",
     place_block=False,
+    block_on_ee=None,
 ):
+    """
+
+    :param direction:
+    :param point:
+    :param robot:
+    :param num_steps:
+    :param baseID:
+    :param previous_angles:
+    :param robot_id:
+    :param place_block:
+    :param block_on_ee:
+    :return:
+    """
     if baseID == "A":
         currentEEPos = robot.DEE_POSE[:3, 3]
         basePos = robot.AEE_POSE[:3, 3]
@@ -186,7 +200,9 @@ def move_to_point(
         angle_update = ik_angles
 
         robot.update_angles(angle_update, unit="deg")
-        send_to_simulator(base=base, trajectory=ik_angles, id=robot_id)
+        send_to_simulator(
+            base=base, trajectory=ik_angles, id=robot_id, holding_block=block_on_ee,
+        )
         # robot.base = base
 
     forward_1 = np.asmatrix(forward_1)
@@ -203,35 +219,46 @@ def follow_path(
     path,
     blueprint,
     place_block=False,
-    num_steps=10,
+    num_steps=5,
     offset=1.2,
     robot_id=b"ROBOT_1",
+    block_on_ee=None,
 ):
+    """
+
+    :param robot:
+    :param path:
+    :param blueprint:
+    :param place_block:
+    :param num_steps:
+    :param offset:
+    :param robot_id:
+    :param block_on_ee:
+    :return:
+    """
     for index, item in enumerate(path):
         previous_direction = "top"
         direction = item[-2]
         ee_to_move = item[-1]
         baseID = "D" if robot.primary_ee == "A" else "A"
 
+        if ee_to_move != robot.primary_ee:
+            logger.debug(f"EE to move ({ee_to_move}) != robot primary ee ({robot.primary_ee})")
+            logger.debug(f"Returning")
+            return robot
+        logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
+        logger.debug(f"Robot D Link: {robot.links[3].a} {robot.links[3].length}")
         point = list(item[0:3])
         if direction == "top":
             point[0] = item[0] + 0.5
             point[1] = item[1] + 0.5
-            # point[2] = item[2] + 1 + (1*place_block)
-
-            # if place_block and not robot.last_placed_block:
-            #     point[2] = item[2] + 2
-            #     robot.last_placed_block = True
-            # else:
-            #     point[2] = item[2] + 1
-            #     robot.last_placed_block = False
 
             if place_block:
                 point[2] = item[2] + 2
-                # robot.last_placed_block = True
+            elif block_on_ee:
+                point[2] = item[2] + 2
             else:
                 point[2] = item[2] + 1
-                # robot.last_placed_block = False
 
         elif direction == "bottom":
             point[0] = item[0] + 0.5
@@ -261,8 +288,15 @@ def follow_path(
             )
         )
 
+
+
         ee = robot.DEE_POSE if ee_to_move == "D" else robot.AEE_POSE
         ee_up = list(create_point_from_homogeneous_transform(ee))
+        if np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01:
+            logger.debug("No sense in moving, destination is where I am already at")
+            logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
+            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+            return robot
 
         ee_up = add_offset(ee_up, previous_direction, offset)
 
@@ -274,6 +308,7 @@ def follow_path(
             baseID=baseID,
             robot_id=robot_id,
             place_block=place_block,
+            block_on_ee=block_on_ee,
         )
         stop_above = np.copy(point)
         stop_above = add_offset(stop_above, direction, offset)
@@ -335,6 +370,7 @@ def follow_path(
                 robot_id=robot_id,
                 previous_angles=previous_angles_2[-1].flatten().tolist()[0],
                 place_block=place_block,
+                block_on_ee=block_on_ee,
             )
         # previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID=baseID, robot_id=robot_id,
         #                                   previous_angles=previous_angles_1[-1].flatten().tolist()[0],
@@ -348,6 +384,7 @@ def follow_path(
             robot_id=robot_id,
             previous_angles=previous_angles_2[-1].flatten().tolist()[0],
             place_block=place_block,
+            block_on_ee=block_on_ee,
         )
 
         robot.primary_ee = baseID  # Switching base to ee
@@ -372,9 +409,8 @@ def get_path_to_point(
     :return:
     """
     logger.debug("Getting a path to return")
-    # armReach = [2.38, 2.38]
-
-    armReach = [2.2, 1.5]
+    armReach = [2.38, 2.38]
+    # armReach = [2.2, 1.5]
 
     # armReach = [1.5, 1.5]
 
@@ -430,6 +466,7 @@ def get_path_to_point(
     except Exception as e:
         logger.exception(e)
         logger.error(f"Path planner unable to find path to {point}")
+        path = []
 
     # return [choice([(1, 0, 0, "Top"), (2, 0, 0, "Top"), (3, 0, 0, "Top"), (4, 0, 0, "Top")])]
     # path.pop(0)
@@ -465,6 +502,8 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         remove_block_key="remove_block/block_to_remove",
         blueprint_key="state/blueprint",
         blocks_robot_has_moved_key="state/blocks_robot_has_moved",
+        holding_blocks_key="state/blocks_being_held",
+        robot_model_key="state/robot",
     ):
         """
 
@@ -485,6 +524,8 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
             "remove_block_key": remove_block_key,
             "blueprint": blueprint_key,
             "blocks_robot_has_moved": blocks_robot_has_moved_key,
+            "holding_blocks_key": holding_blocks_key,
+            "robot_model_key": robot_model_key,
         }
 
         self.blackboard.register_key(
@@ -494,11 +535,19 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         self.state.register_key(
             key=blocks_robot_has_moved_key, access=py_trees.common.Access.WRITE
         )
+
+        self.state.register_key(
+            key=holding_blocks_key, access=py_trees.common.Access.WRITE
+        )
+        self.state.register_key(key=robot_model_key, access=py_trees.common.Access.WRITE)
         # self.blackboard.register_key(key=remove_block_key, access=py_trees.common.Access.READ)
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
     def setup(self):
+        """
+
+        """
         # self.parent_connection, self.child_connection = multiprocessing.Pipe()
         # self.remove_block_action = multiprocessing.Process(target=remove_block, args=(self.child_connection,
         # self.robot,
@@ -508,6 +557,9 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         pass
 
     def initialise(self):
+        """
+
+        """
         self.percentage_completion = 0
         self.block_to_remove = self.blackboard.get(str(self.key))
         self.blueprint = self.state.get(name=self.keys["blueprint"])
@@ -516,6 +568,10 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         # print(self.blackboard)
 
     def update(self):
+        """
+
+        :return:
+        """
         new_status = py_trees.common.Status.RUNNING
         # print(self.blackboard)
         # self.block_to_remove = self.blackboard.get(str(self.key))
@@ -539,7 +595,11 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
                 name=self.keys["blocks_robot_has_moved"]
             )
             blocks_robot_has_moved.append(
-                BlockMoved(location=self.block_to_remove.location, placed_block=False)
+                BlockMoved(
+                    id=self.block_to_remove.id,
+                    location=self.block_to_remove.location,
+                    placed_block=False,
+                )
             )
             self.state.set(
                 name=self.keys["blocks_robot_has_moved"], value=blocks_robot_has_moved
@@ -547,6 +607,17 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
 
             self.blueprint[self.block_to_remove.location] = 0
             self.state.set(name=self.keys["blueprint"], value=self.blueprint)
+            self.blocks_moved = self.state.get(self.keys["holding_blocks_key"])
+
+            self.robot_model = self.state.get(self.keys["robot_model_key"])
+            #
+            baseID = "D" if self.robot_model.primary_ee == "A" else "A"
+            #
+            # link_selector = 0 if baseID == "A" else 3
+            # self.robot_model.links[link_selector].length *= 2
+            self.blocks_moved[baseID] = self.block_to_remove.id
+            self.state.set(name=self.keys["holding_blocks_key"], value=self.blocks_moved)
+            # self.state.set(name=self.keys["robot_model_key"], value=self.robot_model)
         else:
             new_status = py_trees.common.Status.FAILURE
         if new_status == py_trees.common.Status.SUCCESS:
@@ -573,6 +644,10 @@ class RemoveBlock(py_trees.behaviour.Behaviour):
         return new_status
 
     def terminate(self, new_status):
+        """
+
+        :param new_status:
+        """
         self.logger.debug(
             "%s.terminate()[%s->%s]" % (self.__class__.__name__, self.status, new_status)
         )
@@ -608,6 +683,8 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         blueprint_key="state/blueprint",
         blocks_robot_has_moved_key="state/blocks_robot_has_moved",
         name="PlaceBlock",
+        holding_blocks_key="state/blocks_being_held",
+        robot_model_key="state/robot",
     ):
         """
         Default construction.
@@ -616,6 +693,7 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
         self.robot = robot
         self.key = key
+        self.robot_model_key = robot_model_key
         self.state_key = state_key
         self.blackboard = self.attach_blackboard_client("State", "place_block")
         self.blackboard.register_key(key=str(key), access=py_trees.common.Access.READ)
@@ -636,6 +714,8 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
             "blueprint": blueprint_key,
             "blocks_to_move_key": blocks_to_move_key,
             "blocks_robot_has_moved": blocks_robot_has_moved_key,
+            "holding_blocks_key": holding_blocks_key,
+            "robot_model_key": robot_model_key,
         }
 
         # self.blackboard.register_key()
@@ -647,10 +727,13 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
             key=self.keys["remove_block_key"], access=py_trees.common.Access.READ
         )
         self.state.register_key(key=blueprint_key, access=py_trees.common.Access.WRITE)
-
+        self.state.register_key(
+            key=holding_blocks_key, access=py_trees.common.Access.WRITE
+        )
         self.state.register_key(
             key=blocks_to_move_key, access=py_trees.common.Access.WRITE
         )
+        self.state.register_key(key=robot_model_key, access=py_trees.common.Access.WRITE)
         self.robot_communicator = robot_communicator
         self.simulator_communicator = simulator_communicator
 
@@ -705,11 +788,27 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
                 name=self.keys["blocks_robot_has_moved"]
             )
             blocks_robot_has_moved.append(
-                BlockMoved(location=self.location_to_place_block, placed_block=True)
+                BlockMoved(
+                    id=self.move_block.id,
+                    location=self.location_to_place_block,
+                    placed_block=True,
+                )
             )
             self.state.set(
                 name=self.keys["blocks_robot_has_moved"], value=blocks_robot_has_moved
             )
+            self.blocks_moved = self.state.get(self.keys["holding_blocks_key"])
+
+            self.robot_model = self.state.get(self.robot_model_key)
+
+            baseID = "D" if self.robot_model.primary_ee == "A" else "A"
+
+            self.blocks_moved[baseID] = None
+            # link_selector = 0 if baseID == "A" else 3
+            # self.robot_model.links[link_selector].length *= 0.5
+            # self.state.set(name=self.keys["robot_model_key"], value=self.robot_model)
+            logger.debug(f"Removing block id from blocks being held: {self.blocks_moved}")
+            self.state.set(name=self.keys["holding_blocks_key"], value=self.blocks_moved)
 
             self.blocks_to_move.pop()
             self.state.set(
@@ -780,6 +879,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         robot_model_key="robot",
         robot_status_key="robot_status",
         blueprint_key="blueprint",
+        holding_blocks_key="blocks_being_held",
     ):
         """
 
@@ -796,7 +896,11 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.blackboard = self.attach_blackboard_client("Navigation", "navigation")
         self.state = self.attach_blackboard_client("State", "state")
         self.key = key
-        self.keys = {"blueprint": blueprint_key, "robot_status": robot_status_key}
+        self.keys = {
+            "blueprint": blueprint_key,
+            "robot_status": robot_status_key,
+            "holding_blocks_key": holding_blocks_key,
+        }
         self.current_position_key = current_position_key
         self.robot_model_key = robot_model_key
         self.blackboard.register_key(key=self.key, access=py_trees.common.Access.READ)
@@ -807,6 +911,9 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.state.register_key(key=robot_model_key, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=blueprint_key, access=py_trees.common.Access.WRITE)
         self.state.register_key(key=robot_status_key, access=py_trees.common.Access.READ)
+        self.state.register_key(
+            key=holding_blocks_key, access=py_trees.common.Access.READ
+        )
 
         self.blueprint = blueprint
         self.robot_communicator = robot_communicator
@@ -816,9 +923,15 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.toggle_for_searching_every_other = True
 
     def setup(self):
+        """
+
+        """
         pass
 
     def initialise(self):
+        """
+
+        """
         self.reached_point = (True, None)
         self.point_to_reach = self.blackboard.get(self.key)
         self.blueprint = self.state.get(name=self.keys["blueprint"])
@@ -858,6 +971,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         # print(self.blackboard)
 
     def update(self):
+        """
+
+        :return:
+        """
         logger.debug(f"[{self.name.upper()}]: In Navigate to Point")
         new_status = py_trees.common.Status.RUNNING
         # try:
@@ -874,9 +991,15 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             modified_goal[2] -= 1
 
             robot_status = self.state.get(name=self.keys["robot_status"])
-            if np.linalg.norm(modified_goal - np.array(self.next_point[0:3])) <= 0.1 and (
-                robot_status == RobotBehaviors.BUILD
-                or robot_status == RobotBehaviors.FERRY
+            self.holding_blocks = self.state.get(self.keys["holding_blocks_key"])
+            self.block_on_ee = self.holding_blocks[self.robot.primary_ee]
+            if (
+                np.linalg.norm(modified_goal - np.array(self.next_point[0:3])) <= 0.1
+                and (
+                    robot_status == RobotBehaviors.BUILD
+                    or robot_status == RobotBehaviors.FERRY
+                )
+                # or self.block_on_ee
             ):
                 place_block = True
                 logger.debug("Placing block set to true")
@@ -887,21 +1010,22 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 robot_id=self.robot_id,
                 place_block=place_block,
                 blueprint=self.blueprint,
+                block_on_ee=self.block_on_ee,
             )
             self.state.set(name=self.robot_model_key, value=self.robot)
 
             base = (
                 self.robot.DEE_POSE
-                if self.robot.primary_ee == "D"
+                if self.robot.primary_ee == "A"
                 else self.robot.AEE_POSE
             )
 
             # base = create_point_from_homogeneous_transform(
             #     self.robot.base)
 
-            base_block_face = BlockFace(
-                base[0, 3], base[1, 3], base[2, 3], "top", self.robot.primary_ee
-            )
+            baseID = "D" if self.robot.primary_ee == "A" else "A"
+
+            base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
 
             # TODO block face is not correct
             self.state.set(name=self.current_position_key, value=base_block_face)
@@ -1054,6 +1178,9 @@ def create_root(
 
 
 def main():
+    """
+
+    """
     py_trees.logging.level = py_trees.logging.Level.INFO
     root = create_root(set_variables=True, robot="MyRobot")
 

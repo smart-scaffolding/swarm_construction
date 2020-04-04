@@ -74,6 +74,12 @@ def isrot(rot, dtest=False):
 
 
 def isrot2(rot, dtest=False):
+    """
+
+    :param rot:
+    :param dtest:
+    :return:
+    """
     if type(rot) is np.matrix:
         rot = [rot]
     if type(rot) is list:
@@ -155,6 +161,14 @@ def create_point_from_homogeneous_transform(T):
 
 
 def round_end_effector_position(ee_pos, direction, point, offset=None):
+    """
+
+    :param ee_pos:
+    :param direction:
+    :param point:
+    :param offset:
+    :return:
+    """
     if point is None:
         print("POINT IS NONE")
         if direction == "top" or direction == "bottom":
@@ -177,6 +191,14 @@ def round_end_effector_position(ee_pos, direction, point, offset=None):
 
 
 def flip_base(ee_pos, direction, value, animation=False):
+    """
+
+    :param ee_pos:
+    :param direction:
+    :param value:
+    :param animation:
+    :return:
+    """
     # ee_pos = np.copy(ee_pos).tolist()[0]
     # ee_pos[0] = math.floor(ee_pos[0])
     # ee_pos[2] = round(ee_pos[2])

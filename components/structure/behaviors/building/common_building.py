@@ -6,6 +6,9 @@ import numpy as np
 
 @total_ordering
 class Division:
+    """
+
+    """
     def __init__(
         self,
         x_range,
@@ -68,18 +71,34 @@ class Division:
         )
 
     def change_status(self, new_status):
+        """
+
+        :param new_status:
+        """
         self.status = new_status
 
     def claim(self, owner):
+        """
+
+        :param owner:
+        """
         self.owner = owner
 
     def calculate_centroid(self):
+        """
+
+        :return:
+        """
         x = (self.x_range[0] + self.x_range[1]) / 2
         y = (self.y_range[0] + self.y_range[1]) / 2
         z = (self.z_range[0] + self.z_range[1]) / 2
         return (x, y, z)
 
     def area(self):
+        """
+
+        :return:
+        """
         x_start, x_end = self.x_range
         y_start, y_end = self.y_range
         z_start, z_end = self.z_range
@@ -105,6 +124,9 @@ class Division:
 
 
 class Block:
+    """
+
+    """
     def __init__(self, final_destination, assigned=1, id=None):
         self.location = None
         self.next_destination = None
@@ -116,6 +138,11 @@ class Block:
         self.assigned_node = assigned
 
     def set_next_location(self, new_location):
+        """
+
+        :param new_location:
+        :return:
+        """
         if self.location is None:
             self.location = (0, 0, 1)
         else:
@@ -132,6 +159,9 @@ class Block:
 
 @total_ordering
 class Robot:
+    """
+
+    """
     def __init__(self, id, pos, claimed_division=None):
         self.id = id
         self.pos = pos
@@ -143,9 +173,17 @@ class Robot:
         self.status = None
 
     def update_status(self, status):
+        """
+
+        :param status:
+        """
         self.status = status
 
     def find_new_target(self, points):
+        """
+
+        :param points:
+        """
         # print(f"Unfiltered closest points: {self.closest_points}")
         self.closest_points.remove((self.desired_target_distance, self.desired_target))
         # print(f"Filtered closest points: {self.closest_points}")
@@ -186,6 +224,10 @@ class Robot:
 
 
 def spiral_sort():
+    """
+
+    :return:
+    """
     sorted_blueprint = []
 
     # blueprint = np.array([[[1, 2, 3], [4, 5, 6]],
@@ -210,6 +252,18 @@ def spiral_sort():
 def spiral_sort_helper(
     m, n, a, level=1, x_offset=0, y_offset=0, z_offset=0, block_placed=1
 ):
+    """
+
+    :param m:
+    :param n:
+    :param a:
+    :param level:
+    :param x_offset:
+    :param y_offset:
+    :param z_offset:
+    :param block_placed:
+    :return:
+    """
     sorted_array = []
     new_positions = []
     k = 0

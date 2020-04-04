@@ -36,7 +36,6 @@ class UpdateState(py_trees.behaviour.Behaviour):
         super().__init__(name=name)
         self.state = self.attach_blackboard_client("State", "state")
         self.blackboard = self.attach_blackboard_client()
-
         self.status_identifier = status_identifier
 
         self.keys = {
@@ -85,6 +84,7 @@ class UpdateState(py_trees.behaviour.Behaviour):
         self.robot_id = robot_communicator.robot_id
 
         self.blueprint = blueprint
+
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
     def initialise(self):

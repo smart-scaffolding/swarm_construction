@@ -232,6 +232,13 @@ class SerialLink:
         return 4
 
     def get_velocity_controller_term(self, index, total_num_points, offset):
+        """
+
+        :param index:
+        :param total_num_points:
+        :param offset:
+        :return:
+        """
         lower_vel_bound = (total_num_points / 3) - offset
         upper_vel_bound = total_num_points / 3
         num_via_points = total_num_points / 3
@@ -296,7 +303,14 @@ class SerialLink:
     def gripper_control_commands(
         self, engage_gripper, disengage_gripper, flip_pid, toggle_gripper
     ):
+        """
 
+        :param engage_gripper:
+        :param disengage_gripper:
+        :param flip_pid:
+        :param toggle_gripper:
+        :return:
+        """
         if engage_gripper:
             gripper_control = "0"
         elif disengage_gripper:
@@ -382,14 +396,24 @@ class SerialLink:
     def ikin(
         self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, placeBlock=False
     ):
+        """
 
+        :param goalPos:
+        :param gamma:
+        :param phi:
+        :param baseID:
+        :param simHuh:
+        :param elbow_up:
+        :param placeBlock:
+        :return:
+        """
         if self.DEBUG:
             print(f"(Ikin)goalPos:{goalPos} Gamma:{gamma} Phi:{phi} baseID:{baseID}")
         # Robot Parameters
         # L1 = 4.125  # L1 in inches
         # L2 = 6.43  # L2 in inches
         # blockWidth = 3
-        L1 = self.links[0].length
+        L1 = self.links[0].length * 10
         L2 = self.links[1].length
 
         relativePos, localGamma = self.handlePlaneChanges(
@@ -415,6 +439,8 @@ class SerialLink:
         x3 = new_x - L1 * cos(localGamma)
         z3 = new_z - L1 * sin(localGamma)  # reduce to the 2dof planar robot
 
+        # print(f"Square: {x3 ** 2 + z3 ** 2}")
+        # print(f"ACos: {(L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))}")
         beta = acos(
             (L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))
         )
@@ -441,7 +467,14 @@ class SerialLink:
         return q
 
     def handlePlaneChanges(self, goalPos, gamma, baseID, placeBlock=False):
+        """
 
+        :param goalPos:
+        :param gamma:
+        :param baseID:
+        :param placeBlock:
+        :return:
+        """
         if self.DEBUG:
             print(f"Pre plane handling:\n AEE_POSE: {self.AEE_POSE}")
             print(f"DEE POS: {self.DEE_POSE}")
@@ -584,24 +617,44 @@ class SerialLink:
         return relativePos, localGamma
 
     def getRx(self, theta):
+        """
+
+        :param theta:
+        :return:
+        """
         T = np.eye(4)
         T[1, :] = [0, cos(theta), -sin(theta), 0]
         T[2, :] = [0, sin(theta), cos(theta), 0]
         return T
 
     def getRy(self, theta):
+        """
+
+        :param theta:
+        :return:
+        """
         T = np.eye(4)
         T[0, :] = [cos(theta), 0, sin(theta), 0]
         T[2, :] = [-sin(theta), 0, cos(theta), 0]
         return T
 
     def getRz(self, theta):
+        """
+
+        :param theta:
+        :return:
+        """
         T = np.eye(4)
         T[0, :] = [cos(theta), -sin(theta), 0, 0]
         T[1, :] = [sin(theta), cos(theta), 0, 0]
         return T
 
     def resetEEStartingPoses(self, a_link_starting_pos, d_link_starting_pos):
+        """
+
+        :param a_link_starting_pos:
+        :param d_link_starting_pos:
+        """
         # self.AEEPOS = np.array([0,0,0]).T
         # self.AEEORI = np.array([0,0,1]).T
         # self.DEEPOS = np.array([2,0,0]).T
@@ -789,6 +842,11 @@ class Link(ABC):
         print("Link length: {}".format(self.length))
 
     def A(self, q):
+        """
+
+        :param q:
+        :return:
+        """
         sa = math.sin(self.alpha)
         ca = math.cos(self.alpha)
         if self.flip:

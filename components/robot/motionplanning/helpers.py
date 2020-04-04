@@ -97,7 +97,9 @@ class AnimationUpdate:
         self.obstacle = obstacle
 
 
-def send_to_simulator(base, trajectory, id=b"ROBOT_1"):
+def send_to_simulator(
+    base, trajectory, id=b"ROBOT_1", holding_block=None
+):
     import zmq
     from components.robot.communication.messages import (
         AnimationUpdateMessage,
@@ -143,7 +145,11 @@ def send_to_simulator(base, trajectory, id=b"ROBOT_1"):
     trajectory = trajectory * np.pi / 180
     # if place_block:
     #     base[2, 3] = base[2, 3] + 1
-    messagedata = AnimationUpdateMessage(robot_base=base, trajectory=trajectory)
+    messagedata = AnimationUpdateMessage(
+        robot_base=base,
+        trajectory=trajectory,
+        block_on_ee=holding_block,
+    )
     message_obj = MessageWrapper(topic=id, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
     z = zlib.compress(p)

@@ -82,41 +82,42 @@ path = [
     Point(8, 8, 0, "top", None),
 ]
 
-# block_id = "1"
-# block_id_2 = "2"
-# block_id_3 = "3"
-# path = [
-#     Point(3, 0, 1, "top", block_id),
-#     Point(2, 0, 0, "top", None),
-#     Point(4, 0, 1, "top", block_id),
-#     Point(3, 0, 0, "top", None),
-#     Point(5, 0, 1, "top", block_id),
-#     Point(4, 0, 0, "top", None),
-#     Point(2, 0, 0, "top", None),
-#     Point(3, 0, 0, "top", None),
-#     Point(0, 0, 1, "top", None),
-#     Point(2, 0, 0, "top", None),
-#     Point(4, 0, 1, "top", block_id_2),
-#     Point(3, 0, 0, "top", None),
-#     Point(5, 0, 2, "top", block_id_2),
-#     Point(4, 0, 0, "top", None),
-#     Point(2, 0, 0, "top", None),
-#     Point(3, 0, 0, "top", None),
-#     Point(0, 0, 1, "top", None),
-#     Point(2, 0, 0, "top", None),
-#     Point(4, 0, 1, "top", block_id_3),
-#     Point(3, 0, 0, "top", None),
-#     Point(5, 0, 2, "top", None),
-#     Point(4, 0, 1, "top", None),
-#     Point(5, 1, 3, "top", None),
-#     Point(5, 0, 2, "top", None),
-#     Point(4, 2, 3, "top", None),
-#     Point(5, 1, 3, "top", None),
-#     Point(3, 1, 1, "top", None),
-#     Point(4, 1, 2, "top", None),
-#     Point(2, 0, 0, "top", None),
-#     Point(0, 0, 0, "top", None),
-# ]
+block_id = "1"
+block_id_2 = "2"
+block_id_3 = "3"
+path = [
+    Point(3, 0, 1, "top", block_id),
+    Point(2, 0, 0, "top", None),
+    Point(4, 0, 1, "top", block_id),
+    Point(3, 0, 0, "top", None),
+    Point(5, 0, 1, "top", block_id),
+    Point(4, 0, 0, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(3, 0, 0, "top", None),
+    Point(0, 0, 1, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(4, 0, 1, "top", block_id_2),
+    Point(3, 0, 0, "top", None),
+    Point(5, 0, 2, "top", block_id_2),
+    Point(4, 0, 0, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(3, 0, 0, "top", None),
+    Point(0, 0, 1, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(4, 0, 1, "top", block_id_3),
+    Point(3, 0, 0, "top", None),
+    Point(5, 0, 2, "top", None),
+    Point(4, 0, 1, "top", None),
+    Point(5, 1, 3, "top", None),
+    Point(5, 0, 2, "top", None),
+    Point(4, 2, 3, "top", None),
+    Point(5, 1, 3, "top", None),
+    Point(3, 1, 1, "top", None),
+    Point(4, 1, 2, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(0, 0, 0, "top", None),
+]
+
 # D link moves forward one step and will stop at block height (use to reach
 # block)
 # path = [(3, 0, 1, 'top')]
@@ -220,6 +221,10 @@ USE_GRIPPERS = False
 
 
 def read_angles_from_robot(read_serial):
+    """
+
+    :param read_serial:
+    """
     print("Ready to read angles\n")
     while True:
         if read_serial.in_waiting > 0:
@@ -258,6 +263,12 @@ def read_angles_from_robot(read_serial):
 
 
 def get_command_line_input(arguments, index):
+    """
+
+    :param arguments:
+    :param index:
+    :return:
+    """
     output = None
     try:
         output = arguments[index]
@@ -268,6 +279,11 @@ def get_command_line_input(arguments, index):
 
 
 def get_path(case):
+    """
+
+    :param case:
+    :return:
+    """
     if case == "single_step":
         return [Point(3, 0, 0, "top", None)]
     if case == "single_step_block":
@@ -299,6 +315,11 @@ def get_path(case):
 
 
 def convert_js_bool(output):
+    """
+
+    :param output:
+    :return:
+    """
     return True if output == "true" else False
 
 

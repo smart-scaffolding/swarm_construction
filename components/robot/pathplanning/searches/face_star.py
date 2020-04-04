@@ -328,6 +328,7 @@ class FaceStar:
         route = self.faceStar(self.startFace, self.goalFace, ee_label)
         if route is None:
             # self.logger.error("Unable to find route between points {} and {}".format(self.startFace, self.goalFace))
+
             raise Exception("Path planning unable to find route")
 
         route = route[::-1]

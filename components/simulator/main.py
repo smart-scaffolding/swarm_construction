@@ -14,6 +14,7 @@ from logzero import logger
 import components.simulator.config as Config
 from blueprint_factory import BluePrintFactory
 from components.robot.communication.messages import BlockLocationMessage
+from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
 from components.simulator.model.create_actors import *
 from components.simulator.model.graphics import *
@@ -22,7 +23,7 @@ from components.simulator.model.model import Inchworm
 POINTS = False
 ROBOTS = 1
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_12x12x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
@@ -61,6 +62,9 @@ start_time = time.time()
 
 
 class WorkerThread(threading.Thread):
+    """
+
+    """
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(WorkerThread, self).__init__()
         self.robot_actors = {}
@@ -73,6 +77,9 @@ class WorkerThread(threading.Thread):
         self.block_q = block_q
 
     def run(self):
+        """
+
+        """
         while not self.stoprequest.isSet():
             try:
                 [topic, message] = self.socket.recv_multipart()
@@ -105,11 +112,18 @@ class WorkerThread(threading.Thread):
                 continue
 
     def join(self, timeout=None):
+        """
+
+        :param timeout:
+        """
         self.stoprequest.set()
         super(WorkerThread, self).join(timeout)
 
 
 class CalculatorThread(WorkerThread):
+    """
+
+    """
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(CalculatorThread, self).__init__(
             dir_q, result_q, filter_q, socket, pipeline, block_q
@@ -117,6 +131,9 @@ class CalculatorThread(WorkerThread):
         self.blocks = {}
 
     def run(self):
+        """
+
+        """
         while not self.stoprequest.isSet():
             if not self.dir_q.empty():
                 actor, message = self.dir_q.get()
@@ -161,6 +178,9 @@ class CalculatorThread(WorkerThread):
 
 
 class vtkTimerCallback:
+    """
+
+    """
     def __init__(
         self,
         renderer,
@@ -190,6 +210,11 @@ class vtkTimerCallback:
         self.previous_path = []
 
     def add_robot_to_sim(self, robot, result_queue):
+        """
+
+        :param robot:
+        :param result_queue:
+        """
         base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
 
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
@@ -209,6 +234,11 @@ class vtkTimerCallback:
         self.pipeline.animate()
 
     def create_new_thread(self, queue, result_queue):
+        """
+
+        :param queue:
+        :param result_queue:
+        """
         logger.debug("Callback: Creating new thread for robot")
         calculate_thread = CalculatorThread(
             dir_q=queue,
@@ -222,6 +252,11 @@ class vtkTimerCallback:
         calculate_thread.start()
 
     def execute(self, obj, event):
+        """
+
+        :param obj:
+        :param event:
+        """
         elapsed_time = time.time() - start_time
 
         text_actor.SetInput(
@@ -269,14 +304,21 @@ class vtkTimerCallback:
                                     transforms[index],
                                     new_block_tool,
                                 )
-
+                                logger.info(
+                                    f"Moving block {block_on_ee} to new location {transforms[index]}"
+                                )
                             else:
+
                                 _, new_block_tool = self.blocks[block_on_ee]
+                                logger.info(f"Already know about block {block_on_ee}")
                                 new_block_tool.SetUserMatrix(transforms[index])
-                                new_block_tool.SetScale(0.013)
+                                # new_block_tool.SetScale(0.013)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
+                                )
+                                logger.info(
+                                    f"Moving block {block_on_ee} to new location {transforms[index]}"
                                 )
 
                         elif index <= 3:
@@ -310,20 +352,58 @@ class vtkTimerCallback:
             if isinstance(message.message, BlockLocationMessage):
                 if topic in self.blocks:
                     location, actor = self.blocks[message.message.id]
-                    actor.SetPosition(message.message.location)
+                    actor.SetUserMatrix(
+                        create_homogeneous_transform_from_point(message.message.location)
+                    )
+                    # actor.SetPosition(message.message.location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                 else:
+                    location = np.array(message.message.location)
+                    print(message.message.location)
+                    print(message.message.location[0])
+
+                    location[0] = float(location[0] + 0)
+                    location[1] = float(location[1] + 0)
+                    location[2] = float(location[2] + 0)
+                    transform = np2vtk(create_homogeneous_transform_from_point(
+                        location
+                        ))
+
                     actor, _, _ = add_block(
-                        message.message.location, block_file_location=block_file_location
+                        (0, 0, 0), block_file_location=move_block_file_location
                     )
-                    self.blocks[message.message.id] = (message.message.location, actor)
+
+                    actor.SetUserMatrix(transform)
+                    actor.SetScale(0.013)
+                    self.blocks[message.message.id] = (transform, actor)
                     self.pipeline.add_actor(actor)
                     self.pipeline.animate()
+
+                    # transform = create_homogeneous_transform_from_point(
+                    #     message.message.location
+                    # )
+                    # new_block_tool, _, _ = add_block(
+                    #     (0, 0, 0), block_file_location=move_block_file_location,
+                    # )
+                    # # actors.append(new_block_tool)
+                    # new_block_tool.SetUserMatrix(transform)
+                    # new_block_tool.SetScale(0.013)
+                    # print("Updating block end position")
+                    # self.pipeline.ren.AddActor(new_block_tool)
+                    # self.blocks[message.message.id] = (
+                    #     transform,
+                    #     new_block_tool,
+                    # )
+                    # self.pipeline.add_actor(new_block_tool)
+                    # self.pipeline.animate()
         iren = obj
         iren.GetRenderWindow().Render()
 
 
 class Simulate:
+    """
+
+    """
     def __init__(self, robot_update, dir_q, result_q, new_actors, socket, block_q):
         self.robot_actors = {}
         self.worker_pool = []
@@ -335,6 +415,11 @@ class Simulate:
         self.block_q = block_q
 
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
+        """
+
+        :param blueprint:
+        :param colors:
+        """
         global BLUEPRINT
         global COLORS
         if blueprint is not None:
@@ -354,6 +439,11 @@ class Simulate:
         self.simulate()
 
     def save_video_end_program(self, signal_received, frame):
+        """
+
+        :param signal_received:
+        :param frame:
+        """
         for thread in self.pool:
             thread.join()
         for thread in self.worker_pool:
@@ -361,6 +451,9 @@ class Simulate:
         exit(0)
 
     def simulate(self):
+        """
+
+        """
         # robot_actors = {}
 
         self.pipeline = VtkPipeline(gif_file=None)
@@ -455,6 +548,10 @@ class Simulate:
 
 
 def axesUniversal():
+    """
+
+    :return:
+    """
     axes_uni = vtk.vtkAxesActor()
     axes_uni.SetXAxisLabelText("x'")
     axes_uni.SetYAxisLabelText("y'")

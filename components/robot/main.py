@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 from random import choice
 
 import numpy as np
@@ -6,7 +7,6 @@ import py_trees
 from logzero import logger
 
 import components.robot.config as config
-from blueprint_factory import BluePrintFactory
 from components.robot.behaviors.move_blocks import create_move_blocks_root
 from components.robot.behaviors.move_robot import create_move_robot_root
 from components.robot.behaviors.update_state import create_update_behavior_root
@@ -14,10 +14,10 @@ from components.robot.behaviors.wait import create__waiting_root
 from components.robot.common.states import *
 from components.robot.communication.communicate_with_simulator import (
     SimulatorCommunication,
-)
+    )
 from components.robot.communication.communicate_with_structure import (
     StructureCommunication,
-)
+    )
 from components.robot.communication.heartbeat import start_heartbeat
 from components.robot.communication.messages import *
 from components.robot.motionplanning import model, helpers
@@ -28,6 +28,9 @@ configuration = None
 
 
 class RobotMain:
+    """
+
+    """
     def __init__(self):
         self.configuration = config
         try:
@@ -139,6 +142,10 @@ class RobotMain:
 
 
 def command_line_argument_parser():
+    """
+
+    :return:
+    """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -167,11 +174,11 @@ if __name__ == "__main__":
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
-    a_end_effector = [4.5, 4.5, 1]
+    a_end_effector = [0.5, 0.5, 1]
     x, y, z = a_end_effector
     d_end_effector = [x + 2, y, z]
 
-    blueprint = BluePrintFactory().get_blueprint("Playground").data
+    blueprint = config.BLUEPRINT
 
     robot_model = model.Inchworm(
         blueprint=blueprint,
@@ -205,19 +212,100 @@ if __name__ == "__main__":
     writer.register_key(key="state/robot", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/blueprint", access=py_trees.common.Access.WRITE)
     writer.register_key(
+        key="state/blocks_being_held", access=py_trees.common.Access.WRITE
+    )
+    writer.register_key(
         key="state/blocks_robot_has_moved", access=py_trees.common.Access.WRITE
     )
 
     block = Block(final_destination=(6, 3, 1))
     block.set_next_location((3, 0, 1))
-    block.location = (3, 3, 1)
+    block.location = (6, 6, 1)
 
-    block2 = Block(final_destination=(6, 4, 1))
-    block2.set_next_location((3, 0, 2))
-    block2.location = (3, 2, 1)
+    block2 = Block(final_destination=(8, 6, 1))
+    block2.set_next_location((3, 1, 1))
+    block2.location = (3, 6, 1)
+
+    block3 = Block(final_destination=(8, 6, 1))
+    block3.set_next_location((0, 0, 1))
+    block3.location = (8, 8, 1)
+
+    block3 = Block(final_destination=(8, 6, 1))
+    block3.set_next_location((0, 0, 1))
+    block3.location = (8, 8, 1)
+
+
+    block4 = Block(final_destination=(8, 6, 1))
+    block4.set_next_location((1, 1, 1))
+    block4.location = (8, 0, 1)
+
+
+    block5 = Block(final_destination=(8, 6, 1))
+    block5.set_next_location((1, 0, 1))
+    block5.location = (0, 8, 1)
+
+    block6 = Block(final_destination=(8, 6, 1))
+    block6.set_next_location((1, 0, 1))
+    block6.location = (3, 2, 4)
+
+    block7 = Block(final_destination=(8, 6, 1))
+    block7.set_next_location((0, 0, 1))
+    block7.location = (3, 1, 1)
+
+    block8 = Block(final_destination=(8, 6, 1))
+    block8.set_next_location((1, 0, 1))
+    block8.location = (3, 2, 1)
+
+    block9 = Block(final_destination=(8, 6, 1))
+    block9.set_next_location((1, 1, 1))
+    block9.location = (4, 0, 1)
+
+    block10 = Block(final_destination=(8, 6, 1))
+    block10.set_next_location((0, 1, 1))
+    block10.location = (4, 1, 1)
+
+
+    block11 = Block(final_destination=(8, 6, 1))
+    block11.set_next_location((5, 0, 1))
+    block11.location = (0, 1, 1)
+
+    block12 = Block(final_destination=(8, 6, 1))
+    block12.set_next_location((5, 0, 2))
+    block12.location = (0, 1, 1)
+
+    block13 = Block(final_destination=(8, 6, 1))
+    block13.set_next_location((4, 0, 1))
+    block13.location = (0, 1, 1)
+
+    block14 = Block(final_destination=(8, 6, 1))
+    block14.set_next_location((3, 0, 2))
+    block14.location = (0, 1, 1)
+
+    block15 = Block(final_destination=(8, 6, 1))
+    block15.set_next_location((0, 0, 1))
+    block15.location = (10, 9, 8)
 
     blocks = [
-        block
+        # block,
+        # block2,
+        # block3,
+        # block4,
+
+        # block5
+
+        # block6
+
+        # block7,
+        # block8,
+        # block9,
+        # block10
+
+        block11,
+        block12,
+        block13,
+        # block14
+
+        # block15
         # Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
         # Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
         # Block(location=(3, 0, 2), next_destination=(7, 3, 1), final_destination=(7, 3, 1)),
@@ -228,7 +316,20 @@ if __name__ == "__main__":
         # Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
     ]
     blocks.reverse()
-    #
+
+    for block in blocks:
+        robot.simulator_communicator.send_communication(
+            topic=block.id,
+            message=BlockLocationMessage(
+                block_id=block.id,
+                location=(
+                    block.location[0],
+                    block.location[1] + 0.5,
+                    block.location[2] + 0.5,
+                ),
+            ),
+        )
+
     writer.set(name="state/blocks_to_move", value=blocks)
     # If setting to ferry/move,
     writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
@@ -241,10 +342,12 @@ if __name__ == "__main__":
     writer.set(name="state/point_to_reach", value=False)
     # writer.set(name="state/location_to_move_to",
     #            value=(6, 0, 1, "top"))
-    writer.set(name="state/location_to_move_to", value=(6, 0, 1, "top"))
+    writer.set(name="state/location_to_move_to", value=(10, 9, 8, "top"))
     writer.set(name="state/robot", value=robot_model)
     writer.set(name="state/blueprint", value=robot.blueprint)
     writer.set(name="state/blocks_robot_has_moved", value=[])
+
+    writer.set(name="state/blocks_being_held", value=defaultdict(lambda: None))
 
     choice(
         [
@@ -288,14 +391,56 @@ if __name__ == "__main__":
         id=robot.id,
     )
 
+    def generate_results():
+        """
+
+        """
+        print("I have been called")
+        import matplotlib.pyplot as plt
+        from collections import Counter
+
+        # Pie chart, where the slices will be ordered and plotted counter-clockwise:
+        blocks_robot_has_moved = writer.get(name="state/blocks_robot_has_moved")
+        block_count = Counter(blocks_robot_has_moved)
+        fig = plt.figure()
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.bar(list(block_count.keys()), list(block_count.values()))
+        plt.show()
+        logger.info(f"Number of times touched blocks: {sum(block_count.values())}")
+        logger.info(f"Blocks: {block_count.items()}")
+
+        plt.figure()
+        labels = "Frogs", "Hogs", "Dogs", "Logs"
+        sizes = [15, 30, 45, 10]
+        explode = (0, 0, 0, 0)  # only "explode" the 2nd slice (i.e. 'Hogs')
+
+        fig1, ax1 = plt.subplots()
+        ax1.pie(
+            sizes,
+            explode=explode,
+            labels=labels,
+            autopct="%1.1f%%",
+            shadow=True,
+            startangle=90,
+        )
+        ax1.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+        plt.show()
+        exit()
+
     # ####################
     # # Tick Tock
     # ####################
 
     while True:
+        # signal(SIGINT, generate_results)
+        # signal(SIGTERM, generate_results)
+
         try:
             behaviour_tree.tick()
         except KeyboardInterrupt:
+            print("I have received a keyboard interrupt")
+            generate_results()
             break
         except KeyError as e:
             logger.exception(f"Key error exception caught in main: {e}")

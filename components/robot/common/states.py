@@ -106,6 +106,7 @@ class BuildingStates(IntEnum):
 
 
 class BlockMoved:
-    def __init__(self, location, placed_block=False):
+    def __init__(self, id, location, placed_block=False):
+        self.id = id
         self.location = location
         self.placed_block = placed_block

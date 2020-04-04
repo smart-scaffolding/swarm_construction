@@ -1,9 +1,10 @@
 import logging
 
-import numpy as np
 import pyfiglet
 from logzero import setup_default_logger, LogFormatter
 from pusher import Pusher
+
+from blueprint_factory import BluePrintFactory
 
 DEBUG = True  # Use to control printing
 SIMULATE = True  # Use to control whether robot sends updates to simulator
@@ -56,14 +57,16 @@ pusher = Pusher(
 )
 
 
-blueprint1 = np.array([[[1] * 1] * 10] * 10)
+# blueprint1 = np.array([[[1] * 1] * 10] * 10)
+#
+# blueprint2 = np.array([[[0] * 1] * 10] * 10)
+#
+# blueprint3 = np.array([[[0] * 1] * 10] * 10)
+#
+# blueprint4 = np.array([[[0] * 1] * 10] * 10)
+#
+# blueprints = [blueprint1, blueprint2, blueprint3, blueprint4]
+#
+# BLUEPRINT = np.dstack(blueprints)
 
-blueprint2 = np.array([[[0] * 1] * 10] * 10)
-
-blueprint3 = np.array([[[0] * 1] * 10] * 10)
-
-blueprint4 = np.array([[[0] * 1] * 10] * 10)
-
-blueprints = [blueprint1, blueprint2, blueprint3, blueprint4]
-
-BLUEPRINT = np.dstack(blueprints)
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data

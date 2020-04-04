@@ -26,6 +26,9 @@ from .motion_planning_behaviors import get_motion_planning_behaviors_tree
 
 
 class MoveBlocks(py_trees.behaviour.Behaviour):
+    """
+
+    """
     def __init__(
         self,
         name,
@@ -85,6 +88,9 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
     def initialise(self):
+        """
+
+        """
         blocks_to_move_key = self.keys["blocks_to_move_key"]
         self.blocks_to_move = self.state.get(blocks_to_move_key)
 
@@ -93,6 +99,10 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
         self.robot_status = self.state.get(robot_status_key)
 
     def update(self):
+        """
+
+        :return:
+        """
         new_status = py_trees.common.Status.RUNNING
 
         if self.robot_status != self.status_identifier:
@@ -232,6 +242,15 @@ class Build(MoveBlocks):
 def create_move_blocks_root(
     robot_communicator, robot, blueprint, simulator_communicator=None, ferry=True
 ):
+    """
+
+    :param robot_communicator:
+    :param robot:
+    :param blueprint:
+    :param simulator_communicator:
+    :param ferry:
+    :return:
+    """
     if ferry:
         move_action = py_trees.decorators.RunningIsFailure(
             child=FerryBlocks(

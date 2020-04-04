@@ -21,15 +21,15 @@ class PlaygroundBlueprint(BlueprintTemplate):
     def __init__(self, name="Playground"):
         data = np.array(
             [
-                [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-                [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-                [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-                [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-                [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-                [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+                [[1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                [[1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                [[1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                [[1, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0]],
+                [[1, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0], [1, 1, 1, 1, 0, 0]],
+                [[1, 0, 0, 0, 0, 0], [1, 1, 1, 1, 0, 0], [1, 1, 1, 1, 0, 0]],
             ]
         )
-        super().__init__(data=data, length=6, width=3, height=4, name=name)
+        super().__init__(data=data, length=6, width=3, height=6, name=name)
 
 
 class Pyramid(BlueprintTemplate):
@@ -60,15 +60,17 @@ class Pyramid(BlueprintTemplate):
 
 
 class Cube(BlueprintTemplate):
-    def __init__(self, length, width, height, name="Cube"):
+    def __init__(self, length, width, height, name="Cube", pad=4):
         data = np.array([[[1] * height] * length] * width)
-        super().__init__(data=data, length=length, width=width, height=height, name=name)
+        data = pad_blueprint(data, pad)
+        super().__init__(data=data, length=length + pad, width=width + pad, height=height + pad, name=name)
 
 
 class Plane(BlueprintTemplate):
-    def __init__(self, length, width, name="Plane"):
+    def __init__(self, length, width, name="Plane", pad=4):
         data = np.array([[[1] * 1] * length] * width)
-        super().__init__(data=data, length=length, width=width, height=1, name=name)
+        data = pad_blueprint(data, pad)
+        super().__init__(data=data, length=length+pad, width=width+pad, height=1+pad, name=name)
 
 
 class BlockWorld(BlueprintTemplate):
@@ -91,12 +93,12 @@ class BlockWorld(BlueprintTemplate):
 
 
 class RandomWorld(BlueprintTemplate):
-    def __init__(self, length, width, height, name="RandomWorld", mu=0, sigma=1):
+    def __init__(self, length, width, height, name="RandomWorld", mu=0, sigma=1, pad=4):
         data = np.random.normal(mu, sigma, (length, width, height))
         data[data >= 0.5] = 1
         data[data < 0.5] = 0
-
-        super().__init__(data=data, length=length, width=width, height=height, name=name)
+        data = pad_blueprint(data, pad)
+        super().__init__(data=data, length=length + pad, width=width + pad, height=height + pad, name=name)
 
 
 class RandomWorldConstrained(BlueprintTemplate):
@@ -119,9 +121,27 @@ class RandomWorldConstrained(BlueprintTemplate):
 
 
 class StairwayToHeaven(BlueprintTemplate):
-    def __init__(self, name="StairwayToHeaven"):
+    def __init__(self, name="StairwayToHeaven", pad=4):
         data = np.load("../../blueprints/StairwayToHeaven.npy")
-        super().__init__(length=12, width=12, height=11, data=data, name=name)
+        data = pad_blueprint(data, pad)
+        super().__init__(length=12 + pad, width=12 + pad, height=11 + pad, data=data, name=name)
+
+def pad_blueprint(blueprint, pad):
+    pad_x_before = 0
+    pad_x_after = pad
+    pad_y_before = 0
+    pad_y_after = pad
+    pad_z_before = 0
+    pad_z_after = pad
+    return np.pad(
+        blueprint,
+        (
+            (pad_x_before, pad_x_after),
+            (pad_y_before, pad_y_after),
+            (pad_z_before, pad_z_after),
+            ),
+        "constant",
+        )
 
 
 if __name__ == "__main__":
