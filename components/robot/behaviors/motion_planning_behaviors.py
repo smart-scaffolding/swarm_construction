@@ -11,7 +11,6 @@ from components.robot.common.states import RobotBehaviors, BlockMoved, PathPlann
 from components.robot.communication.messages import (
     StatusUpdateMessage,
     PlacedBlockUpdateMessagePayload,
-    BlockLocationMessage,
 )
 from components.robot.motionplanning.common import create_point_from_homogeneous_transform
 from components.robot.motionplanning.helpers import *
@@ -243,7 +242,9 @@ def follow_path(
         baseID = "D" if robot.primary_ee == "A" else "A"
 
         if ee_to_move != robot.primary_ee:
-            logger.debug(f"EE to move ({ee_to_move}) != robot primary ee ({robot.primary_ee})")
+            logger.debug(
+                f"EE to move ({ee_to_move}) != robot primary ee ({robot.primary_ee})"
+            )
             logger.debug(f"Returning")
             return robot
         logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
@@ -287,8 +288,6 @@ def follow_path(
                 point, direction, path[index - 1][-1]
             )
         )
-
-
 
         ee = robot.DEE_POSE if ee_to_move == "D" else robot.AEE_POSE
         ee_up = list(create_point_from_homogeneous_transform(ee))

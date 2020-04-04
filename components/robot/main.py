@@ -14,10 +14,10 @@ from components.robot.behaviors.wait import create__waiting_root
 from components.robot.common.states import *
 from components.robot.communication.communicate_with_simulator import (
     SimulatorCommunication,
-    )
+)
 from components.robot.communication.communicate_with_structure import (
     StructureCommunication,
-    )
+)
 from components.robot.communication.heartbeat import start_heartbeat
 from components.robot.communication.messages import *
 from components.robot.motionplanning import model, helpers
@@ -31,6 +31,7 @@ class RobotMain:
     """
 
     """
+
     def __init__(self):
         self.configuration = config
         try:
@@ -230,15 +231,9 @@ if __name__ == "__main__":
     block3.set_next_location((0, 0, 1))
     block3.location = (8, 8, 1)
 
-    block3 = Block(final_destination=(8, 6, 1))
-    block3.set_next_location((0, 0, 1))
-    block3.location = (8, 8, 1)
-
-
     block4 = Block(final_destination=(8, 6, 1))
     block4.set_next_location((1, 1, 1))
     block4.location = (8, 0, 1)
-
 
     block5 = Block(final_destination=(8, 6, 1))
     block5.set_next_location((1, 0, 1))
@@ -264,7 +259,6 @@ if __name__ == "__main__":
     block10.set_next_location((0, 1, 1))
     block10.location = (4, 1, 1)
 
-
     block11 = Block(final_destination=(8, 6, 1))
     block11.set_next_location((5, 0, 1))
     block11.location = (0, 1, 1)
@@ -286,25 +280,35 @@ if __name__ == "__main__":
     block15.location = (10, 9, 8)
 
     blocks = [
-        # block,
-        # block2,
-        # block3,
+        block,
+        block2,
+        block3,
         # block4,
-
+        """
+        Group
+        """
         # block5
-
+        """
+        Group
+        """
         # block6
-
+        """
+        Group
+        """
         # block7,
         # block8,
         # block9,
         # block10
-
-        block11,
-        block12,
-        block13,
+        """
+        Group
+        """
+        # block11,
+        # block12,
+        # block13,
         # block14
-
+        """
+        Group
+        """
         # block15
         # Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
         # Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),

@@ -63,14 +63,22 @@ class Cube(BlueprintTemplate):
     def __init__(self, length, width, height, name="Cube", pad=4):
         data = np.array([[[1] * height] * length] * width)
         data = pad_blueprint(data, pad)
-        super().__init__(data=data, length=length + pad, width=width + pad, height=height + pad, name=name)
+        super().__init__(
+            data=data,
+            length=length + pad,
+            width=width + pad,
+            height=height + pad,
+            name=name,
+        )
 
 
 class Plane(BlueprintTemplate):
     def __init__(self, length, width, name="Plane", pad=4):
         data = np.array([[[1] * 1] * length] * width)
         data = pad_blueprint(data, pad)
-        super().__init__(data=data, length=length+pad, width=width+pad, height=1+pad, name=name)
+        super().__init__(
+            data=data, length=length + pad, width=width + pad, height=1 + pad, name=name
+        )
 
 
 class BlockWorld(BlueprintTemplate):
@@ -98,7 +106,13 @@ class RandomWorld(BlueprintTemplate):
         data[data >= 0.5] = 1
         data[data < 0.5] = 0
         data = pad_blueprint(data, pad)
-        super().__init__(data=data, length=length + pad, width=width + pad, height=height + pad, name=name)
+        super().__init__(
+            data=data,
+            length=length + pad,
+            width=width + pad,
+            height=height + pad,
+            name=name,
+        )
 
 
 class RandomWorldConstrained(BlueprintTemplate):
@@ -124,7 +138,10 @@ class StairwayToHeaven(BlueprintTemplate):
     def __init__(self, name="StairwayToHeaven", pad=4):
         data = np.load("../../blueprints/StairwayToHeaven.npy")
         data = pad_blueprint(data, pad)
-        super().__init__(length=12 + pad, width=12 + pad, height=11 + pad, data=data, name=name)
+        super().__init__(
+            length=12 + pad, width=12 + pad, height=11 + pad, data=data, name=name
+        )
+
 
 def pad_blueprint(blueprint, pad):
     pad_x_before = 0
@@ -139,9 +156,9 @@ def pad_blueprint(blueprint, pad):
             (pad_x_before, pad_x_after),
             (pad_y_before, pad_y_after),
             (pad_z_before, pad_z_after),
-            ),
+        ),
         "constant",
-        )
+    )
 
 
 if __name__ == "__main__":

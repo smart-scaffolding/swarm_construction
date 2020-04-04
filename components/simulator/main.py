@@ -65,6 +65,7 @@ class WorkerThread(threading.Thread):
     """
 
     """
+
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(WorkerThread, self).__init__()
         self.robot_actors = {}
@@ -124,6 +125,7 @@ class CalculatorThread(WorkerThread):
     """
 
     """
+
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(CalculatorThread, self).__init__(
             dir_q, result_q, filter_q, socket, pipeline, block_q
@@ -181,6 +183,7 @@ class vtkTimerCallback:
     """
 
     """
+
     def __init__(
         self,
         renderer,
@@ -365,9 +368,7 @@ class vtkTimerCallback:
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
-                    transform = np2vtk(create_homogeneous_transform_from_point(
-                        location
-                        ))
+                    transform = np2vtk(create_homogeneous_transform_from_point(location))
 
                     actor, _, _ = add_block(
                         (0, 0, 0), block_file_location=move_block_file_location
@@ -404,6 +405,7 @@ class Simulate:
     """
 
     """
+
     def __init__(self, robot_update, dir_q, result_q, new_actors, socket, block_q):
         self.robot_actors = {}
         self.worker_pool = []
