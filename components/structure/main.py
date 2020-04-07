@@ -6,27 +6,28 @@ from queue import PriorityQueue, Empty
 from logzero import logger
 
 import components.structure.config as config
-from blueprint_factory import BluePrintFactory
 from components.robot.communication.messages import (
     FerryBlocksStatusFinished,
     MovingFinished,
-)
+    )
 from components.structure.behaviors.building.assign_robots_min_distance import (
     assign_robots_closest_point,
-)
+    )
 from components.structure.behaviors.building.common_building import (
     spiral_sort_helper,
     Block,
     Robot,
-)
+    )
 from components.structure.behaviors.building.select_ferry_regions import (
     determine_ferry_regions,
-)
+    )
 from components.structure.behaviors.divide_structure import BuildingPlanner
-from components.structure.communication import RobotCommunication, SimulatorCommunication
+from components.structure.communication.communicate_with_robots import RobotCommunication
+from swarm_c_library.blueprint_factory import BluePrintFactory
+from components.structure.communication.communicate_with_simulator import SimulatorCommunication
 from components.structure.communication.heartbeater import start_hearbeat_detector
 from components.structure.communication.messages import *
-
+from components.robot.communication.messages import BlockLocationMessage
 configuration = None
 
 
@@ -476,9 +477,24 @@ class StructureMain:
                             ferry_blocks = self.get_new_block_location(
                                 node, filtered_blocks, type="BUILD"
                             )
+
+                            for block in ferry_blocks:
+                                if block.location[0] == 0.5 and block.location[1] == 0.5:
+                                    self.simulator_communicator.send_communication(
+                                        topic=block.id,
+                                        message=BlockLocationMessage(
+                                            block_id=block.id,
+                                            location=(
+                                                block.location[0],
+                                                block.location[1] + 0.5,
+                                                block.location[2] + 0.5,
+                                                ),
+                                            ),
+                                        )
+
                             # ferry_blocks = self.blocks_to_move
                             # ferry_blocks.reverse()
-                            structure.robot_communicator.send_communication(
+                            self.robot_communicator.send_communication(
                                 topic=robot.id,
                                 message=BuildMessage(
                                     blocks_to_move=ferry_blocks, blueprint=self.blueprint
@@ -496,12 +512,29 @@ class StructureMain:
                                 node, self.blocks_to_move, type="FERRY"
                             )
                             ferry_blocks = self.blocks_to_move
-                            structure.robot_communicator.send_communication(
+
+                            for block in ferry_blocks:
+                                if block.location[0] == 0.5 and block.location[1] == 0.5:
+                                    self.simulator_communicator.send_communication(
+                                        topic=block.id,
+                                        message=BlockLocationMessage(
+                                            block_id=block.id,
+                                            location=(
+                                                block.location[0],
+                                                block.location[1] + 0.5,
+                                                block.location[2] + 0.5,
+                                                ),
+                                            ),
+                                        )
+
+                            self.robot_communicator.send_communication(
                                 topic=robot.id,
                                 message=FerryBlocksMessage(
                                     blocks_to_move=ferry_blocks, blueprint=self.blueprint
                                 ),
                             )
+
+
 
                         logger.info(f"Got new block location: {self.blocks_to_move}")
 
@@ -781,7 +814,7 @@ if __name__ == "__main__":
     # blueprint_status.extend(blueprints)
     # blueprint_status = np.dstack(blueprint_status)
 
-    blueprint_status = BluePrintFactory().get_blueprint("Pyramid_10x10x4").data
+    blueprint_status = BluePrintFactory().get_blueprint("Plane_20x20x2").data
 
     division_size = 5
     structure = StructureMain(
@@ -795,6 +828,9 @@ if __name__ == "__main__":
     for i in range(num_of_levels):
         logger.info(f"STARTING LEVEL: {i}")
         blueprint = blueprint_status[:, :, i]
+        if len(blueprint.shape) < 3:
+            x, y = blueprint.shape
+            blueprint = blueprint.reshape((x, y, 1))
         structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)
 

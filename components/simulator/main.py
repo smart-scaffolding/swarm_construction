@@ -12,7 +12,7 @@ import zmq
 from logzero import logger
 
 import components.simulator.config as Config
-from blueprint_factory import BluePrintFactory
+from swarm_c_library.blueprint_factory import BluePrintFactory
 from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
@@ -20,10 +20,14 @@ from components.simulator.model.create_actors import *
 from components.simulator.model.graphics import *
 from components.simulator.model.model import Inchworm
 
+
+from collections import defaultdict
+
 POINTS = False
 ROBOTS = 1
-
-BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
+DEBUG = False
+DEBUG_TOGGLED = False
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
@@ -149,6 +153,7 @@ class CalculatorThread(WorkerThread):
                     trajectory = message.message.trajectory
                     path = message.message.path
                     block_on_ee = message.message.block_on_ee
+                    debug_text = message.message.debug_text
                     robot = Inchworm(base=base)
                     standing_on_block = True if block_on_ee else False
                     transform, robot_actors = robot.fkine(
@@ -164,7 +169,14 @@ class CalculatorThread(WorkerThread):
                     text_position[2, 3] = base[2, 3] + 2
                     text_position = np2vtk(text_position)
                     self.result_q.put(
-                        (actor, robot_actors, text_position, path, block_on_ee)
+                        (
+                            actor,
+                            robot_actors,
+                            text_position,
+                            path,
+                            block_on_ee,
+                            debug_text,
+                        )
                     )
 
                 """
@@ -175,7 +187,7 @@ class CalculatorThread(WorkerThread):
                     transform = np2vtk(new_position)
 
                     path = message.message.path
-                    print(f"Path: {path}")
+                    # print(f"Path: {path}")
                     self.result_q.put((actor, [transform], None, path, None))
 
 
@@ -211,6 +223,7 @@ class vtkTimerCallback:
         self.blocks = {}
         self.block_q = block_q
         self.previous_path = []
+        self.robot_texts = defaultdict(lambda: None)
 
     def add_robot_to_sim(self, robot, result_queue):
         """
@@ -230,6 +243,7 @@ class vtkTimerCallback:
 
         if rendered_id:
             self.pipeline.add_actor(rendered_id)
+            self.robot_texts[robot] = rendered_id
 
         logger.debug("Should be seeing new robot, as it was just added")
 
@@ -282,7 +296,14 @@ class vtkTimerCallback:
         for robot in self.robot_actors:
             actors, model, robot_queue, rendered_id = self.robot_actors[robot]
             if not robot_queue.empty():
-                robot_id, transforms, text_position, path, block_on_ee = robot_queue.get()
+                (
+                    robot_id,
+                    transforms,
+                    text_position,
+                    path,
+                    block_on_ee,
+                    debug_text,
+                ) = robot_queue.get()
 
                 for index in range(len(transforms)):
                     assembly = vtk.vtkAssembly()
@@ -301,31 +322,73 @@ class vtkTimerCallback:
                                 actors.append(new_block_tool)
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 new_block_tool.SetScale(0.013)
-                                print("Updating block end position")
+                                # print("Updating block end position")
                                 self.pipeline.ren.AddActor(new_block_tool)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
                                 )
-                                logger.info(
-                                    f"Moving block {block_on_ee} to new location {transforms[index]}"
-                                )
+                                # logger.info(
+                                #     f"Moving block {block_on_ee} to new location {transforms[index]}"
+                                # )
                             else:
 
                                 _, new_block_tool = self.blocks[block_on_ee]
-                                logger.info(f"Already know about block {block_on_ee}")
+                                # logger.info(f"Already know about block {block_on_ee}")
                                 new_block_tool.SetUserMatrix(transforms[index])
+                                color = vtk_named_colors(["Purple"])
+                                new_block_tool.GetProperty().SetColor(color[0])
                                 # new_block_tool.SetScale(0.013)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
                                 )
-                                logger.info(
-                                    f"Moving block {block_on_ee} to new location {transforms[index]}"
-                                )
+                                # logger.info(
+                                #     f"Moving block {block_on_ee} to new location"
+                                # )
 
                         elif index <= 3:
                             if index == 0:
+                                if self.robot_texts[robot_id]:
+                                    rendered_id = self.robot_texts[robot_id]
+                                global DEBUG_TOGGLED
+                                # if DEBUG_TOGGLED:
+                                if DEBUG:
+                                    if debug_text:
+                                        debug_text = debug_text.encode()
+                                    text_for_robot = robot_id + debug_text
+                                else:
+                                    text_for_robot = robot_id
+                                robot_text = vtk.vtkVectorText()
+                                robot_text.SetText(text_for_robot)
+                                robot_text_mapper = vtk.vtkPolyDataMapper()
+                                robot_text_mapper.SetInputConnection(
+                                    robot_text.GetOutputPort()
+                                )
+                                robot_text_actor = vtk.vtkActor()
+                                robot_text_actor.SetMapper(robot_text_mapper)
+                                robot_text_actor.GetProperty().SetColor(
+                                    0.5,
+                                    0.5,
+                                    0.5,
+                                )
+                                robot_text_actor.AddPosition(0, 0, 1)
+                                robot_text_actor.RotateX(60)
+                                robot_text_actor.SetScale(0.5)
+                                self.pipeline.remove_actor(rendered_id)
+
+                                self.pipeline.add_actor(robot_text_actor)
+                                self.pipeline.ren.AddActor(robot_text_actor)
+                                self.robot_texts[robot_id] = robot_text_actor
+                                self.robot_actors[robot] = (
+                                    actors,
+                                    model,
+                                    robot_queue,
+                                    robot_text_actor,
+                                )
+                                rendered_id = robot_text_actor
+                                DEBUG_TOGGLED = False
+
                                 rendered_id.SetUserMatrix(text_position)
                             actors[index].SetUserMatrix(transforms[index])
                             actors[index].SetScale(0.013)
@@ -362,8 +425,8 @@ class vtkTimerCallback:
                     self.blocks[message.message.id] = (message.message.location, actor)
                 else:
                     location = np.array(message.message.location)
-                    print(message.message.location)
-                    print(message.message.location[0])
+                    # print(message.message.location)
+                    # print(message.message.location[0])
 
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
@@ -371,7 +434,9 @@ class vtkTimerCallback:
                     transform = np2vtk(create_homogeneous_transform_from_point(location))
 
                     actor, _, _ = add_block(
-                        (0, 0, 0), block_file_location=move_block_file_location
+                        (0, 0, 0),
+                        block_file_location=move_block_file_location,
+                        first_time=True,
                     )
 
                     actor.SetUserMatrix(transform)
@@ -401,6 +466,15 @@ class vtkTimerCallback:
         iren.GetRenderWindow().Render()
 
 
+def Keypress(obj, event):
+    key = obj.GetKeySym()
+    if key == "d":
+        global DEBUG
+        global DEBUG_TOGGLED
+        DEBUG = True if DEBUG is False else False
+        DEBUG_TOGGLED = True
+
+
 class Simulate:
     """
 
@@ -415,6 +489,8 @@ class Simulate:
         self.new_actors = new_actors
         self.socket = socket
         self.block_q = block_q
+        self.LastPickedActor = None
+        self.LastPickedProperty = vtk.vtkProperty()
 
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
         """
@@ -451,6 +527,38 @@ class Simulate:
         for thread in self.worker_pool:
             thread.join()
         exit(0)
+
+    def leftButtonPressEvent(self, obj, event):
+        clickPos = self.pipeline.iren.GetEventPosition()
+
+        picker = vtk.vtkPropPicker()
+        picker.Pick(clickPos[0], clickPos[1], 0, self.pipeline.ren)
+
+        # get the new
+        self.NewPickedActor = picker.GetActor()
+
+        # If something was selected
+        if self.NewPickedActor:
+            # If we picked something before, reset its property
+            if self.LastPickedActor:
+                self.LastPickedActor.GetProperty().DeepCopy(self.LastPickedProperty)
+            if self.NewPickedActor == self.LastPickedActor:
+                self.NewPickedActor.GetProperty().DeepCopy(self.LastPickedProperty)
+                return
+            # Save the property of the picked actor so that we can
+            # restore it next time
+            self.LastPickedProperty.DeepCopy(self.NewPickedActor.GetProperty())
+            # Highlight the picked actor by changing its properties
+            # self.NewPickedActor.
+            self.NewPickedActor.GetProperty().SetColor(1.0, 0.0, 0.0)
+            self.NewPickedActor.GetProperty().SetDiffuse(1.0)
+            self.NewPickedActor.GetProperty().SetSpecular(0.0)
+
+            # save the last picked actor
+            self.LastPickedActor = self.NewPickedActor
+
+        # self.pipeline.iren.OnLeftButtonDown()
+        return
 
     def simulate(self):
         """
@@ -489,6 +597,9 @@ class Simulate:
         )
 
         self.pipeline.iren.AddObserver("TimerEvent", cb.execute)
+        self.pipeline.iren.AddObserver("LeftButtonPressEvent", self.leftButtonPressEvent)
+        self.pipeline.iren.AddObserver("KeyPressEvent", Keypress)
+
         self.pipeline.iren.CreateRepeatingTimer(10)
 
         setup_structure_display(

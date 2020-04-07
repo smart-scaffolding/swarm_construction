@@ -62,8 +62,10 @@ class VtkPipeline:
         try:
             self.actor_list.remove(actor)
             self.ren.RemoveActor(actor)
+            return True
         except ValueError as e:
             print(e)
+            return False
 
     def set_camera(self):
         cam = self.ren.GetActiveCamera()
@@ -241,7 +243,7 @@ def axesCubeFloor(
     x_bound=np.matrix([[-1.5, 1.5]]),
     y_bound=np.matrix([[-1.5, 1.5]]),
     z_bound=np.matrix([[-1.5, 1.5]]),
-    position=None
+    position=None,
 ):
     axes = axesCube(ren, x_bound=x_bound, y_bound=y_bound, z_bound=z_bound)
     assembly = vtk.vtkAssembly()

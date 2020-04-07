@@ -4,7 +4,7 @@ import pyfiglet
 from logzero import setup_default_logger, LogFormatter
 from pusher import Pusher
 
-from blueprint_factory import BluePrintFactory
+from swarm_c_library.blueprint_factory import BluePrintFactory
 
 DEBUG = True  # Use to control printing
 SIMULATE = True  # Use to control whether robot sends updates to simulator
@@ -69,4 +69,4 @@ pusher = Pusher(
 #
 # BLUEPRINT = np.dstack(blueprints)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data

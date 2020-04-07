@@ -5,6 +5,7 @@ class Message:
     """
 
     """
+
     def __init__(self, message_id):
         self.message_id = message_id
 
@@ -16,6 +17,7 @@ class FerryBlocksMessage(Message):
     """
 
     """
+
     def __init__(self, blocks_to_move):
         super().__init__(message_id=RobotBehaviors.FERRY)
         self.blocks_to_move = blocks_to_move
@@ -25,6 +27,7 @@ class FerryBlocksStatusFinished:
     """
 
     """
+
     def __init__(self, blocks_moved):
         # super().__init__(message_id=RobotBehaviors.FERRY)
         self.finished = True
@@ -35,6 +38,7 @@ class MovingFinished:
     """
 
     """
+
     def __init__(self):
         # super().__init__(message_id=RobotBehaviors.FERRY)
         self.finished = True
@@ -44,6 +48,7 @@ class BuildMessage(Message):
     """
 
     """
+
     def __init__(self, blocks_to_move):
         super().__init__(message_id=RobotBehaviors.BUILD)
         self.blocks_to_move = blocks_to_move
@@ -53,6 +58,7 @@ class WaitMessage(Message):
     """
 
     """
+
     def __init__(self):
         super().__init__(message_id=RobotBehaviors.WAIT)
 
@@ -61,6 +67,7 @@ class MoveToPointMessage(Message):
     """
 
     """
+
     def __init__(self, destination):
         super().__init__(message_id=RobotBehaviors.MOVE)
         self.location_to_move_to = destination
@@ -70,6 +77,7 @@ class StatusUpdateMessage(Message):
     """
 
     """
+
     def __init__(self, status, payload):
         super(StatusUpdateMessage, self).__init__(message_id=RobotBehaviors.UPDATE)
         self.robot_status = status
@@ -80,6 +88,7 @@ class StatusUpdateMessagePayload:
     """
 
     """
+
     def __init__(self, robot_base):
         self.robot_base = robot_base
 
@@ -88,6 +97,7 @@ class PlacedBlockUpdateMessagePayload:
     """
 
     """
+
     def __init__(self, robot_base, block_placed):
         self.robot_base = robot_base
         self.block_placed = block_placed
@@ -97,6 +107,7 @@ class AnimationUpdateMessage(Message):
     """
 
     """
+
     def __init__(
         self,
         robot_base,
@@ -106,6 +117,7 @@ class AnimationUpdateMessage(Message):
         placedObstacle=False,
         obstacle=None,
         block_on_ee=False,
+        debug_text=None,
     ):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base
@@ -115,12 +127,14 @@ class AnimationUpdateMessage(Message):
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
         self.block_on_ee = block_on_ee
+        self.debug_text = debug_text
 
 
 class BlockLocationMessage:
     """
 
     """
+
     def __init__(self, block_id, location, removed=False):
         self.id = block_id
         self.location = location
@@ -131,6 +145,7 @@ class MessageWrapper:
     """
 
     """
+
     def __init__(self, topic, message):
         self.topic = topic
         self.message = message
@@ -140,6 +155,7 @@ class HeartBeat:
     """
 
     """
+
     def __init__(self, id, position):
         self.id = id
         self.position = position

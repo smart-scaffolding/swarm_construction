@@ -56,10 +56,10 @@ def remove_block(
         #                                                                  block_id=block_to_pick_up.id,
         #                                                                  location=block_to_pick_up.location,
         #                                                                  removed=True))
-        time.sleep(0.05)
+        # time.sleep(0.05)
         logger.info(f"Robot has removed up block {block_to_pick_up}")
 
-        time.sleep(0.05)
+        # time.sleep(0.05)
         return True
     except KeyboardInterrupt:
         pass
@@ -83,7 +83,7 @@ def place_block(
     """
     try:
         logger.info(f"Robot is placing block at location {location_to_set_block}")
-        time.sleep(0.1)
+        # time.sleep(0.1)
         if config.SIMULATE:
             simulator_communicator.robot_communicator.send_communication(
                 message=PlacedBlockUpdateMessagePayload(
@@ -107,7 +107,7 @@ def place_block(
         #         block_id=block.id, location=block.next_destination, removed=False))
         logger.info(f"Robot has placed block at: {location_to_set_block}")
 
-        time.sleep(0.1)
+        # time.sleep(0.1)
         return True
     except KeyboardInterrupt:
         pass
@@ -200,7 +200,11 @@ def move_to_point(
 
         robot.update_angles(angle_update, unit="deg")
         send_to_simulator(
-            base=base, trajectory=ik_angles, id=robot_id, holding_block=block_on_ee,
+            base=base,
+            trajectory=ik_angles,
+            id=robot_id,
+            holding_block=block_on_ee,
+            debug_text=f"Base ID: {baseID}\nHolding Block: {block_on_ee}\nBase: {base[0:3, 3]}",
         )
         # robot.base = base
 
@@ -217,7 +221,7 @@ def follow_path(
     robot,
     path,
     blueprint,
-    place_block=False,
+    place_block=0,
     num_steps=5,
     offset=1.2,
     robot_id=b"ROBOT_1",
@@ -238,6 +242,7 @@ def follow_path(
     for index, item in enumerate(path):
         previous_direction = "top"
         direction = item[-2]
+        direction = "top"  # TODO: REMOVE ME
         ee_to_move = item[-1]
         baseID = "D" if robot.primary_ee == "A" else "A"
 
@@ -246,6 +251,13 @@ def follow_path(
                 f"EE to move ({ee_to_move}) != robot primary ee ({robot.primary_ee})"
             )
             logger.debug(f"Returning")
+            return robot
+        if place_block == 1 and block_on_ee is None:
+            logger.exception(
+                f"Was told to place block, but there is no block on end effector"
+            )
+            logger.exception(f"Returning")
+            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
             return robot
         logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
         logger.debug(f"Robot D Link: {robot.links[3].a} {robot.links[3].length}")
@@ -386,7 +398,8 @@ def follow_path(
             block_on_ee=block_on_ee,
         )
 
-        robot.primary_ee = baseID  # Switching base to ee
+        robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+        # robot.primary_ee = baseID  # Switching base to ee
 
     return robot
 
@@ -398,6 +411,7 @@ def get_path_to_point(
     simulator_communicator,
     blueprint,
     old_path=None,
+    desired_ee="A",
 ):
     """
     Returns a path to the specified point
@@ -413,7 +427,7 @@ def get_path_to_point(
 
     # armReach = [1.5, 1.5]
 
-    logger.debug(f"BLUEPRINT: {blueprint}")
+    # logger.debug(f"BLUEPRINT: {blueprint}")
 
     faceStarPlanner = FaceStar(blueprint, armReach)
 
@@ -457,7 +471,18 @@ def get_path_to_point(
     current_position.yPos = int(current_position.yPos)
     current_position.zPos = int(current_position.zPos) - 1
 
+    if current_position.ee_on_face != robot.primary_ee:
+        logger.exception(
+            f"Start face ee ({current_position.ee_on_face}) does not match goal face ee ({robot.primary_ee})"
+        )
+        logger.exception(
+            f"Current Position: {(current_position.xPos, current_position.yPos, current_position.zPos, current_position.ee_on_face)}"
+        )
+        logger.exception(
+            f"Goal Position: {(point[0], point[1], point[2], direction, desired_ee)}"
+        )
     try:
+
         path = faceStarPlanner.get_path(
             start=current_position,
             goal=BlockFace(point[0], point[1], point[2], direction, robot.primary_ee),
@@ -803,6 +828,7 @@ class PlaceBlock(py_trees.behaviour.Behaviour):
             baseID = "D" if self.robot_model.primary_ee == "A" else "A"
 
             self.blocks_moved[baseID] = None
+            # self.blocks_moved[self.robot_model.primary_ee] = None
             # link_selector = 0 if baseID == "A" else 3
             # self.robot_model.links[link_selector].length *= 0.5
             # self.state.set(name=self.keys["robot_model_key"], value=self.robot_model)
@@ -945,27 +971,37 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         )
         logger.info(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
         self.robot = self.state.get(self.robot_model_key)
+        self.holding_blocks = self.state.get(self.keys["holding_blocks_key"])
 
-        if self.inching:
-            if self.toggle_for_searching_every_other or len(self.path) < 2:
-                self.path = get_path_to_point(
-                    self.robot,
-                    current_position=self.current_position,
-                    destination=self.point_to_reach,
-                    simulator_communicator=self.robot_communicator,
-                    blueprint=self.blueprint,
-                )
-                self.toggle_for_searching_every_other = False
-            else:
-                self.toggle_for_searching_every_other = True
+        basedID = "A" if self.robot.primary_ee == "D" else "D"
+        if self.holding_blocks[self.robot.primary_ee] is not None:
+            goal_ee = self.robot.primary_ee
+        elif self.holding_blocks[basedID] is not None:
+            goal_ee = basedID
         else:
-            self.path = get_path_to_point(
-                self.robot,
-                current_position=self.current_position,
-                destination=self.point_to_reach,
-                simulator_communicator=self.robot_communicator,
-                blueprint=self.blueprint,
-            )
+            goal_ee = self.robot.primary_ee
+        # if self.inching:
+        #     if self.toggle_for_searching_every_other or len(self.path) < 2:
+        #         self.path = get_path_to_point(
+        #             self.robot,
+        #             current_position=self.current_position,
+        #             destination=self.point_to_reach,
+        #             simulator_communicator=self.robot_communicator,
+        #             blueprint=self.blueprint,
+        #             desired_ee=goal_ee
+        #         )
+        #         self.toggle_for_searching_every_other = False
+        #     else:
+        #         self.toggle_for_searching_every_other = True
+        # else:
+        self.path = get_path_to_point(
+            self.robot,
+            current_position=self.current_position,
+            destination=self.point_to_reach,
+            simulator_communicator=self.robot_communicator,
+            blueprint=self.blueprint,
+            desired_ee=goal_ee,
+        )
 
         # print(self.blackboard)
 
@@ -980,12 +1016,12 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         #     self.point_to_reach = self.blackboard.get(str(self.key))
         # except KeyError:
         #     return py_trees.common.Status.FAILURE
-
+        self.blueprint = self.state.get(name=self.keys["blueprint"])
         # self.percentage_completion = 0
         if len(self.path) > 0 and self.reached_point[0]:
             self.next_point = self.path.pop(0)
 
-            place_block = False
+            place_block = 0
             modified_goal = np.array(self.point_to_reach[:3])
             modified_goal[2] -= 1
 
@@ -1000,8 +1036,19 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 )
                 # or self.block_on_ee
             ):
-                place_block = True
-                logger.debug("Placing block set to true")
+                logger.exception("This is the blueprint at this point")
+                logger.exception(
+                    self.blueprint[modified_goal[0]][modified_goal[1]][modified_goal[2]]
+                )
+                logger.exception(self.blueprint)
+                logger.exception(modified_goal)
+                if modified_goal[0] == 0 and modified_goal[1] == 0:
+                    place_block = 2
+                    logger.exception("Therefore I am removing a block")
+                else:
+                    place_block = 1
+                    logger.exception("Therefore I am placing a block")
+                # logger.debug("Placing block set to true")
 
             self.robot = follow_path(
                 self.robot,

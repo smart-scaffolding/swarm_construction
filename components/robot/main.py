@@ -175,7 +175,7 @@ if __name__ == "__main__":
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
-    a_end_effector = [0.5, 0.5, 1]
+    a_end_effector = [2.5, 0.5, 1]
     x, y, z = a_end_effector
     d_end_effector = [x + 2, y, z]
 
@@ -280,35 +280,20 @@ if __name__ == "__main__":
     block15.location = (10, 9, 8)
 
     blocks = [
-        block,
-        block2,
-        block3,
+        # block,
+        # block2,
+        # block3,
         # block4,
-        """
-        Group
-        """
         # block5
-        """
-        Group
-        """
         # block6
-        """
-        Group
-        """
         # block7,
         # block8,
         # block9,
         # block10
-        """
-        Group
-        """
         # block11,
         # block12,
         # block13,
         # block14
-        """
-        Group
-        """
         # block15
         # Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
         # Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
@@ -319,6 +304,40 @@ if __name__ == "__main__":
         # Block(location=(3, 1, 3), next_destination=(8, 4, 1), final_destination=(8, 4, 1)),
         # Block(location=(3, 2, 3), next_destination=(8, 5, 1), final_destination=(8, 5, 1)),
     ]
+
+    destinations = [
+        (2, 2, 1),
+        (2, 1, 1),
+        (3, 1, 1),
+        (3, 2, 1),
+        (3, 3, 1),
+        (2, 3, 1),
+        (1, 3, 1),
+        (1, 2, 1),
+        (1, 1, 1),
+        (1, 0, 1),
+        (2, 0, 1),
+        (3, 0, 1),
+        (4, 0, 1),
+        (4, 1, 1),
+        (4, 2, 1),
+        (4, 3, 1),
+        (4, 4, 1),
+        (3, 4, 1),
+        (2, 4, 1),
+        (1, 4, 1),
+        (0, 4, 1),
+        (0, 3, 1),
+        (0, 2, 1),
+        (0, 1, 1),
+        (0, 0, 1),
+    ]
+
+    for destination in destinations:
+        block = Block(final_destination=(8, 6, 1))
+        block.set_next_location(destination)
+        block.location = (0, 0, 1)
+        blocks.append(block)
     blocks.reverse()
 
     for block in blocks:

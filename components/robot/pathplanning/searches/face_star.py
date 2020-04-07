@@ -333,7 +333,9 @@ class FaceStar:
 
         route = route[::-1]
 
-        route.pop(0)
+        # route.pop(0)
+        # route.pop(0)
+        # route.pop(0)
         route = self.add_back_ee_motion(path=route, start_face=start)
 
         logger.debug("Path to Traverse: {}\n".format(route))

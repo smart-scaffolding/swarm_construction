@@ -128,10 +128,13 @@ def setup_structure_display(blueprint, pipeline, color, block_file_location):
     return None, None, actor_list
 
 
-def add_block(position=None, block_file_location=None):
+def add_block(position=None, block_file_location=None, first_time=False):
     actor_list = vtk.vtkActor()
     actor_list.SetMapper(block_file_location)
-    color = vtk_named_colors(["Purple"])
+    if first_time:
+        color = vtk_named_colors(["Orange"])
+    else:
+        color = vtk_named_colors(["Purple"])
 
     actor_list.GetProperty().SetColor(color[0])  # (R,G,B)
     actor_list.SetScale(0.013)

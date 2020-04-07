@@ -98,7 +98,7 @@ class AnimationUpdate:
 
 
 def send_to_simulator(
-    base, trajectory, id=b"ROBOT_1", holding_block=None
+    base, trajectory, id=b"ROBOT_1", holding_block=None, debug_text=None
 ):
     import zmq
     from components.robot.communication.messages import (
@@ -149,6 +149,7 @@ def send_to_simulator(
         robot_base=base,
         trajectory=trajectory,
         block_on_ee=holding_block,
+        debug_text=boxPrint(debug_text, 80),
     )
     message_obj = MessageWrapper(topic=id, message=messagedata)
     p = pickle.dumps(message_obj, protocol=-1)
@@ -156,3 +157,66 @@ def send_to_simulator(
     socket.send_multipart([id, z])
 
     # time.sleep(0.01)
+
+
+def breakLine(text, wrap=80):
+    if len(text) > wrap:
+        char = wrap
+        while char > 0 and text[char] != " ":
+            char -= 1
+        if char:
+            text = [text[:char]] + breakLine(text[char + 1 :], wrap)
+        else:
+            text = [text[: wrap - 1] + "-"] + breakLine(text[wrap - 1 :], wrap)
+        return text
+    else:
+        return [cleanLine(text)]
+
+
+def cleanLine(text):
+    if text[-1] == " ":
+        text = text[:-1]
+    if text[0] == " ":
+        text = text[1:]
+    return text
+
+
+def boxPrint(text, wrap=0):
+    if text is None:
+        return
+    str_output = ""
+    line_style = "-"
+    paragraph = text.split("\n")
+    if wrap > 0:
+        index = 0
+        while index < len(paragraph):
+            paragraph[index] = cleanLine(paragraph[index])
+            if len(paragraph[index]) > wrap:
+                paragraph = (
+                    paragraph[:index]
+                    + breakLine(paragraph[index], wrap)
+                    + paragraph[index + 1 :]
+                )
+            index += 1
+
+    length = max([len(line) for line in paragraph])
+    str_output += "\n+" + line_style * length + "+\n"
+    # print('+' + line_style * length + '+')
+    for line in paragraph:
+        # print('|' + line + ' ' * (length - len(line)) + '|')
+        str_output += line + " " * (length - len(line)) + "\n"
+    # print('+' + line_style * length + '+')
+    str_output += "+" + line_style * length + "+"
+    return str_output
+    # print(str_output)
+
+
+if __name__ == "__main__":
+    text = "Some text comes here to be printed in a box!!!"
+    boxPrint(text, 30)
+    text = "Title:\nBody lorem ipsum something body\ncheers,"
+    boxPrint(text, 30)
+    boxPrint(text)
+    text = "No Space:\nThisIsATextThatHasNoSpaceForWrappingWhichGetsBrokenUsingDashes"
+    boxPrint(text, 30)
+    boxPrint(f"Base ID: {'A'}\nHolding Block: {None}\nBase: {[0.5, 1, 2]}", 80)

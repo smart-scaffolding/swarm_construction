@@ -1,6 +1,7 @@
 from logzero import setup_default_logger, logfile, LogFormatter
 import logging
 import pyfiglet
+from pkg_resources import resource_filename
 
 DEBUG = True  # Use to control printing
 communication = {
@@ -8,7 +9,8 @@ communication = {
 }
 
 LOGLEVEL = logging.INFO
-LOGFILE = "./logs/simulator_logfile.log"
+
+LOGFILE = resource_filename("components", "simulator/logs/simulator_logfile.log")
 
 banner = pyfiglet.figlet_format("Swarm Construction: Simulator")
 print("\n")
@@ -17,6 +19,7 @@ print(banner)
 print("\n")
 print("*" * int(len(banner) * 0.15))
 
+print(LOGFILE)
 with open(LOGFILE, "a") as file:
     file.write("\n")
     file.write("*" * int(len(banner) * 0.15))
