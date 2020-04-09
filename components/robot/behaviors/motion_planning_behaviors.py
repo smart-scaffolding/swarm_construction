@@ -258,8 +258,8 @@ def follow_path(
                 f"Was told to place block, but there is no block on end effector"
             )
             logger.exception(f"Returning")
-            # robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
-            # return robot
+            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+            return robot, False
         # logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
         # logger.debug(f"Robot D Link: {robot.links[3].a} {robot.links[3].length}")
         point = list(item[0:3])
@@ -977,8 +977,8 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         basedID = "A" if self.robot.primary_ee == "D" else "D"
         if self.holding_blocks[self.robot.primary_ee] is not None:
             goal_ee = self.robot.primary_ee
-        elif self.holding_blocks[basedID] is not None:
-            goal_ee = basedID
+        # elif self.holding_blocks[basedID] is not None:
+        #     goal_ee = basedID
         else:
             goal_ee = self.robot.primary_ee
 
