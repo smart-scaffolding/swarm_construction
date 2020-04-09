@@ -4,6 +4,7 @@ import pickle
 import threading
 import time
 import zlib
+from collections import defaultdict, OrderedDict
 from queue import Queue
 from signal import signal, SIGINT
 from sys import exit
@@ -12,16 +13,13 @@ import zmq
 from logzero import logger
 
 import components.simulator.config as Config
-from swarm_c_library.blueprint_factory import BluePrintFactory
 from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
 from components.simulator.model.create_actors import *
 from components.simulator.model.graphics import *
 from components.simulator.model.model import Inchworm
-
-
-from collections import defaultdict
+from swarm_c_library.blueprint_factory import BluePrintFactory
 
 POINTS = False
 ROBOTS = 1
@@ -220,10 +218,15 @@ class vtkTimerCallback:
         self.socket = socket
         self.pipeline = pipeline
         self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
-        self.blocks = {}
+        self.blocks = OrderedDict()
         self.block_q = block_q
         self.previous_path = []
         self.robot_texts = defaultdict(lambda: None)
+        self.last_block_showing = None
+        self.time_till_next_block = 80
+        self.last_block_counter = self.time_till_next_block
+        self.blocks_at_starting_location = []
+        self.removed_starting_block = True
 
     def add_robot_to_sim(self, robot, result_queue):
         """
@@ -313,6 +316,7 @@ class vtkTimerCallback:
                     """
                     if not POINTS:
                         if index == 4:
+
                             if block_on_ee not in self.blocks:
                                 new_block_tool, _, _ = add_block(
                                     (0, 0, 0),
@@ -322,27 +326,37 @@ class vtkTimerCallback:
                                 actors.append(new_block_tool)
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 new_block_tool.SetScale(0.013)
+                                new_block_tool.SetVisibility(True)
                                 # print("Updating block end position")
                                 self.pipeline.ren.AddActor(new_block_tool)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
+                                    True
                                 )
+
+
                                 # logger.info(
                                 #     f"Moving block {block_on_ee} to new location {transforms[index]}"
                                 # )
                             else:
 
-                                _, new_block_tool = self.blocks[block_on_ee]
+                                _, new_block_tool, _ = self.blocks[block_on_ee]
                                 # logger.info(f"Already know about block {block_on_ee}")
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 color = vtk_named_colors(["Purple"])
+                                new_block_tool.SetVisibility(True)
                                 new_block_tool.GetProperty().SetColor(color[0])
                                 # new_block_tool.SetScale(0.013)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
+                                    True
                                 )
+
+                                if block_on_ee in self.blocks_at_starting_location:
+                                    self.blocks_at_starting_location.remove(block_on_ee)
+                                    self.removed_starting_block = True
                                 # logger.info(
                                 #     f"Moving block {block_on_ee} to new location"
                                 # )
@@ -356,6 +370,8 @@ class vtkTimerCallback:
                                 if DEBUG:
                                     if debug_text:
                                         debug_text = debug_text.encode()
+                                    else:
+                                        debug_text = "".encode()
                                     text_for_robot = robot_id + debug_text
                                 else:
                                     text_for_robot = robot_id
@@ -417,17 +433,19 @@ class vtkTimerCallback:
             topic, message = self.block_q.get()
             if isinstance(message.message, BlockLocationMessage):
                 if topic in self.blocks:
-                    location, actor = self.blocks[message.message.id]
+                    location, actor, showing = self.blocks[message.message.id]
                     actor.SetUserMatrix(
                         create_homogeneous_transform_from_point(message.message.location)
                     )
+
                     # actor.SetPosition(message.message.location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                 else:
                     location = np.array(message.message.location)
                     # print(message.message.location)
                     # print(message.message.location[0])
-
+                    if location[0] == 0 and location[1] == 0.5:
+                        self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
@@ -441,27 +459,22 @@ class vtkTimerCallback:
 
                     actor.SetUserMatrix(transform)
                     actor.SetScale(0.013)
-                    self.blocks[message.message.id] = (transform, actor)
+                    actor.SetVisibility(False)
+                    self.blocks[message.message.id] = (transform, actor, False)
                     self.pipeline.add_actor(actor)
                     self.pipeline.animate()
 
-                    # transform = create_homogeneous_transform_from_point(
-                    #     message.message.location
-                    # )
-                    # new_block_tool, _, _ = add_block(
-                    #     (0, 0, 0), block_file_location=move_block_file_location,
-                    # )
-                    # # actors.append(new_block_tool)
-                    # new_block_tool.SetUserMatrix(transform)
-                    # new_block_tool.SetScale(0.013)
-                    # print("Updating block end position")
-                    # self.pipeline.ren.AddActor(new_block_tool)
-                    # self.blocks[message.message.id] = (
-                    #     transform,
-                    #     new_block_tool,
-                    # )
-                    # self.pipeline.add_actor(new_block_tool)
-                    # self.pipeline.animate()
+        if len(self.blocks_at_starting_location) > 0:
+            if self.removed_starting_block:
+                self.last_block_counter += 1
+                if self.last_block_counter >= self.time_till_next_block:
+                    block = self.blocks_at_starting_location[-1]
+                    transform, actor, showing = self.blocks[block]
+                    if not showing:
+                        actor.SetVisibility(True)
+                        self.blocks[block] = (transform, actor, True)
+                    self.removed_starting_block = False
+                    self.last_block_counter = 0
         iren = obj
         iren.GetRenderWindow().Render()
 

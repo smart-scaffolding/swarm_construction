@@ -322,6 +322,7 @@ class FaceStar:
             raise Exception("Start face is invalid")
         self.goalFace = goal.get_face_coordinate()
         ee_label = goal.ee_on_face
+        start_label = start.ee_on_face
         logger.debug(f"Goal Face: {self.goalFace}")
         if not self.goalFace:
             raise Exception("Goal face is invalid")
@@ -333,10 +334,10 @@ class FaceStar:
 
         route = route[::-1]
 
+        route.pop(0)
         # route.pop(0)
         # route.pop(0)
-        # route.pop(0)
-        route = self.add_back_ee_motion(path=route, start_face=start)
+        route = self.add_back_ee_motion(path=route, start_face=start, goal_face=ee_label)
 
         logger.debug("Path to Traverse: {}\n".format(route))
         self.route = route
@@ -349,7 +350,7 @@ class FaceStar:
     #     self.colors[self.route[-1]] = '#03fc62'
     #     return self.colors
 
-    def add_back_ee_motion(self, path, start_face):
+    def add_back_ee_motion(self, path, start_face, goal_face):
 
         filtered_path = []
         # TODO: could add logic here so back ee won't always go back to the starting
@@ -430,7 +431,9 @@ if __name__ == "__main__":
 
     # startFace = BlockFace(3.4999999999999964, 1.5, 1.49000000000000353,'top', 'D')
     # endFace = BlockFace(3,1,1,'top', 'A')
-    startFace = BlockFace(4, 4, 0, "top", "A")
+    # startFace = BlockFace(4, 4, 0, "top", "D")
+    startFace = BlockFace(4, 0, 0, "top", "D")
+
     endFace = BlockFace(6, 0, 0, "top", "D")
     bp1 = np.array(
         [

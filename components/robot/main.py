@@ -175,7 +175,7 @@ if __name__ == "__main__":
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
-    a_end_effector = [2.5, 0.5, 1]
+    a_end_effector = [3.5, 0.5, 1]
     x, y, z = a_end_effector
     d_end_effector = [x + 2, y, z]
 
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     writer.set(name="state/point_to_reach", value=False)
     # writer.set(name="state/location_to_move_to",
     #            value=(6, 0, 1, "top"))
-    writer.set(name="state/location_to_move_to", value=(10, 9, 8, "top"))
+    writer.set(name="state/location_to_move_to", value=(6, 0, 1, "top", 'D'))
     writer.set(name="state/robot", value=robot_model)
     writer.set(name="state/blueprint", value=robot.blueprint)
     writer.set(name="state/blocks_robot_has_moved", value=[])

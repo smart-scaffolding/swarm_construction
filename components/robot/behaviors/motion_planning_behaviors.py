@@ -121,7 +121,7 @@ def move_to_point(
     baseID,
     previous_angles=None,
     robot_id=b"ROBOT_1",
-    place_block=False,
+    place_block=0,
     block_on_ee=None,
 ):
     """
@@ -251,16 +251,17 @@ def follow_path(
                 f"EE to move ({ee_to_move}) != robot primary ee ({robot.primary_ee})"
             )
             logger.debug(f"Returning")
-            return robot
+            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+            return robot, False
         if place_block == 1 and block_on_ee is None:
             logger.exception(
                 f"Was told to place block, but there is no block on end effector"
             )
             logger.exception(f"Returning")
-            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
-            return robot
-        logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
-        logger.debug(f"Robot D Link: {robot.links[3].a} {robot.links[3].length}")
+            # robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+            # return robot
+        # logger.debug(f"Robot A Link: {robot.links[0].d} {robot.links[0].length}")
+        # logger.debug(f"Robot D Link: {robot.links[3].a} {robot.links[3].length}")
         point = list(item[0:3])
         if direction == "top":
             point[0] = item[0] + 0.5
@@ -307,7 +308,7 @@ def follow_path(
             logger.debug("No sense in moving, destination is where I am already at")
             logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
             robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
-            return robot
+            return robot, True
 
         ee_up = add_offset(ee_up, previous_direction, offset)
 
@@ -401,7 +402,7 @@ def follow_path(
         robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
         # robot.primary_ee = baseID  # Switching base to ee
 
-    return robot
+    return robot, True
 
 
 def get_path_to_point(
@@ -482,10 +483,10 @@ def get_path_to_point(
             f"Goal Position: {(point[0], point[1], point[2], direction, desired_ee)}"
         )
     try:
-
+        logger.debug(f"Path Planner searching with desired ee: {desired_ee}")
         path = faceStarPlanner.get_path(
             start=current_position,
-            goal=BlockFace(point[0], point[1], point[2], direction, robot.primary_ee),
+            goal=BlockFace(point[0], point[1], point[2], direction, desired_ee),
         )
     except Exception as e:
         logger.exception(e)
@@ -972,7 +973,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         logger.info(f"[{self.name.upper()}]: Got point to reach: {self.point_to_reach}")
         self.robot = self.state.get(self.robot_model_key)
         self.holding_blocks = self.state.get(self.keys["holding_blocks_key"])
-
+        logger.exception(f"Point to reach: {self.point_to_reach}")
         basedID = "A" if self.robot.primary_ee == "D" else "D"
         if self.holding_blocks[self.robot.primary_ee] is not None:
             goal_ee = self.robot.primary_ee
@@ -980,6 +981,11 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             goal_ee = basedID
         else:
             goal_ee = self.robot.primary_ee
+
+        # if len(self.point_to_reach) == 4:
+
+        # logger.exception(f"I am here setting the default to this")
+        # goal_ee = self.point_to_reach[-1]
         # if self.inching:
         #     if self.toggle_for_searching_every_other or len(self.path) < 2:
         #         self.path = get_path_to_point(
@@ -1050,7 +1056,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                     logger.exception("Therefore I am placing a block")
                 # logger.debug("Placing block set to true")
 
-            self.robot = follow_path(
+            self.robot, success = follow_path(
                 self.robot,
                 [self.next_point],
                 robot_id=self.robot_id,
@@ -1059,26 +1065,46 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 block_on_ee=self.block_on_ee,
             )
             self.state.set(name=self.robot_model_key, value=self.robot)
+            if success:
 
-            base = (
-                self.robot.DEE_POSE
-                if self.robot.primary_ee == "A"
-                else self.robot.AEE_POSE
-            )
+                base = (
+                    self.robot.DEE_POSE
+                    if self.robot.primary_ee == "A"
+                    else self.robot.AEE_POSE
+                )
 
-            # base = create_point_from_homogeneous_transform(
-            #     self.robot.base)
+                # base = create_point_from_homogeneous_transform(
+                #     self.robot.base)
 
-            baseID = "D" if self.robot.primary_ee == "A" else "A"
+                baseID = "D" if self.robot.primary_ee == "A" else "A"
 
-            base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
+                base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
 
-            # TODO block face is not correct
-            self.state.set(name=self.current_position_key, value=base_block_face)
+                # TODO block face is not correct
+                self.state.set(name=self.current_position_key, value=base_block_face)
 
-            # logger.debug(f"ROBOT BASE: {self.robot.base}")
-            logger.debug(f"Next point moving to: {self.next_point}")
+                # logger.debug(f"ROBOT BASE: {self.robot.base}")
+                logger.debug(f"Next point moving to: {self.next_point}")
+            if not success:
+                base = (
+                    self.robot.DEE_POSE
+                    if self.robot.primary_ee == "A"
+                    else self.robot.AEE_POSE
+                )
 
+                # base = create_point_from_homogeneous_transform(
+                #     self.robot.base)
+
+                baseID = "D" if self.robot.primary_ee == "A" else "A"
+
+                base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
+
+                # TODO block face is not correct
+                self.state.set(name=self.current_position_key, value=base_block_face)
+
+                # logger.debug(f"ROBOT BASE: {self.robot.base}")
+                logger.debug(f"Next point moving to: {self.next_point}")
+                return py_trees.common.Status.RUNNING
         if len(self.path) <= 0 and self.reached_point[0]:
             new_status = py_trees.common.Status.SUCCESS
 
