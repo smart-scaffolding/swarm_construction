@@ -228,7 +228,6 @@ def follow_path(
     block_on_ee=None,
 ):
     """
-
     :param robot:
     :param path:
     :param blueprint:
@@ -240,6 +239,10 @@ def follow_path(
     :return:
     """
     for index, item in enumerate(path):
+        if item == None:
+            robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
+            return robot, True
+
         previous_direction = "top"
         direction = item[-2]
         direction = "top"  # TODO: REMOVE ME
@@ -295,16 +298,21 @@ def follow_path(
             point[1] = item[1] + 1
             point[2] = item[2] + 0.5
 
-        logger.info("\t\t\n\nINDEX: {}".format(index))
+        # logger.info("\t\t\n\nINDEX: {}".format(index))
+        # logger.info(
+        #     "\nPOINT: {}   DIRECTION: {}    PREVIOUS_DIRECTION: {}".format(
+        #         point, direction, path[index - 1][-1]
+        #     )
+        # )
         logger.info(
-            "\nPOINT: {}   DIRECTION: {}    PREVIOUS_DIRECTION: {}".format(
-                point, direction, path[index - 1][-1]
+            "\nPOINT: {}   DIRECTION: {}".format(
+                point, direction
             )
         )
 
         ee = robot.DEE_POSE if ee_to_move == "D" else robot.AEE_POSE
         ee_up = list(create_point_from_homogeneous_transform(ee))
-        if np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01:
+        if np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01 :
             logger.debug("No sense in moving, destination is where I am already at")
             logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
             robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
@@ -1055,6 +1063,39 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                     place_block = 1
                     logger.exception("Therefore I am placing a block")
                 # logger.debug("Placing block set to true")
+
+            #### REMOVE BAD POINTS IN PATH ####
+            point = list(self.next_point[0:3])
+            if self.next_point[3] == "top":
+                point[0] = self.next_point[0] + 0.5
+                point[1] = self.next_point[1] + 0.5
+                if place_block:
+                    point[2] = self.next_point[2] + 2
+                elif self.block_on_ee:
+                    point[2] = self.next_point[2] + 2
+                else:
+                    point[2] = self.next_point[2] + 1
+            ee = self.robot.DEE_POSE if self.next_point[4] == "D" else self.robot.AEE_POSE
+            ee_up = list(create_point_from_homogeneous_transform(ee))
+
+            while np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01 and self.next_point != None:
+                logger.debug("No sense in moving, destination is where I am already at")
+                logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
+                self.robot.primary_ee = "D" if self.robot.primary_ee == "A" else "A"
+                point = list(self.next_point[0:3])
+                self.next_point = self.path.pop(0)
+                if self.next_point[3] == "top":
+                    point[0] = self.next_point[0] + 0.5
+                    point[1] = self.next_point[1] + 0.5
+                    if place_block:
+                        point[2] = self.next_point[2] + 2
+                    elif self.block_on_ee:
+                        point[2] = self.next_point[2] + 2
+                    else:
+                        point[2] = self.next_point[2] + 1
+                ee = self.robot.DEE_POSE if self.next_point == "D" else self.robot.AEE_POSE
+                ee_up = list(create_point_from_homogeneous_transform(ee))
+                #### REMOVE BAD POINTS IN PATH ####
 
             self.robot, success = follow_path(
                 self.robot,

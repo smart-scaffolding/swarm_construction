@@ -428,6 +428,7 @@ if __name__ == "__main__":
     # armReach = [2.38, 1.6]
     # armReach = [2.38, 2.38]
     armReach = [1.5, 1.5]
+    # armReach = [3, 3]
 
     # startFace = BlockFace(3.4999999999999964, 1.5, 1.49000000000000353,'top', 'D')
     # endFace = BlockFace(3,1,1,'top', 'A')
