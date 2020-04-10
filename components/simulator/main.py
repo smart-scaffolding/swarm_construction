@@ -20,7 +20,7 @@ import pickle
 from signal import signal, SIGINT
 from sys import exit
 
-POINTS = False
+POINTS = True
 ROBOTS = 1
 # BLUEPRINT = np.array([
 #         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
@@ -83,9 +83,10 @@ class WorkerThread(threading.Thread):
                 messagedata = pickle.loads(message)
                 # print(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
+                    print("Received robot message")
                     if topic not in self.robot_actors:
                         # print("[Worker thread]: Received new robot connection, adding to queue")
                         self.robot_actors[topic] = Queue()
@@ -638,7 +639,7 @@ if __name__ == '__main__':
 
     # socket1 = context.socket(zmq.SUB)
     print("Collecting updates from simulator...")
-    socket.bind("tcp://0.0.0.0:5559")
+    socket.bind("tcp://127.0.0.1:5559")
     # socket1.connect(f"tcp://localhost:{port}")
 
     # if len(sys.argv) > 2:

@@ -434,15 +434,21 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         if len(self.path) > 0 and self.reached_point[0]:
             self.next_point = self.path.pop(0)
             self.parent_connection.send(self.next_point)
-            # base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
-            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-            #                                                                   message=AnimationUpdateMessage(
-            #                                                                       robot_base=base))
-            # self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
-            #                                                               message=StatusUpdateMessage(
-            #                                                                   status=RobotBehaviors.MOVE,
-            #                                                                   payload=StatusUpdateMessagePayload(
-            #                                                                     robot_base=base)))
+            base = create_homogeneous_transform_from_point(np.array(self.next_point[0:3]))
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base))
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base))
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base))
+            self.robot_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                          message=StatusUpdateMessage(
+                                                                              status=RobotBehaviors.MOVE,
+                                                                              payload=StatusUpdateMessagePayload(
+                                                                                robot_base=base)))
             print(f"Next point moving to: {self.next_point}")
         if self.parent_connection.poll():
             self.percentage_completion = self.parent_connection.recv().pop()
@@ -501,10 +507,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                 z = 4
 
             #TODO: Fix last point
-            # base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
-            # self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
-            #                                                                   message=AnimationUpdateMessage(
-            #                                                                       robot_base=base))
+            base = create_homogeneous_transform_from_point((point[0]+0.5, point[1]+0.5, z))
+            self.simulator_communicator.robot_communicator.send_communication(topic=self.robot,
+                                                                              message=AnimationUpdateMessage(
+                                                                                  robot_base=base))
             self.state.set(name=self.current_position_key, value=BlockFace(point[0], point[
                 1], point[2], direction))
         if len(self.path) <= 0 and self.reached_point[0]:
