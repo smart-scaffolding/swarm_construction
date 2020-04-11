@@ -268,7 +268,9 @@ class vtkTimerCallback:
             block_q=self.block_q,
         )
         self.worker_pool.append(calculate_thread)
+        calculate_thread.daemon = True
         calculate_thread.start()
+
 
     def execute(self, obj, event):
         # string = self.socket.recv()
@@ -412,15 +414,15 @@ class Simulate:
             #     continue
         self.simulate()
 
-    def save_video_end_program(self, signal_received, frame):
-        # self.writer.End()
-        # print("Saved video")
-        # print("Saving video")
-        for thread in self.pool:
-            thread.join()
-        for thread in self.worker_pool:
-            thread.join()
-        exit(0)
+    # def save_video_end_program(self, signal_received, frame):
+    #     # self.writer.End()
+    #     # print("Saved video")
+    #     # print("Saving video")
+    #     for thread in self.pool:
+    #         thread.join()
+    #     for thread in self.worker_pool:
+    #         thread.join()
+    #     exit(0)
 
     def simulate(self):
         # robot_actors = {}
@@ -511,10 +513,12 @@ class Simulate:
 
         # Start all threads
         for thread in self.pool:
+            thread.daemon = True
             thread.start()
+
             print("Started worker thread")
 
-        signal(SIGINT, self.save_video_end_program)
+        # signal(SIGINT, self.save_video_end_program)
         try:
             # renderWindowInteractor.Start()
             # self.windowToImageFilter = vtk.vtkWindowToImageFilter()
@@ -534,13 +538,13 @@ class Simulate:
             print("Exiting")
             pass
 
-        finally:
-            # self.writer.End()
-            print("Saving video")
-            for thread in self.pool:
-                thread.join()
-            for thread in self.worker_pool:
-                thread.join()
+        # finally:
+        #     # self.writer.End()
+        #     print("Saving video")
+        #     for thread in self.pool:
+        #         thread.join()
+        #     for thread in self.worker_pool:
+        #         thread.join()
             # for thread in self.forward_kinematics_workers:
             #     thread.join()
 

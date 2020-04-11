@@ -65,4 +65,5 @@ class SimulatorCommunication:
                                                     socket_port=self.send_messages_socket, topics=self.send_topics)
         pool = [self.send_messages_thread]
         for thread in pool:
+            thread.daemon = True
             thread.start()

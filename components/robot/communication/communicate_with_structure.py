@@ -116,4 +116,5 @@ class StructureCommunication:
                                                     socket_port=self.send_messages_socket, topics=self.send_topics)
         pool = [self.receive_messages_thread, self.send_messages_thread]
         for thread in pool:
+            thread.daemon = True
             thread.start()

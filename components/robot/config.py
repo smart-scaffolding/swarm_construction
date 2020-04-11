@@ -7,7 +7,7 @@ communication = {
     "heartbeat_connection_out": "tcp://127.0.0.1:5556",
     "receive_messages_port": "tcp://127.0.0.1:5557",
     "send_messages_port": "tcp://127.0.0.1:5558",
-    "simulator_send_messages_port": "tcp://127.0.0.1:5559",
+    "simulator_send_messages_port": "tcp://192.168.1.26:5559",
 }
 
 TESTING = True  # Use to configure if need unique id or predefining id

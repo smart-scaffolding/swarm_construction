@@ -3,7 +3,7 @@ from multiprocessing import Pool
 import subprocess
 
 processes = (
-    "components/simulator/main.py",
+    "components/structure/main.py",
     'components/robot/main.py -i "ROBOT_1"',
     'components/robot/main.py -i "ROBOT_2"',
     'components/robot/main.py -i "ROBOT_3"',
