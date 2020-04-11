@@ -122,7 +122,7 @@ def setup_structure_display(blueprint, pipeline, color, block_file_location):
                     actor_list.GetProperty().SetColor(my_color[0])  # (R,G,B)
                     # actor_list.GetProperty().SetColor(color[i][j][k])
                     actor_list.SetScale(0.013)
-                    actor_list.SetPosition((i-1, j-1, k))
+                    actor_list.SetPosition((i, j, k))
                     # print("SCALE: {}".format(actor_list.GetScale()))
                     # print("POSITION: {}".format(actor_list.GetPosition()))
                     pipeline.add_actor(actor_list)

@@ -42,7 +42,7 @@ class Wavefront(PathPlannerImp):
             for x in range(xdim-1, -1, -1):
                 positions[(x, y)] = blueprint[x][y]
 
-        print(positions)
+        # print(positions)
         return Layer(xdim, ydim, positions, blueprint)
 
     def initialize_wavefront(self, goal, start):
@@ -96,7 +96,7 @@ class Wavefront(PathPlannerImp):
         if reached_start:
             return goal_layer, goal_last_wave
         else:
-            print("Goal is unreachable")
+            # print("Goal is unreachable")
             return
 
     def get_path(self, start, goal):

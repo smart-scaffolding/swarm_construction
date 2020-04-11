@@ -222,7 +222,7 @@ if __name__ == '__main__':
 
                 ferry_blocks = blocks_to_move
 
-                print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+                # print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
 
                 for blocks in ferry_blocks:
                     blocks.assigned_node = node.id

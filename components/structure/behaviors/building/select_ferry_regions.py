@@ -167,8 +167,8 @@ if __name__ == '__main__':
     #          [1, 1, 1, 1, 1, 1, 1],
     #          [1, 1, 1, 1, 1, 1, 1]])
 
-    level = np.array([[1] * 10,
-                     ] * 10)
+    level = np.array([[1] * 5,
+                     ] * 5)
 
     # level = np.array([[0, 0, 0],
     #    [0, 0, 0],
@@ -176,32 +176,32 @@ if __name__ == '__main__':
     #    [0, 0, 1],
     #    [0, 1, 1],
     #    [0, 1, 1]])
-    blueprint2 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
-
-    blueprint2[0, :, :] = 0
-    blueprint2[1, :, :] = 0
-    blueprint2[-1, :, :] = 0
-    blueprint2[-2, :, :] = 0
-    blueprint2[:, 0, :] = 0
-    blueprint2[:, 1, :] = 0
-    blueprint2[:, -1, :] = 0
-    blueprint2[:, -2, :] = 0
-
-    level = blueprint2[:, :, 0]
+    # blueprint2 = np.array([
+    #                           [[1] * 1] * 10,
+    #                       ] * 10)
+    #
+    # blueprint2[0, :, :] = 0
+    # blueprint2[1, :, :] = 0
+    # blueprint2[-1, :, :] = 0
+    # blueprint2[-2, :, :] = 0
+    # blueprint2[:, 0, :] = 0
+    # blueprint2[:, 1, :] = 0
+    # blueprint2[:, -1, :] = 0
+    # blueprint2[:, -2, :] = 0
+    #
+    # level = blueprint2[:, :, 0]
 
     m, n = level.shape
     print(m, n)
     new_blueprint, new_block_locations, flattend_locations = determine_ferry_regions(level, num_rows=m, num_cols=n,
-                                                                               direction=("FRONT", "RIGHT", "BACK",
-                                                                                          "LEFT"),
-                            ferry_region_size=4, x_offset=0, y_offset=0, z_offset=1,
+                                                                               direction=("FRONT", "RIGHT",
+                                                                                          ),
+                            ferry_region_size=5, x_offset=0, y_offset=0, z_offset=1,
                             num_blocks={
                                 "FRONT": 25,
                                 "RIGHT": 25,
-                                "BACK": 25,
-                                "LEFT": 25}, print_output=False)
+                                "BACK": 0,
+                                "LEFT": 0}, print_output=False)
     # print(new_block_locations)
     # print(flattend_locations)
     print(new_blueprint)

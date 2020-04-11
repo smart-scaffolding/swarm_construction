@@ -1,27 +1,32 @@
-from components.structure.communication import RobotCommunication
-from components.structure.communication import SimulatorCommunication
-from components.structure.communication.heartbeater import start_hearbeat_detector
-from components.structure.communication.messages import *
-from components.robot.communication.messages import StatusUpdateMessagePayload as RobotStatusUpdateMessagePayload, \
-    BlockLocationMessage, FerryBlocksStatusFinished
-from components.structure.common.common import create_point_from_homogeneous_transform
-import components.structure.config as config
-from components.simulator.model.graphics import vtk_named_colors
-from components.structure.behaviors.building.assign_robots_min_distance import assign_robots_closest_point
-from queue import PriorityQueue, Empty
-from functools import total_ordering
-from components.structure.pathplanning.searches.wavefront import Wavefront
-from random import sample, choice
 import time
+from copy import deepcopy
+
 # from queue import Queue
 # import asyncio
 from multiprocessing import Queue
+from queue import PriorityQueue, Empty
+
 import numpy as np
-from math import sqrt
+
+import components.structure.config as config
+from components.robot.communication.messages import FerryBlocksStatusFinished
+from components.simulator.model.graphics import vtk_named_colors
+from components.structure.behaviors.building.assign_robots_min_distance import (
+    assign_robots_closest_point,
+)
+from components.structure.behaviors.building.common_building import (
+    spiral_sort_helper,
+    Block,
+    Robot,
+)
+from components.structure.behaviors.building.select_ferry_regions import (
+    determine_ferry_regions,
+)
 from components.structure.behaviors.divide_structure import BuildingPlanner
-from components.structure.behaviors.building.common_building import spiral_sort_helper, Block, Robot
-from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
-from copy import deepcopy
+from components.structure.communication import RobotCommunication, SimulatorCommunication
+from components.structure.communication.heartbeater import start_hearbeat_detector
+from components.structure.communication.messages import *
+from swarm_c_library.blueprint_factory import BluePrintFactory
 
 configuration = None
 
@@ -39,7 +44,9 @@ class StructureMain:
         self.blocks_to_move = []
         self.all_nodes = {}
         self.nodes_to_visit = PriorityQueue()
-        self.currently_claimed_set = []  # TODO: Ensure this data structure cannot be modified, important to preserve
+        self.currently_claimed_set = (
+            []
+        )  # TODO: Ensure this data structure cannot be modified, important to preserve
         self.currently_working = []
         self.already_visited_ids = []
         self.division_size = division_size
@@ -61,20 +68,27 @@ class StructureMain:
         except:
             raise Exception("Must define all parameters in configuration file")
 
-        self.robot_communicator = RobotCommunication(receive_messages_socket=self.receive_messages_socket,
-                                                             send_messages_socket=self.send_messages_socket,
-                                                             send_topics=self.known_robots,
-                                                             receive_topics=self.known_robots)
+        self.robot_communicator = RobotCommunication(
+            receive_messages_socket=self.receive_messages_socket,
+            send_messages_socket=self.send_messages_socket,
+            send_topics=self.known_robots,
+            receive_topics=self.known_robots,
+        )
 
         if config.SIMULATE:
-            self.simulator_send_messages_socket = config.communication["simulator_send_messages_port"]
+            self.simulator_send_messages_socket = config.communication[
+                "simulator_send_messages_port"
+            ]
             self.simulator_communicator = SimulatorCommunication(
                 send_messages_socket=self.simulator_send_messages_socket,
-                send_topics=b"STRUCTURE")
+                send_topics=b"STRUCTURE",
+            )
 
     def reset_building_planner(self, blueprint, division_size=5, feeding_location=(0, 0)):
         self.blueprint = blueprint
-        self.buildingPlanner = BuildingPlanner(blueprint, feeding_location=feeding_location)
+        self.buildingPlanner = BuildingPlanner(
+            blueprint, feeding_location=feeding_location
+        )
         self.division_size = division_size
         # self.ferry_region_size =
 
@@ -90,13 +104,15 @@ class StructureMain:
             self.initialize_simulator(colors=colors)
 
     def initialize_simulator(self, colors):
-        simulator_message = SimulatorStructureMessage(blueprint=self.blueprint, colors=colors)
+        simulator_message = SimulatorStructureMessage(
+            blueprint=self.blueprint, colors=colors
+        )
         self.simulator_communicator.initialize_communication_with_simulator()
         # self.simulator_communicator.send_communication(message=simulator_message, topic=b"STRUCTURE")
 
     def print_structure_status(self):
         print("\n\n\n")
-        print("-"*30)
+        print("-" * 30)
         print("Structure Status:")
         print(f"\nGoals: {self.goals}")
         print(f"\nBlocks: {self.blocks_to_move}")
@@ -108,7 +124,8 @@ class StructureMain:
     def merge_paths(self):
         values = list(self.divisions.values())
         values.sort(key=lambda x: x.order)
-
+        for value in values:
+            self.all_nodes[value.id] = (value, None)
         self.item1 += 1
         self.item2 += 1
 
@@ -128,14 +145,13 @@ class StructureMain:
         # MERGE = False
         if path1 is not None:
 
-
             for node in path2:
                 # merge = False
                 for other_node in path1:
                     merge = False
                     if node.id == other_node.id:
-                # if node in path1:
-                    # MERGE = True
+                        # if node in path1:
+                        # MERGE = True
 
                         # index_in_path = path1.index(node)
                         # node_in_path = path1[index_in_path]
@@ -146,7 +162,9 @@ class StructureMain:
                             self.nodes_to_visit.put(node)
                             merge = True
                             break
-                        node_in_path.direction = node_in_path.direction.union(node.direction)
+                        node_in_path.direction = node_in_path.direction.union(
+                            node.direction
+                        )
                         node_in_path.children = node_in_path.children.union(node.children)
                         # for direction in node_in_path.num_blocks:
                         #     node_in_path.num_blocks[direction] += node.num_blocks[direction]
@@ -154,7 +172,7 @@ class StructureMain:
                         merge = True
                         break
                 # if node in self.need_to_visit_again:
-                    # MERGE = True
+                # MERGE = True
                 # if not merge:
                 #     for other_node in self.need_to_visit_again:
                 #         if node.id == other_node.id:
@@ -311,7 +329,9 @@ class StructureMain:
 
     def build_structure(self, level):
         self.divisions, self.wavefront_blueprint = self.buildingPlanner.create_divisions(
-            division_size=self.division_size, level=level)
+            division_size=self.division_size, level=level
+        )
+        self.level = level
         self.item1 = -1
         self.item2 = 0
         print(self.divisions)
@@ -323,17 +343,17 @@ class StructureMain:
             # order
 
             robots = [
-                Robot(id=b'ROBOT_1', pos=(1.5, 1.5), claimed_division=1),
-                Robot(id=b'ROBOT_2', pos=(4.5, 1.5), claimed_division=2),
-                # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-                # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
+                Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
+                Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
+                Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
+                Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
             ]
 
             # for i in need_to_visit_again:
             #     self.nodes_to_visit.put(i)
             #     need_to_visit_again.remove(i)
 
-            self.currently_claimed_set.clear() #TODO: May not want to clear list
+            self.currently_claimed_set.clear()  # TODO: May not want to clear list
 
             for bot in range(len(robots)):
                 if self.nodes_to_visit.empty():
@@ -360,9 +380,29 @@ class StructureMain:
                     self.currently_claimed_set.append(node)
 
             # print(currently_claimed_set)
+            if len(self.currently_claimed_set) != len(robots):
+                print("Number of points does not match number of robots")
+                print(f"Currently claimed set: {len(self.currently_claimed_set)}")
+                print(f"Number of robots: {len(robots)}")
+                print(robots)
+                print(self.currently_claimed_set)
+
+                currently_claimed_ids = [division.id for division in self.currently_claimed_set]
+                possible_divisions = list(self.divisions.values())
+                possible_divisions.sort(key=lambda x: x.order)
+                while len(self.currently_claimed_set) < len(robots):
+                    try:
+                        selected_division = possible_divisions.pop(0)
+                    except IndexError:
+                        raise Exception("Unable to assign divisions to all robots. Something went wrong")
+                    if selected_division.id not in currently_claimed_ids:
+                        self.currently_claimed_set.append(selected_division)
 
 
-            assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)  # assign robots
+                # raise Exception("Points not equal")
+            assign_robots_closest_point(
+                robots, self.currently_claimed_set, self.robot_communicator, level=self.level
+            )  # assign robots
             # assign_robots_closest_point(robots, self.currently_claimed_set, None)
             for bot in robots:  # update dictionary to include robot with claimed division
                 node, _ = self.all_nodes[bot.target.id]
@@ -372,7 +412,8 @@ class StructureMain:
             self.currently_working.append(node1)
 
             ferry_blocks = []
-            print(len(self.currently_working))
+            print(f"Length of currently working: {len(self.currently_working)}")
+            print(f"Current working: {self.currently_working}")
             while len(self.currently_working) > 0:
                 # print(repr(node), end="\n\n")
                 # TODO: TELL FIRST ROBOT TO START DOING WORK
@@ -388,7 +429,8 @@ class StructureMain:
                         node, robot = self.all_nodes[node.id]
 
                         if robot is None:
-                            raise Exception("Robot is none, line 288")
+                            continue
+                            # raise Exception("Robot is none, line 288")
                         # if len(node.children) > 1:
                         #     blocks_to_move = get_blocks_to_move()
 
@@ -406,12 +448,21 @@ class StructureMain:
                         print(f"Setting up blocks for node: {node}")
                         print(f"Goal nodes: {self.goals}")
                         if node.id in self.goal_ids:
-                            filtered_blocks = list(filter(lambda x: x.final_destination == node.id, self.blocks_to_move))
-                            ferry_blocks = self.get_new_block_location(node, filtered_blocks, type="BUILD")
+                            filtered_blocks = list(
+                                filter(
+                                    lambda x: x.final_destination == node.id,
+                                    self.blocks_to_move,
+                                )
+                            )
+                            ferry_blocks = self.get_new_block_location(
+                                node, filtered_blocks, type="BUILD"
+                            )
                             # ferry_blocks = self.blocks_to_move
                             # ferry_blocks.reverse()
-                            structure.robot_communicator.send_communication(topic=robot.id, message=BuildMessage(
-                                blocks_to_move=ferry_blocks))
+                            structure.robot_communicator.send_communication(
+                                topic=robot.id,
+                                message=BuildMessage(blocks_to_move=ferry_blocks),
+                            )
 
                             # self.blocks_to_move.
                             for i in ferry_blocks:
@@ -420,14 +471,20 @@ class StructureMain:
                                         self.blocks_to_move.remove(j)
                                 # self.blocks_to_move.remove(i)
                         else:
-                            self.blocks_to_move = self.get_new_block_location(node, self.blocks_to_move, type="FERRY")
+                            self.blocks_to_move = self.get_new_block_location(
+                                node, self.blocks_to_move, type="FERRY"
+                            )
                             ferry_blocks = self.blocks_to_move
-                            structure.robot_communicator.send_communication(topic=robot.id, message=FerryBlocksMessage(
-                                blocks_to_move=ferry_blocks))
+                            structure.robot_communicator.send_communication(
+                                topic=robot.id,
+                                message=FerryBlocksMessage(blocks_to_move=ferry_blocks),
+                            )
 
-                        print(f"Got new block location: {self.blocks_to_move}")
+                        # print(f"Got new block location: {self.blocks_to_move}")
 
-                        print(f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}")
+                        # print(
+                        #     f"Sending robot {robot.id} message to ferry blocks: {ferry_blocks}"
+                        # )
 
                         # for blocks in ferry_blocks:
                         #     blocks.assigned_node = node.id
@@ -462,12 +519,14 @@ class StructureMain:
                 # Robot has finished working
                 try:
                     print("Getting new node")
-                    new_node = self.nodes_to_visit.get(timeout=1) #TODO: May need to check if id already in here
+                    new_node = self.nodes_to_visit.get(
+                        timeout=1
+                    )  # TODO: May need to check if id already in here
                     print(f"New node: {new_node}")
                     self.currently_claimed_set.append(new_node)
                     # currently_claimed_set.remove(node)
                     print("Done updating")
-                except(Empty):
+                except (Empty):
                     print("Queue is empty, continuing")
                     # continue
 
@@ -478,15 +537,26 @@ class StructureMain:
                     try:
                         self.currently_claimed_set.remove(node)
                     except ValueError:
-                        print("Unable to remove node from currenly claimed set, continuing...")
+                        print(
+                            "Unable to remove node from currenly claimed set, continuing..."
+                        )
                 #
                 # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
                 # print(f"Current claimed set: {currently_claimed_set}")
-                assign_robots_closest_point(robots, self.currently_claimed_set, self.robot_communicator)
+                if len(self.currently_claimed_set) != len(robots):
+                    print("Number of points does not match number of robots")
+                    print(f"Currently claimed set: {len(self.currently_claimed_set)}")
+                    print(f"Number of robots: {len(robots)}")
+                    raise Exception("Points not equal")
+                assign_robots_closest_point(
+                    robots, self.currently_claimed_set, self.robot_communicator, level=self.level
+                )
                 # assign_robots_closest_point(robots, self.currently_claimed_set, None)
                 time.sleep(2)
                 print("Updating dictionary with new robot positions")
-                for bot in robots:  # update dictionary to include robot with claimed division
+                for (
+                    bot
+                ) in robots:  # update dictionary to include robot with claimed division
                     update_node, _ = self.all_nodes[bot.target.id]
                     self.all_nodes[bot.target.id] = (update_node, bot)
                 print("\n\n")
@@ -495,7 +565,7 @@ class StructureMain:
                 self.notify_children(node)
 
                 # try:
-                    # self.currently_working.remove(node)
+                # self.currently_working.remove(node)
                 for index, val in enumerate(self.currently_working):
                     if val.id == node.id:
                         self.currently_working.pop(index)
@@ -528,13 +598,13 @@ class StructureMain:
                 # except:
                 #     print("")
 
-
-
     def generate_blocks(self, division, list):
         for blocks in list:
-            if blocks.final_destination == division.id: #TODO: Check to make sure this does not duplicate blocks
+            if (
+                blocks.final_destination == division.id
+            ):  # TODO: Check to make sure this does not duplicate blocks
                 return
-        num_blocks_to_generate = division.num_blocks
+        num_blocks_to_generate = int(division.num_blocks)
         goal_id = division.id
         new_blocks = []
         for i in range(num_blocks_to_generate):
@@ -544,7 +614,6 @@ class StructureMain:
     def get_new_block_location(self, node, blocks_to_move, type="BUILD"):
         # node.direction = {'RIGHT'}
 
-
         print("In Get new block location")
         x_start, x_end = node.x_range
         y_start, y_end = node.y_range
@@ -552,53 +621,51 @@ class StructureMain:
 
         level = self.blueprint[x_start:x_end, y_start:y_end]
         m, n, _ = level.shape
-        num_blocks = {
-                     "FRONT": 0,
-                     "RIGHT": 0,
-                     "BACK": 0,
-                     "LEFT": 0
-                     }
-
+        num_blocks = {"FRONT": 0, "RIGHT": 0, "BACK": 0, "LEFT": 0}
 
         num_directions = len(node.direction)
         for direction in node.direction:
             # if direction is None:
             #     direction = ('RIGHT')
             #     node.direction = direction
-            num_blocks[direction] = int(node.num_blocks/num_directions)
+            num_blocks[direction] = int(node.num_blocks / num_directions)
             # num_blocks[direction] = node.num_blocks[direction]
-            #TODO: Change so that this is not directly half, but the actual num of blocks for each division
+            # TODO: Change so that this is not directly half, but the actual num of blocks for each division
 
         x_offset = node.x_range[0]
         y_offset = node.y_range[0]
         z_offset = node.z_range[0]
 
-
         if type == "BUILD" or None in node.direction:
             rows = len(level)
             columns = len(level[0])
-            print(level)
-            print(level.reshape((rows, columns)))
-            print(self.blueprint)
-            layer, new_block_locations = spiral_sort_helper(rows, columns, level.reshape((rows, columns)),
-                                                            x_offset=x_offset,
-                                                            y_offset=y_offset,
-                                                            z_offset=z_offset,
-                                                            )
+            # print(level)
+            # print(level.reshape((rows, columns)))
+            # print(self.blueprint)
+            layer, new_block_locations = spiral_sort_helper(
+                rows,
+                columns,
+                level.reshape((rows, columns)),
+                x_offset=x_offset,
+                y_offset=y_offset,
+                z_offset=z_offset,
+            )
         else:
             print("Getting ferry block locations")
             print(f"Num blocks to ferry: {num_blocks}")
-            print(f'Directions ferrying for: {node.direction}')
+            print(f"Directions ferrying for: {node.direction}")
 
-            _, _, new_block_locations = determine_ferry_regions(level, num_rows=m,
-                                                                num_cols=n,
-                                                                direction=node.direction,
-                                                             ferry_region_size=3,
-                                                             x_offset=x_offset,
-                                                             y_offset=y_offset,
-                                                             z_offset=z_offset+1, #TODO: Remove this extra +1
-                                                             num_blocks=num_blocks
-                                                             )
+            _, _, new_block_locations = determine_ferry_regions(
+                level,
+                num_rows=m,
+                num_cols=n,
+                direction=node.direction,
+                ferry_region_size=3,
+                x_offset=x_offset,
+                y_offset=y_offset,
+                z_offset=z_offset + 1,  # TODO: Remove this extra +1
+                num_blocks=num_blocks,
+            )
 
         print("Got new block location in get new block")
         new_blocks = []
@@ -620,263 +687,48 @@ class StructureMain:
 
             new_block.set_next_location(location)
             # block.location = location
-            print(new_block, location)
+            # print(new_block, location)
             # blocks_to_move[index] = block
             new_blocks.append(new_block)
 
         # print(new_blocks)
         # blocks_to_move = new_blocks
-        print(f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}")
+        # print(
+        #     f"\n\n\n\nGetting new block locations: Should show correct locations {new_blocks}"
+        # )
 
         # time.sleep(3)
         return new_blocks
 
 
+if __name__ == "__main__":
 
-if __name__ == '__main__':
-
-
-
-    blueprint = np.array([
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-        [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-        [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    ])
+    blueprint = np.array(
+        [
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+            [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+            [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+            [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+        ]
+    )
 
     bx, by, bz = blueprint.shape
     colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-    # colors[0][0][0] = vtk_named_colors(["Blue"])
-    # colors[0]4][1] = vtk_named_colors(["Blue"])
-    # colors[0][4][4] = vtk_named_colors(["Blue"])
-    # colors[0][4][7] = vtk_named_colors(["Blue"])
+    blueprint_status = BluePrintFactory().get_blueprint("Pyramid_40x40x10").data
 
-    # blueprint = np.array([
-    #                          [[1] * 9] * 9,
-    #                      ] * 9)
-    #
-    # colors = np.array([[['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['DarkGreen', 'DarkGreen', 'DarkGreen', 'DarkGreen', 'Yellow',
-    #      'Yellow', 'Yellow', 'Yellow', 'Yellow'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen'],
-    #     ['Red', 'Red', 'Red', 'Red', 'DarkGreen', 'DarkGreen',
-    #      'DarkGreen', 'DarkGreen', 'DarkGreen']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']],
-    #
-    #    [['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Orange', 'Orange', 'Orange', 'Orange', 'Blue', 'Blue', 'Blue',
-    #      'Blue', 'Blue'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange'],
-    #     ['Yellow', 'Yellow', 'Yellow', 'Yellow', 'Orange', 'Orange',
-    #      'Orange', 'Orange', 'Orange']]])
-
-
-
-    blueprint1 = np.array([
-                             [[1] * 1] * 10,
-                         ] * 10)
-
-    blueprint2 = np.array([
-                             [[1] * 1] * 10,
-                         ] * 10)
-
-    blueprint2[0, :, :] = 0
-    blueprint2[1, :, :] = 0
-    blueprint2[-1, :, :] = 0
-    blueprint2[-2, :, :] = 0
-    blueprint2[:, 0, :] = 0
-    blueprint2[:, 1, :] = 0
-    blueprint2[:, -1, :] = 0
-    blueprint2[:, -2, :] = 0
-
-    blueprint3 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
-
-    blueprint3[0, :, :] = 0
-    blueprint3[1, :, :] = 0
-    blueprint3[2, :, :] = 0
-    blueprint3[3, :, :] = 0
-    blueprint3[-1, :, :] = 0
-    blueprint3[-2, :, :] = 0
-    blueprint3[-3, :, :] = 0
-    blueprint3[-4, :, :] = 0
-    blueprint3[:, 0, :] = 0
-    blueprint3[:, 1, :] = 0
-    blueprint3[:, 2, :] = 0
-    blueprint3[:, 3, :] = 0
-    blueprint3[:, -1, :] = 0
-    blueprint3[:, -2, :] = 0
-    blueprint3[:, -3, :] = 0
-    blueprint3[:, -4, :] = 0
-
-    blueprints = [blueprint1, blueprint2, blueprint3]
-
-    structure = StructureMain(blueprint=blueprints[0])
+    division_size = 5
+    structure = StructureMain(blueprint=blueprint_status[:, :, 0])
     structure.initialize_communications(colors=colors)
 
-    for i in range(3):
+    x, y, num_of_levels = blueprint_status.shape
+    for i in range(num_of_levels):
         print(f"STARTING LEVEL: {i}")
-        blueprint = blueprints[i]
-        structure.reset_building_planner(blueprint)
+        blueprint = blueprint_status[:, :, i]
+        if len(blueprint.shape) < 3:
+            x, y = blueprint.shape
+            blueprint = blueprint.reshape((x, y, 1))
+        structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)
-

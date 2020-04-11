@@ -88,7 +88,7 @@ class BuildingPlanner:
                 new_structure[(x_val, y_val)] = reshaped[x_val][y_val]
                 self.structure[x_val][y_val] = 1
         # print(new_structure)
-        print(self.structure)
+        # print(self.structure)
         self.divisions = new_structure
 
     def _assign_children_helper(self):
@@ -98,7 +98,7 @@ class BuildingPlanner:
 
 
         self.divisions[(0, 0)].order = 1 #TODO: May want to remove this
-        print(self.divisions)
+        # print(self.divisions)
         for division in self.divisions:
 
             # node = self.divisions[division]

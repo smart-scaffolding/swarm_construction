@@ -44,7 +44,7 @@ class SendTopicToSimulatorThread(threading.Thread):
                 messagedata_compressed = zlib.compress(message_pickle)
 
                 self.socket.send_multipart([topic, messagedata_compressed])
-                print(f"[SendTopicToSimulatorThread]: Sending communication to simulator -> {topic} {messagedata}")
+                # print(f"[SendTopicToSimulatorThread]: Sending communication to simulator -> {topic} {messagedata}")
             # except:
             #     continue
 

@@ -40,9 +40,9 @@ def remove_block(robot, block_to_pick_up, simulator_communicator):
                                                                          message=BlockLocationMessage(
                 block_id=block_to_pick_up.id, location=block_to_pick_up.location))
 
-        time.sleep(0.05)
+        # time.sleep(0.05)
         print(f"Robot has removed up block {block_to_pick_up}")
-        time.sleep(0.05)
+        # time.sleep(0.05)
         return True
     except KeyboardInterrupt:
         pass
@@ -58,7 +58,7 @@ def place_block(robot, simulator_communicator, location_to_set_block, block):
     """
     try:
         print(f"Robot is placing block at location {location_to_set_block}")
-        time.sleep(0.1)
+        # time.sleep(0.1)
         if config.SIMULATE:
             simulator_communicator.robot_communicator.send_communication(message=
                                                                          PlacedBlockUpdateMessagePayload(
@@ -72,7 +72,7 @@ def place_block(robot, simulator_communicator, location_to_set_block, block):
                 block_id=block.id, location=block.next_destination))
             # Change base not to none
         print(f"Robot has placed block at: {location_to_set_block}")
-        time.sleep(0.1)
+        # time.sleep(0.1)
         return True
     except KeyboardInterrupt:
         pass
@@ -105,7 +105,7 @@ def ik_solver(pipe_connection, robot, simulator_communicator, percentage_done=0)
             if config.SIMULATE:
                 simulator_communicator.robot_communicator.send_communication("Moving")
             # print(f"IK solver: completion done {percentage_complete}")
-            time.sleep(0.01)
+            # time.sleep(0.01)
         return True
     except KeyboardInterrupt:
         pass
@@ -159,12 +159,12 @@ def get_path_to_point(robot, current_position, destination, simulator_communicat
         point[1] = point[1] - 1
         point[2] = point[2] - 0.5
     print(f"Going to point: {point}")
-    try:
-        path = faceStarPlanner.get_path(start=current_position, goal=BlockFace(point[0], point[1],
-                                                                                        point[2],
-                                                                                        direction))
-    except Exception:
-        print(f"Path planner unable to find path to {point}")
+    # try:
+    #     path = faceStarPlanner.get_path(start=current_position, goal=BlockFace(point[0], point[1],
+    #                                                                                     point[2],
+    #                                                                                     direction))
+    # except Exception:
+    #     print(f"Path planner unable to find path to {point}")
 
 
     # return [choice([(1, 0, 0, "Top"), (2, 0, 0, "Top"), (3, 0, 0, "Top"), (4, 0, 0, "Top")])]
@@ -627,7 +627,7 @@ def main():
         try:
             behaviour_tree.tick()
             print("Tree is ticking")
-            time.sleep(0.5)
+            # time.sleep(0.5)
         except KeyboardInterrupt:
             break
     print("\n")

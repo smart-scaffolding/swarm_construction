@@ -38,7 +38,7 @@ class Wait(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.SUCCESS
 
 
-        print(f"[{self.name.upper()}]: Waiting...")
+        # print(f"[{self.name.upper()}]: Waiting...")
         response_message = StatusUpdateMessage(status=self.status_identifier, payload="Waiting...")
         self.communicator.send_communication(topic=self.robot_id, message=response_message)
         return new_status

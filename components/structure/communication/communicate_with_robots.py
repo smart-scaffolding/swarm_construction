@@ -84,7 +84,7 @@ class SendTopicThread(threading.Thread):
                 messagedata_compressed = zlib.compress(message_pickle)
 
                 self.socket.send_multipart([topic, messagedata_compressed])
-                print(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
+                # print(f"[SendTopicThread]: Sending communication to structure -> {topic} {messagedata}")
             # except:
             #     continue
 

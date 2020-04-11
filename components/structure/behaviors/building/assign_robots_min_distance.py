@@ -19,7 +19,7 @@ def robots_distances_to_locations(robots, points):
         robot.desired_target = robot.closest_points[arg_min_score][1]
         robot.desired_target_distance = robot.closest_points[arg_min_score][0]
 
-def assign_robots_closest_point(robots, points, robot_communicator):
+def assign_robots_closest_point(robots, points, robot_communicator, level):
     robots_distances_to_locations(robots, points)
     q = PriorityQueue()
     for robot in robots:
@@ -47,7 +47,7 @@ def assign_robots_closest_point(robots, points, robot_communicator):
             # position
             if robot_communicator:
                 robot_communicator.send_communication(topic=robot.id, message=MoveToPointMessage(
-                    destination=(robot.target.pos[0], robot.target.pos[1], 1)))
+                    destination=(robot.target.pos[0], robot.target.pos[1], level)))
 
         else:
             try:

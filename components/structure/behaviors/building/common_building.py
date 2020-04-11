@@ -131,7 +131,7 @@ class Robot:
     def find_new_target(self, points):
         # print(f"Unfiltered closest points: {self.closest_points}")
         self.closest_points.remove((self.desired_target_distance, self.desired_target))
-        # print(f"Filtered closest points: {self.closest_points}")
+        print(f"Filtered closest points: {self.closest_points}")
 
         arg_min_score = np.argmin(np.array(self.closest_points)[:, 0])
         self.desired_target = self.closest_points[arg_min_score][1]
