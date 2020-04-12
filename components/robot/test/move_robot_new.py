@@ -5,17 +5,17 @@ import zlib
 # Comms
 import zmq
 
-import components.robot.original.model as model
+import components.robot.test.model as model
 from components.robot.common.states import PathPlanners
 from components.robot.communication.messages import *
 from components.robot.pathplanning.path_planner import PathPlanner
-from components.robot.original.common import (
+from components.robot.test.common import (
     create_point_from_homogeneous_transform,
     flip_base,
     round_end_effector_position,
 )
-from components.robot.original.quintic_trajectory_planner import *
-from defined_blueprints import *
+from components.robot.test.quintic_trajectory_planner import *
+from swarm_c_library.defined_blueprints import *
 
 accuracy = 1e-7
 threshold = 1
@@ -268,7 +268,7 @@ def move_to_point(
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
         ik_angles = robot.ikin(
-            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=True
+            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=False
         )
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
@@ -289,6 +289,10 @@ def move_to_point(
         robot.update_angles(angle_update, unit="deg")
         # print(f'angles: {ik_angles}')
         if SIMULATE:
+            ik_angles = robot.ikin(
+                goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=True
+                )
+            ik_angles = map_angles_from_robot_to_simulation(ik_angles)
             send_to_simulator(
                 base=base, trajectory=ik_angles, holding_block=holding_block
             )

@@ -4,7 +4,7 @@ import numpy as np
 import vtk
 from scipy.linalg import expm
 
-from components.robot.original import check_args, common
+from components.robot.test import check_args, common
 
 
 # ---------------------------------------------------------------------------------------#

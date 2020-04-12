@@ -2,9 +2,9 @@ from math import pi
 
 import numpy as np
 
-from components.robot.original import transforms as tr
-from components.robot.original.common import ishomog
-from components.robot.original.serial_link import SerialLink, Revolute
+from components.robot.test import transforms as tr
+from components.robot.test.common import ishomog
+from components.robot.test.serial_link import SerialLink, Revolute
 
 
 class Inchworm(SerialLink):

@@ -1199,7 +1199,7 @@ def create_root(
 
     :param robot_communicator: Object to send messages to structure
     :param simulator_communicator: Object to send messages to simulator
-    :param set_variables: Used for testing purposes, can set blackboard variables to original with
+    :param set_variables: Used for testing purposes, can set blackboard variables to test with
     :return:
     """
 

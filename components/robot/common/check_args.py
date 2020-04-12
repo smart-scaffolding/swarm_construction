@@ -1,4 +1,4 @@
-"""test_args module contains original for input arguments.
+"""test_args module contains test for input arguments.
 It checks if input argument passed by user is valid or not.
 If any invalid data is found,
 the called function in test_args returns false"""

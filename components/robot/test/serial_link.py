@@ -12,8 +12,8 @@ from scipy.spatial.transform import Rotation as R
 from serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 
 # import robopy.base.transforms as tr
-import components.robot.original.transforms as transforms
-from components.robot.original.common import *
+import components.robot.test.transforms as transforms
+from components.robot.test.common import *
 
 
 class SerialLink:
@@ -703,7 +703,7 @@ class SerialLink:
             if baseOri[2] > 0.1 or baseOri[2] < -0.1:  # base ee down or up
                 pass
             else:  # base ee horizontal
-                # TODO: original if using all() would work
+                # TODO: test if using all() would work
                 # if baseOri.all() != goalRot.all():
                 if baseOri.all() != R.from_matrix(goalRot[:3]).as_euler(
                     "xyz", degrees=True

@@ -96,7 +96,7 @@
 #     # messagedata = WaitMessage()
 #     #
 #     # message_obj = MessageWrapper(topic=topic, message=messagedata)
-#     # # message_obj = "{'original': 'original'}"
+#     # # message_obj = "{'test': 'test'}"
 #     # # message_json = json.dumps(message_obj)
 #     # p = pickle.dumps(message_obj, protocol=-1)
 #     #

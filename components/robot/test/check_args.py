@@ -1,6 +1,6 @@
 import numpy as np
 
-from components.robot.original import pose, super_pose
+from components.robot.test import pose, super_pose
 
 
 def is_mat_list(list_matrices):
