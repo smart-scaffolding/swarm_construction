@@ -165,9 +165,9 @@ def breakLine(text, wrap=80):
         while char > 0 and text[char] != " ":
             char -= 1
         if char:
-            text = [text[:char]] + breakLine(text[char + 1 :], wrap)
+            text = [text[:char]] + breakLine(text[char + 1:], wrap)
         else:
-            text = [text[: wrap - 1] + "-"] + breakLine(text[wrap - 1 :], wrap)
+            text = [text[: wrap - 1] + "-"] + breakLine(text[wrap - 1:], wrap)
         return text
     else:
         return [cleanLine(text)]
@@ -195,7 +195,7 @@ def boxPrint(text, wrap=0):
                 paragraph = (
                     paragraph[:index]
                     + breakLine(paragraph[index], wrap)
-                    + paragraph[index + 1 :]
+                    + paragraph[index + 1:]
                 )
             index += 1
 

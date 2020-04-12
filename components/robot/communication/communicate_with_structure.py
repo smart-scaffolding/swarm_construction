@@ -121,4 +121,5 @@ class StructureCommunication:
         )
         pool = [self.receive_messages_thread, self.send_messages_thread]
         for thread in pool:
+            thread.daemon = True
             thread.start()

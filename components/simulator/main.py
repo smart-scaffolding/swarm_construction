@@ -6,8 +6,6 @@ import time
 import zlib
 from collections import defaultdict, OrderedDict
 from queue import Queue
-from signal import signal, SIGINT
-from sys import exit
 
 import zmq
 from logzero import logger
@@ -269,6 +267,7 @@ class vtkTimerCallback:
             block_q=self.block_q,
         )
         self.worker_pool.append(calculate_thread)
+        calculate_thread.daemon = True
         calculate_thread.start()
 
     def execute(self, obj, event):
@@ -332,9 +331,8 @@ class vtkTimerCallback:
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
-                                    True
+                                    True,
                                 )
-
 
                                 # logger.info(
                                 #     f"Moving block {block_on_ee} to new location {transforms[index]}"
@@ -351,7 +349,7 @@ class vtkTimerCallback:
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
-                                    True
+                                    True,
                                 )
 
                                 if block_on_ee in self.blocks_at_starting_location:
@@ -384,9 +382,7 @@ class vtkTimerCallback:
                                 robot_text_actor = vtk.vtkActor()
                                 robot_text_actor.SetMapper(robot_text_mapper)
                                 robot_text_actor.GetProperty().SetColor(
-                                    0.5,
-                                    0.5,
-                                    0.5,
+                                    0.5, 0.5, 0.5,
                                 )
                                 robot_text_actor.AddPosition(0, 0, 1)
                                 robot_text_actor.RotateX(60)
@@ -529,18 +525,6 @@ class Simulate:
                 print(COLORS)
         self.simulate()
 
-    def save_video_end_program(self, signal_received, frame):
-        """
-
-        :param signal_received:
-        :param frame:
-        """
-        for thread in self.pool:
-            thread.join()
-        for thread in self.worker_pool:
-            thread.join()
-        exit(0)
-
     def leftButtonPressEvent(self, obj, event):
         clickPos = self.pipeline.iren.GetEventPosition()
 
@@ -655,22 +639,14 @@ class Simulate:
 
         # Start all threads
         for thread in self.pool:
+            thread.daemon = True
             thread.start()
             logger.info("Started worker thread")
 
-        signal(SIGINT, self.save_video_end_program)
         try:
             self.pipeline.animate()
         except KeyboardInterrupt:
             logger.info("Exiting")
-            pass
-
-        finally:
-            logger.info("Saving video")
-            for thread in self.pool:
-                thread.join()
-            for thread in self.worker_pool:
-                thread.join()
 
 
 def axesUniversal():

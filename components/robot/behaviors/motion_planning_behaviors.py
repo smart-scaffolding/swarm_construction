@@ -239,7 +239,7 @@ def follow_path(
     :return:
     """
     for index, item in enumerate(path):
-        if item == None:
+        if item is None:
             robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
             return robot, True
 
@@ -304,15 +304,11 @@ def follow_path(
         #         point, direction, path[index - 1][-1]
         #     )
         # )
-        logger.info(
-            "\nPOINT: {}   DIRECTION: {}".format(
-                point, direction
-            )
-        )
+        logger.info("\nPOINT: {}   DIRECTION: {}".format(point, direction))
 
         ee = robot.DEE_POSE if ee_to_move == "D" else robot.AEE_POSE
         ee_up = list(create_point_from_homogeneous_transform(ee))
-        if np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01 :
+        if np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01:
             logger.debug("No sense in moving, destination is where I am already at")
             logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
             robot.primary_ee = "D" if robot.primary_ee == "A" else "A"
@@ -485,7 +481,8 @@ def get_path_to_point(
             f"Start face ee ({current_position.ee_on_face}) does not match goal face ee ({robot.primary_ee})"
         )
         logger.exception(
-            f"Current Position: {(current_position.xPos, current_position.yPos, current_position.zPos, current_position.ee_on_face)}"
+            f"Current Position: "
+            f"{(current_position.xPos, current_position.yPos, current_position.zPos, current_position.ee_on_face)}"
         )
         logger.exception(
             f"Goal Position: {(point[0], point[1], point[2], direction, desired_ee)}"
@@ -982,7 +979,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
         self.robot = self.state.get(self.robot_model_key)
         self.holding_blocks = self.state.get(self.keys["holding_blocks_key"])
         logger.exception(f"Point to reach: {self.point_to_reach}")
-        basedID = "A" if self.robot.primary_ee == "D" else "D"
+        # basedID = "A" if self.robot.primary_ee == "D" else "D"
         if self.holding_blocks[self.robot.primary_ee] is not None:
             goal_ee = self.robot.primary_ee
         # elif self.holding_blocks[basedID] is not None:
@@ -1064,7 +1061,7 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                     logger.exception("Therefore I am placing a block")
                 # logger.debug("Placing block set to true")
 
-            #### REMOVE BAD POINTS IN PATH ####
+            # TODO: REMOVE BAD POINTS IN PATH
             point = list(self.next_point[0:3])
             if self.next_point[3] == "top":
                 point[0] = self.next_point[0] + 0.5
@@ -1078,7 +1075,10 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
             ee = self.robot.DEE_POSE if self.next_point[4] == "D" else self.robot.AEE_POSE
             ee_up = list(create_point_from_homogeneous_transform(ee))
 
-            while np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01 and self.next_point != None:
+            while (
+                np.linalg.norm(np.array(point) - np.array(ee_up)) <= 0.01
+                and self.next_point is not None
+            ):
                 logger.debug("No sense in moving, destination is where I am already at")
                 logger.debug(f"Point I am going to: {point}, point my ee is at: {ee_up}")
                 self.robot.primary_ee = "D" if self.robot.primary_ee == "A" else "A"
@@ -1093,9 +1093,11 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
                         point[2] = self.next_point[2] + 2
                     else:
                         point[2] = self.next_point[2] + 1
-                ee = self.robot.DEE_POSE if self.next_point == "D" else self.robot.AEE_POSE
+                ee = (
+                    self.robot.DEE_POSE if self.next_point == "D" else self.robot.AEE_POSE
+                )
                 ee_up = list(create_point_from_homogeneous_transform(ee))
-                #### REMOVE BAD POINTS IN PATH ####
+                # TODO: REMOVE BAD POINTS IN PATH
 
             self.robot, success = follow_path(
                 self.robot,
@@ -1119,7 +1121,9 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
 
                 baseID = "D" if self.robot.primary_ee == "A" else "A"
 
-                base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
+                base_block_face = BlockFace(
+                    base[0, 3], base[1, 3], base[2, 3], "top", baseID
+                )
 
                 # TODO block face is not correct
                 self.state.set(name=self.current_position_key, value=base_block_face)
@@ -1138,7 +1142,9 @@ class NavigateToPoint(py_trees.behaviour.Behaviour):
 
                 baseID = "D" if self.robot.primary_ee == "A" else "A"
 
-                base_block_face = BlockFace(base[0, 3], base[1, 3], base[2, 3], "top", baseID)
+                base_block_face = BlockFace(
+                    base[0, 3], base[1, 3], base[2, 3], "top", baseID
+                )
 
                 # TODO block face is not correct
                 self.state.set(name=self.current_position_key, value=base_block_face)

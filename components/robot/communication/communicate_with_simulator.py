@@ -66,4 +66,5 @@ class SimulatorCommunication:
         )
         pool = [self.send_messages_thread]
         for thread in pool:
+            thread.daemon = True
             thread.start()

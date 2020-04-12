@@ -9,25 +9,28 @@ import components.structure.config as config
 from components.robot.communication.messages import (
     FerryBlocksStatusFinished,
     MovingFinished,
-    )
+)
 from components.structure.behaviors.building.assign_robots_min_distance import (
     assign_robots_closest_point,
-    )
+)
 from components.structure.behaviors.building.common_building import (
     spiral_sort_helper,
     Block,
     Robot,
-    )
+)
 from components.structure.behaviors.building.select_ferry_regions import (
     determine_ferry_regions,
-    )
+)
 from components.structure.behaviors.divide_structure import BuildingPlanner
 from components.structure.communication.communicate_with_robots import RobotCommunication
 from swarm_c_library.blueprint_factory import BluePrintFactory
-from components.structure.communication.communicate_with_simulator import SimulatorCommunication
+from components.structure.communication.communicate_with_simulator import (
+    SimulatorCommunication,
+)
 from components.structure.communication.heartbeater import start_hearbeat_detector
 from components.structure.communication.messages import *
 from components.robot.communication.messages import BlockLocationMessage
+
 configuration = None
 
 
@@ -488,9 +491,9 @@ class StructureMain:
                                                 block.location[0],
                                                 block.location[1] + 0.5,
                                                 block.location[2] + 0.5,
-                                                ),
                                             ),
-                                        )
+                                        ),
+                                    )
 
                             # ferry_blocks = self.blocks_to_move
                             # ferry_blocks.reverse()
@@ -523,9 +526,9 @@ class StructureMain:
                                                 block.location[0],
                                                 block.location[1] + 0.5,
                                                 block.location[2] + 0.5,
-                                                ),
                                             ),
-                                        )
+                                        ),
+                                    )
 
                             self.robot_communicator.send_communication(
                                 topic=robot.id,
@@ -533,8 +536,6 @@ class StructureMain:
                                     blocks_to_move=ferry_blocks, blueprint=self.blueprint
                                 ),
                             )
-
-
 
                         logger.info(f"Got new block location: {self.blocks_to_move}")
 
@@ -753,67 +754,6 @@ class StructureMain:
 
 if __name__ == "__main__":
 
-    # blueprint = np.array([
-    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-    #     [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-    #     [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-    #     [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-    #     [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-    # ])
-    #
-    # bx, by, bz = blueprint.shape
-    # colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
-    #
-    #
-    # blueprint_base = np.array([
-    #                           [[1] * 1] * 10,
-    #                       ] * 10)
-    #
-    # blueprint1 = np.array([
-    #                           [[1] * 1] * 10,
-    #                       ] * 10)
-    #
-    # blueprint2 = np.array([
-    #                           [[1] * 1] * 10,
-    #                       ] * 10)
-    #
-    # blueprint2[0, :, :] = 0
-    # blueprint2[1, :, :] = 0
-    # blueprint2[-1, :, :] = 0
-    # blueprint2[-2, :, :] = 0
-    # blueprint2[:, 0, :] = 0
-    # blueprint2[:, 1, :] = 0
-    # blueprint2[:, -1, :] = 0
-    # blueprint2[:, -2, :] = 0
-    #
-    # blueprint3 = np.array([
-    #                           [[1] * 1] * 10,
-    #                       ] * 10)
-    #
-    # blueprint3[0, :, :] = 0
-    # blueprint3[1, :, :] = 0
-    # blueprint3[2, :, :] = 0
-    # blueprint3[3, :, :] = 0
-    # blueprint3[-1, :, :] = 0
-    # blueprint3[-2, :, :] = 0
-    # blueprint3[-3, :, :] = 0
-    # blueprint3[-4, :, :] = 0
-    # blueprint3[:, 0, :] = 0
-    # blueprint3[:, 1, :] = 0
-    # blueprint3[:, 2, :] = 0
-    # blueprint3[:, 3, :] = 0
-    # blueprint3[:, -1, :] = 0
-    # blueprint3[:, -2, :] = 0
-    # blueprint3[:, -3, :] = 0
-    # blueprint3[:, -4, :] = 0
-    # blueprints = [blueprint1, blueprint2, blueprint3]
-
-    # blueprint_status = []
-    # blueprint_status.append(blueprint_base)
-    # blueprint_status.extend(blueprints)
-    # blueprint_status = np.dstack(blueprint_status)
-
     blueprint_status = BluePrintFactory().get_blueprint("Plane_20x20x2").data
 
     division_size = 5
@@ -833,13 +773,3 @@ if __name__ == "__main__":
             blueprint = blueprint.reshape((x, y, 1))
         structure.reset_building_planner(blueprint, division_size)
         structure.build_structure(level=i)
-
-    # while True:
-    #     print("-"*30)
-    #     try:
-    #         for robot in structure.robot_queue:
-    #             print(f"Robot: {robot} Position: {structure.robot_queue[robot].position}")
-    #     except RuntimeError:
-    #         continue
-    #     print("-" * 30)
-    #     time.sleep(1)

@@ -365,7 +365,7 @@ if __name__ == "__main__":
     writer.set(name="state/point_to_reach", value=False)
     # writer.set(name="state/location_to_move_to",
     #            value=(6, 0, 1, "top"))
-    writer.set(name="state/location_to_move_to", value=(6, 0, 1, "top", 'D'))
+    writer.set(name="state/location_to_move_to", value=(6, 0, 1, "top", "D"))
     writer.set(name="state/robot", value=robot_model)
     writer.set(name="state/blueprint", value=robot.blueprint)
     writer.set(name="state/blocks_robot_has_moved", value=[])
@@ -463,7 +463,7 @@ if __name__ == "__main__":
             behaviour_tree.tick()
         except KeyboardInterrupt:
             print("I have received a keyboard interrupt")
-            generate_results()
+            # generate_results()
             break
         except KeyError as e:
             logger.exception(f"Key error exception caught in main: {e}")

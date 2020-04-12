@@ -322,7 +322,7 @@ class FaceStar:
             raise Exception("Start face is invalid")
         self.goalFace = goal.get_face_coordinate()
         ee_label = goal.ee_on_face
-        start_label = start.ee_on_face
+        # start_label = start.ee_on_face
         logger.debug(f"Goal Face: {self.goalFace}")
         if not self.goalFace:
             raise Exception("Goal face is invalid")
