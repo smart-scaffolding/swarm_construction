@@ -24,8 +24,8 @@ import pickle
 from signal import signal, SIGINT
 from sys import exit
 from swarm_c_library.blueprint_factory import BluePrintFactory
-
-
+from csv import DictWriter
+import os
 POINTS = True
 ROBOTS = 1
 # BLUEPRINT = np.array([
@@ -39,7 +39,7 @@ ROBOTS = 1
 
 BLUEPRINT = np.array([[[1] * 1] * 12,] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_40x40x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Temple").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -87,7 +87,7 @@ start_time = time.time()
 
 
 class WorkerThread(threading.Thread):
-    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
+    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q, structure_q):
         super(WorkerThread, self).__init__()
         self.robot_actors = {}
         self.dir_q = dir_q
@@ -97,6 +97,7 @@ class WorkerThread(threading.Thread):
         self.socket = socket
         self.pipeline = pipeline
         self.block_q = block_q
+        self.structure_q = structure_q
 
     def run(self):
         while not self.stoprequest.isSet():
@@ -126,6 +127,10 @@ class WorkerThread(threading.Thread):
                         # print(messagedata.message)
                         self.robot_actors[topic].put((topic, messagedata))
                         # self.result_q.put((topic, messagedata))
+
+                if "STRUCTURE" in str(topic.decode()):
+                    print("Got structure message")
+                    self.structure_q.put((topic, messagedata))
                 else:
                     # print(f"Got message from unknown source: {topic} -> {messagedata}")
                     continue
@@ -140,7 +145,7 @@ class WorkerThread(threading.Thread):
 class CalculatorThread(WorkerThread):
     def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
         super(CalculatorThread, self).__init__(
-            dir_q, result_q, filter_q, socket, pipeline, block_q
+            dir_q, result_q, filter_q, socket, pipeline, block_q, structure_q=None
         )
         self.blocks = {}
 
@@ -204,6 +209,7 @@ class vtkTimerCallback:
         socket,
         pipeline,
         block_q,
+        structure_q,
     ):
         self.timer_count = 0
         self.robot_actors = {}
@@ -221,6 +227,7 @@ class vtkTimerCallback:
         self.blocks = {}
         self.block_q = block_q
         self.previous_path = []
+        self.structure_q = structure_q
 
     def add_robot_to_sim(self, robot, result_queue):
         base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
@@ -270,7 +277,6 @@ class vtkTimerCallback:
         self.worker_pool.append(calculate_thread)
         calculate_thread.daemon = True
         calculate_thread.start()
-
 
     def execute(self, obj, event):
         # string = self.socket.recv()
@@ -375,6 +381,27 @@ class vtkTimerCallback:
                     self.pipeline.ren.AddActor(actor)
                     # self.pipeline.animate()
                     # print("Added new block")
+        while not self.structure_q.empty():
+            print("Saving results to file")
+            topic, message = self.structure_q.get()
+            filename = message.message.filename
+            dict_to_write = {
+                "Number of timesteps": self.timer_count,
+                "Number of blocks": len(self.blocks),
+                "Number of robots": len(self.robot_actors),
+                "Simulation time": time.strftime('%H:%M:%S', time.gmtime(elapsed_time)),
+            }
+            with open(filename, "a", newline="") as csvfile:
+                fieldnames = dict_to_write.keys()
+                writer = DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerow(dict_to_write)
+
+            for _ in range(5):
+                os.system("""
+                    osascript -e 'display notification "Done simulating" with title "Finished" sound name "Glass"'
+                    """)
+                time.sleep(1)
         iren = obj
         iren.GetRenderWindow().Render()
 
@@ -389,6 +416,7 @@ class Simulate:
         self.new_actors = new_actors
         self.socket = socket
         self.block_q = block_q
+        self.structure_q = Queue()
 
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
         global BLUEPRINT
@@ -406,9 +434,9 @@ class Simulate:
             print(f"[Worker thread]: {topic} {messagedata}")
             if topic == b"STRUCTURE":
                 BLUEPRINT = messagedata.message.blueprint
-                COLORS = messagedata.message.colors
+                # COLORS = messagedata.message.colors
                 print(BLUEPRINT)
-                print(COLORS)
+                # print(COLORS)
                 # break
                 # except:
             #     continue
@@ -457,6 +485,7 @@ class Simulate:
             socket=self.socket,
             pipeline=self.pipeline,
             block_q=self.block_q,
+            structure_q=self.structure_q,
         )
 
         self.pipeline.iren.AddObserver("TimerEvent", cb.execute)
@@ -508,6 +537,7 @@ class Simulate:
                 socket=socket,
                 pipeline=self.pipeline,
                 block_q=self.block_q,
+                structure_q=self.structure_q,
             )
         ]
 
@@ -545,8 +575,8 @@ class Simulate:
         #         thread.join()
         #     for thread in self.worker_pool:
         #         thread.join()
-            # for thread in self.forward_kinematics_workers:
-            #     thread.join()
+        # for thread in self.forward_kinematics_workers:
+        #     thread.join()
 
 
 def axesUniversal():
@@ -609,6 +639,6 @@ if __name__ == "__main__":
         socket=socket,
         block_q=block_queue,
     )
-    sim.simulate()
-    # sim.wait_for_structure_initialization(blueprint=BLUEPRINT, colors=COLORS)
-    # sim.wait_for_structure_initialization()
+    # sim.simulate()
+    # sim.wait_for_structure_initialization(blueprint=None, colors=COLORS)
+    sim.wait_for_structure_initialization()

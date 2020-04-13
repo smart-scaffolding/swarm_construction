@@ -1,7 +1,7 @@
 import numpy as np
 from copy import copy
 from components.structure.behaviors.building.common_building import Block
-
+from itertools import cycle
 
 def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRONT"),
                             ferry_region_size=5, block_placed=1, x_offset=0, y_offset=0, z_offset=1, num_blocks={
@@ -24,6 +24,9 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
     print(f"Num Blocks: {num_blocks}")
     print(f"Offsets: {x_offset} {y_offset} {z_offset}")
     print(f"Direction: {direction}")
+    print(f"Level: {level}")
+    print(f"Num of rows: {num_rows}")
+    print(f"Num of cols: {num_cols}")
     starting_row_index, starting_column_index = 0, 0
 
 
@@ -45,16 +48,53 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
         "LEFT": []
     }
 
+    max_count = ferry_region_size + 2
+    num_iter = 0
+    all_directions = ["FRONT", "BACK", "LEFT", "RIGHT"]
+    for dir in direction:
+        all_directions.remove(dir)
+    directions = cycle(all_directions)
     while num_blocks_to_place > 0:
-        starting_row_index, starting_column_index = 0, 0
-        num_rows = copy(row)
-        num_cols = copy(column)
+
 
         # row = copy(num_rows)
         # column = copy(num_cols)
-        count = 1
-        while starting_row_index < num_rows and starting_column_index < num_cols:
+        num_iter += 1
+        print(f"Number of iterations: {num_iter}")
+        if num_iter < max_count:
+            count = 1
+            starting_row_index, starting_column_index = 0, 0
+            num_rows = copy(row)
+            num_cols = copy(column)
+        else:
+            # if len(direction) <= 1:
+            new_directions = set()
+            num_iter = 0
+            for dir in direction:
+                num_blocks_left_to_place = num_blocks[dir]
+                num_blocks[dir] = 0
+                next_direction = next(directions)
+                num_blocks[next_direction] = num_blocks_left_to_place
+                new_directions.add(next_direction)
+            direction = new_directions
+            count = 1
+            starting_row_index, starting_column_index = 0, 0
+            num_rows = copy(row)
+            num_cols = copy(column)
+            # if len(direction) == 1:
+            # break
 
+        print(f"Count: {count}")
+        print(f"Num rows: {num_rows}")
+        print(f"Num cols: {num_cols}")
+        print(f"Starting row: {starting_row_index}")
+        print(f"Starting col: {starting_column_index}")
+        print(f"Direction: {direction}")
+        print(f"Num iter {num_iter}")
+        print(f"Num blocks: {num_blocks}")
+        print("\n")
+        while starting_row_index < num_rows and starting_column_index < num_cols:
+            print(count)
             if "LEFT" in direction:
                 num_blocks_to_place_left = num_blocks["LEFT"]
                 for i in range(starting_column_index, num_cols):
@@ -119,7 +159,6 @@ def determine_ferry_regions(level, num_rows, num_cols, direction=("RIGHT", "FRON
                     starting_column_index += 1
 
             count += 1
-
             if count > ferry_region_size:
                 break
 
@@ -167,9 +206,49 @@ if __name__ == '__main__':
     #          [1, 1, 1, 1, 1, 1, 1],
     #          [1, 1, 1, 1, 1, 1, 1]])
 
-    level = np.array([[1] * 5,
+    level = np.array([[[1]*1] * 5,
                      ] * 5)
 
+    # level = np.array([
+    #  [[1],
+    #   [1],
+    #   [0],
+    #   [0],
+    #   [0],
+    #   [0]],
+    #
+    #  [[1],
+    #   [1],
+    #   [0],
+    #   [0],
+    #   [0],
+    #   [0]],
+    #
+    #  [[1],
+    #   [1],
+    #   [0],
+    #   [0],
+    #   [0],
+    #   [0]],
+    #
+    #  [[1],
+    #   [1],
+    #   [0],
+    #   [0],
+    #   [0],
+    #   [0]],
+    #
+    #  [[1],
+    #   [1],
+    #   [0],
+    #   [0],
+    #   [0],
+    #   [0]],
+    #
+    #  ])
+
+    # level = np.zeros((10, 10, 1))
+    # level[0, 0, 0] = 1
     # level = np.array([[0, 0, 0],
     #    [0, 0, 0],
     #    [0, 0, 0],
@@ -190,13 +269,13 @@ if __name__ == '__main__':
     # blueprint2[:, -2, :] = 0
     #
     # level = blueprint2[:, :, 0]
-
-    m, n = level.shape
+    # level[2:][:][:] = 0
+    m, n, _ = level.shape
     print(m, n)
     new_blueprint, new_block_locations, flattend_locations = determine_ferry_regions(level, num_rows=m, num_cols=n,
-                                                                               direction=("FRONT", "RIGHT",
+                                                                               direction=("RIGHT", "FRONT"
                                                                                           ),
-                            ferry_region_size=5, x_offset=0, y_offset=0, z_offset=1,
+                            ferry_region_size=3, x_offset=0, y_offset=10, z_offset=1,
                             num_blocks={
                                 "FRONT": 25,
                                 "RIGHT": 25,

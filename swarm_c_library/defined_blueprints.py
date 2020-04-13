@@ -77,7 +77,11 @@ class Plane(BlueprintTemplate):
         data = np.array([[[1] * height] * length] * width)
         data = pad_blueprint(data, pad)
         super().__init__(
-            data=data, length=length + pad, width=width + pad, height=height + pad, name=name
+            data=data,
+            length=length + pad,
+            width=width + pad,
+            height=height + pad,
+            name=name,
         )
 
 
@@ -138,18 +142,105 @@ class StairwayToHeaven(BlueprintTemplate):
     def __init__(self, name="StairwayToHeaven", pad=4):
         data = np.load("../../blueprints/StairwayToHeaven.npy")
         data = pad_blueprint(data, pad)
+        x, y, z = data.shape
         super().__init__(
-            length=12 + pad, width=12 + pad, height=11 + pad, data=data, name=name
+            length=x, width=y, height=z, data=data, name=name
         )
 
 
-def pad_blueprint(blueprint, pad):
+class Torus(BlueprintTemplate):
+    def __init__(self, name="Torus", pad=0):
+        data = np.load("../../blueprints/torus.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Castle(BlueprintTemplate):
+    def __init__(self, name="Castle", pad=0):
+        data = np.load("../../blueprints/castle.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Church(BlueprintTemplate):
+    def __init__(self, name="Church", pad=0):
+        data = np.load("../../blueprints/church.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class TajMahal(BlueprintTemplate):
+    def __init__(self, name="Church", pad=0):
+        data = np.load("../../blueprints/tajmahal.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+
+class StarTrek(BlueprintTemplate):
+    def __init__(self, name="StarTrek", pad=0):
+        data = np.load("../../blueprints/startrek.npy")
+        data = pad_blueprint(data, pad, y=3)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+
+class Temple(BlueprintTemplate):
+    def __init__(self, name="Temple", pad=0):
+        data = np.load("../../blueprints/temple.npy")
+        data = np.swapaxes(data, 1, 2)
+        data = np.flip(data, 1)
+        data = pad_blueprint(data, pad, x=5, y=2)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+
+class Colosseum(BlueprintTemplate):
+    def __init__(self, name="Colosseum", pad=0):
+        data = np.load("../../blueprints/colosseum.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+
+class EmpireStateBuilding(BlueprintTemplate):
+    def __init__(self, name="EmpireStateBuilding", pad=0):
+        data = np.load("../../blueprints/empire.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+def pad_blueprint(blueprint, pad, x=0, y=0, z=0):
     pad_x_before = 0
-    pad_x_after = pad
+    pad_x_after = pad + x
     pad_y_before = 0
-    pad_y_after = pad
+    pad_y_after = pad + y
     pad_z_before = 0
-    pad_z_after = pad
+    pad_z_after = pad + z
     return np.pad(
         blueprint,
         (
@@ -164,5 +255,7 @@ def pad_blueprint(blueprint, pad):
 if __name__ == "__main__":
     # a = RandomWorldConstrained(10, 10, 5)
     # a = Pyramid(10, 10, 4)
-    a = StairwayToHeaven()
+    # a = StairwayToHeaven()
+    # a = Torus()
+    a = EmpireStateBuilding()
     print(a.data.shape)

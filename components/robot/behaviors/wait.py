@@ -6,13 +6,22 @@ import py_trees
 import time
 from components.robot.communication.messages import StatusUpdateMessage
 from components.robot.common.states import RobotBehaviors
+
 ##############################################################################
 # Classes
 ##############################################################################
 
 
 class Wait(py_trees.behaviour.Behaviour):
-    def __init__(self, name, status_identifier, robot_communicator, robot_state="robot_status",):
+    def __init__(
+        self,
+        name,
+        status_identifier,
+        robot_communicator,
+        robot_state="robot_status",
+        behavior_state="behavior_state",
+        behavior_timer=None,
+    ):
         super().__init__(name=name)
         self.communicator = robot_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
@@ -20,10 +29,13 @@ class Wait(py_trees.behaviour.Behaviour):
         self.status_identifier = status_identifier
         self.keys = {
             "robot_state": robot_state,
+            "behavior_state": behavior_state,
         }
         self.state.register_key(key=robot_state, access=py_trees.common.Access.WRITE)
+        self.state.register_key(key=behavior_state, access=py_trees.common.Access.WRITE)
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
+        self.behavior_timer = behavior_timer
 
     def initialise(self):
         robot_status_key = self.keys["robot_state"]
@@ -32,26 +44,38 @@ class Wait(py_trees.behaviour.Behaviour):
     def update(self):
         new_status = py_trees.common.Status.RUNNING
 
-
         if self.robot_status != self.status_identifier:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
             return py_trees.common.Status.SUCCESS
 
-
         # print(f"[{self.name.upper()}]: Waiting...")
-        response_message = StatusUpdateMessage(status=self.status_identifier, payload="Waiting...")
-        self.communicator.send_communication(topic=self.robot_id, message=response_message)
+        response_message = StatusUpdateMessage(
+            status=self.status_identifier, payload="Waiting..."
+        )
+        self.communicator.send_communication(
+            topic=self.robot_id, message=response_message
+        )
+        if self.behavior_timer:
+            self.behavior_timer.update_time(self.name)
+        self.state.set(name=self.keys["behavior_state"], value=self.name)
         return new_status
 
-def create__waiting_root(robot_communicator):
-    wait_action = py_trees.decorators.RunningIsFailure(child=Wait(name="Wait", status_identifier=RobotBehaviors.WAIT,
-                                                                  robot_communicator=robot_communicator))
 
+def create__waiting_root(robot_communicator, behavior_timer=None):
+    wait_action = py_trees.decorators.RunningIsFailure(
+        child=Wait(
+            name="Wait",
+            status_identifier=RobotBehaviors.WAIT,
+            robot_communicator=robot_communicator,
+            behavior_timer=behavior_timer,
+        )
+    )
 
     root = py_trees.composites.Selector(name="Root")
 
     root.add_children([wait_action])
     return root
+
 
 ##############################################################################
 # Main
@@ -64,17 +88,11 @@ def main():
 
     root = create__waiting_root()
 
-
     behaviour_tree = py_trees.trees.BehaviourTree(root)
-
-
-
 
     writer = py_trees.blackboard.Client(name="Writer")
     writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
-
-
 
     behaviour_tree.setup(timeout=15)
 
@@ -91,5 +109,6 @@ def main():
             break
     print("\n")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

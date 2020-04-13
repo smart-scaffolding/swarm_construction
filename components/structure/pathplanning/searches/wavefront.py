@@ -6,13 +6,14 @@ import time
 
 
 class Wavefront(PathPlannerImp):
-    def __init__(self, blueprint, furthest_division, feeding_location, divisions=None, print=False):
+    def __init__(self, blueprint, furthest_division, feeding_location, divisions=None, print=False, level=0):
         self.blueprint = blueprint
         self.layer = self.convert_blueprint_to_layer(blueprint)
         self.feeding_location = feeding_location
         self.furthest_division = furthest_division
         self.initialize_wavefront(goal=self.feeding_location, start=self.furthest_division)
         self.print = print
+        self.level = level
         if divisions:
             self.map_wavefront_values_to_divisions(divisions)
         if print:
@@ -22,7 +23,7 @@ class Wavefront(PathPlannerImp):
     def map_wavefront_values_to_divisions(self, divisions):
         for position in self.layer.positions:
             try:
-                divisions[position].order = self.layer.positions[position]
+                divisions[position].order = self.layer.positions[position] + self.level
                 # print(position)
                 # print(self.layer.positions[position])
                 # print(divisions[position].order)

@@ -32,7 +32,7 @@ configuration = None
 
 
 class StructureMain:
-    def __init__(self, blueprint, division_size=5):
+    def __init__(self, blueprint, division_size=(5, 5)):
         self.configuration = config
         self.robot_queue = Queue()
         self.known_robots = {}
@@ -84,7 +84,7 @@ class StructureMain:
                 send_topics=b"STRUCTURE",
             )
 
-    def reset_building_planner(self, blueprint, division_size=5, feeding_location=(0, 0)):
+    def reset_building_planner(self, blueprint, division_size=(5,5), feeding_location=(0, 0)):
         self.blueprint = blueprint
         self.buildingPlanner = BuildingPlanner(
             blueprint, feeding_location=feeding_location
@@ -92,7 +92,7 @@ class StructureMain:
         self.division_size = division_size
         # self.ferry_region_size =
 
-    def initialize_communications(self, colors=None):
+    def initialize_communications(self, colors=None, blueprint_base=None):
         """
 
         :return:
@@ -101,14 +101,15 @@ class StructureMain:
         start_hearbeat_detector(self.robot_queue)
         self.robot_communicator.initialize_communication_with_structure()
         if config.SIMULATE:
-            self.initialize_simulator(colors=colors)
+            self.initialize_simulator(colors=colors, blueprint_base=blueprint_base)
+        time.sleep(3)
 
-    def initialize_simulator(self, colors):
+    def initialize_simulator(self, colors, blueprint_base=None):
         simulator_message = SimulatorStructureMessage(
-            blueprint=self.blueprint, colors=colors
+            blueprint=blueprint_base, colors=colors
         )
         self.simulator_communicator.initialize_communication_with_simulator()
-        # self.simulator_communicator.send_communication(message=simulator_message, topic=b"STRUCTURE")
+        self.simulator_communicator.send_communication(message=simulator_message, topic=b"STRUCTURE")
 
     def print_structure_status(self):
         print("\n\n\n")
@@ -327,7 +328,7 @@ class StructureMain:
         print("\n\n\n\nRobot has finished")
         time.sleep(3)
 
-    def build_structure(self, level):
+    def build_structure(self, level, robots):
         self.divisions, self.wavefront_blueprint = self.buildingPlanner.create_divisions(
             division_size=self.division_size, level=level
         )
@@ -342,12 +343,7 @@ class StructureMain:
             # self.print_structure_status()
             # order
 
-            robots = [
-                Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
-                Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
-                Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-                Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
-            ]
+
 
             # for i in need_to_visit_again:
             #     self.nodes_to_visit.put(i)
@@ -637,19 +633,22 @@ class StructureMain:
         z_offset = node.z_range[0]
 
         if type == "BUILD" or None in node.direction:
-            rows = len(level)
-            columns = len(level[0])
-            # print(level)
-            # print(level.reshape((rows, columns)))
-            # print(self.blueprint)
-            layer, new_block_locations = spiral_sort_helper(
-                rows,
-                columns,
-                level.reshape((rows, columns)),
-                x_offset=x_offset,
-                y_offset=y_offset,
-                z_offset=z_offset,
-            )
+            try:
+                rows = len(level)
+                columns = len(level[0])
+                # print(level)
+                # print(level.reshape((rows, columns)))
+                # print(self.blueprint)
+                layer, new_block_locations = spiral_sort_helper(
+                    rows,
+                    columns,
+                    level.reshape((rows, columns)),
+                    x_offset=x_offset,
+                    y_offset=y_offset,
+                    z_offset=z_offset,
+                )
+            except IndexError:
+                new_block_locations = []
         else:
             print("Getting ferry block locations")
             print(f"Num blocks to ferry: {num_blocks}")
@@ -703,25 +702,39 @@ class StructureMain:
 
 if __name__ == "__main__":
 
-    blueprint = np.array(
-        [
-            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-            [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
-            [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
-            [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
-            [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
-        ]
-    )
+    # blueprint = np.array(
+    #     [
+    #         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
+    #         [[1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 1]],
+    #         [[1, 0, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]],
+    #         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
+    #     ]
+    # )
 
-    bx, by, bz = blueprint.shape
+    # bx, by, bz = blueprint.shape
+    # colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+
+    blueprint_status = BluePrintFactory().get_blueprint(config.BLUEPRINT).data
+
+    simulator_blueprint_base = BluePrintFactory().get_blueprint(config.SIMULATOR_BLUEPRINT).data
+    bx, by, bz = simulator_blueprint_base.shape
     colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-    blueprint_status = BluePrintFactory().get_blueprint("Pyramid_40x40x10").data
-
-    division_size = 5
+    division_size = (10, 10)
     structure = StructureMain(blueprint=blueprint_status[:, :, 0])
-    structure.initialize_communications(colors=colors)
+    structure.initialize_communications(colors=colors, blueprint_base=simulator_blueprint_base)
+    # time.sleep(3)
+
+    # time.sleep(4)
+
+    robots = [
+        Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
+        Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
+        # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
+        # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
+        ]
 
     x, y, num_of_levels = blueprint_status.shape
     for i in range(num_of_levels):
@@ -731,4 +744,7 @@ if __name__ == "__main__":
             x, y = blueprint.shape
             blueprint = blueprint.reshape((x, y, 1))
         structure.reset_building_planner(blueprint, division_size)
-        structure.build_structure(level=i)
+        structure.build_structure(level=i, robots=robots)
+
+    get_results = SimulatorRecordResults(filename=config.PATH_TO_RESULTS + config.EXPERIMENT_NAME)
+    structure.simulator_communicator.send_communication(message=get_results)

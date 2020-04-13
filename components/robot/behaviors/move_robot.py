@@ -4,7 +4,12 @@
 
 import py_trees
 from .motion_planning_behaviors import get_move_to_point_tree
-from components.robot.common.states import Block, MoveBlocksStore, Division, RobotBehaviors
+from components.robot.common.states import (
+    Block,
+    MoveBlocksStore,
+    Division,
+    RobotBehaviors,
+)
 from components.robot.communication.messages import StatusUpdateMessage
 import time
 
@@ -14,14 +19,20 @@ import time
 ##############################################################################
 
 
-
 class MoveToNewLocation(py_trees.behaviour.Behaviour):
-    def __init__(self, name, status_identifier, robot_communicator, navigation_first_key="navigation/point_to_reach",
-                 location_to_move_to_key="location_to_move_to",
-                 robot_state="robot_status",
-                 block_placed_state="block_has_been_placed",
-                 destination_reached="point_to_reach"
-                 ):
+    def __init__(
+        self,
+        name,
+        status_identifier,
+        robot_communicator,
+        navigation_first_key="navigation/point_to_reach",
+        location_to_move_to_key="location_to_move_to",
+        robot_state="robot_status",
+        block_placed_state="block_has_been_placed",
+        destination_reached="point_to_reach",
+        behavior_state="behavior_state",
+        behavior_timer=None,
+    ):
         super().__init__(name=name)
         self.communicator = robot_communicator.robot_communicator
         self.robot_id = robot_communicator.robot_id
@@ -35,15 +46,26 @@ class MoveToNewLocation(py_trees.behaviour.Behaviour):
             "robot_state": robot_state,
             "block_placed_state": block_placed_state,
             "destination_reached": destination_reached,
+            "behavior_state": behavior_state,
         }
-        self.blackboard.register_key(key=navigation_first_key, access=py_trees.common.Access.WRITE)
+        self.blackboard.register_key(
+            key=navigation_first_key, access=py_trees.common.Access.WRITE
+        )
 
-        self.state.register_key(key=location_to_move_to_key, access=py_trees.common.Access.WRITE)
+        self.state.register_key(
+            key=location_to_move_to_key, access=py_trees.common.Access.WRITE
+        )
         self.state.register_key(key=robot_state, access=py_trees.common.Access.WRITE)
-        self.state.register_key(key=block_placed_state, access=py_trees.common.Access.WRITE)
-        self.state.register_key(key=destination_reached, access=py_trees.common.Access.WRITE)
+        self.state.register_key(
+            key=block_placed_state, access=py_trees.common.Access.WRITE
+        )
+        self.state.register_key(
+            key=destination_reached, access=py_trees.common.Access.WRITE
+        )
+        self.state.register_key(key=behavior_state, access=py_trees.common.Access.WRITE)
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
+        self.behavior_timer = behavior_timer
 
     def initialise(self):
 
@@ -62,32 +84,60 @@ class MoveToNewLocation(py_trees.behaviour.Behaviour):
 
         elif self.state.get(name=self.keys["destination_reached"]) is True:
             # print(f"[{self.name.upper()}]: Returning success {self.robot_status} {self.status_identifier}")
-            response_message = StatusUpdateMessage(status=self.status_identifier, payload="Destination has been reached")
-            self.communicator.send_communication(topic=self.robot_id, message=response_message)
+            response_message = StatusUpdateMessage(
+                status=self.status_identifier, payload="Destination has been reached"
+            )
+            self.communicator.send_communication(
+                topic=self.robot_id, message=response_message
+            )
             self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
+            if self.behavior_timer:
+                self.behavior_timer.update_time(self.name)
+            self.state.set(name=self.keys["behavior_state"], value=self.name)
             return py_trees.common.Status.SUCCESS
         else:
             print(f"[{self.name.upper()}]: Moving to location...")
-            response_message = StatusUpdateMessage(status=self.status_identifier, payload="Moving to location...")
-            self.communicator.send_communication(topic=self.robot_id, message=response_message)
+            response_message = StatusUpdateMessage(
+                status=self.status_identifier, payload="Moving to location..."
+            )
+            self.communicator.send_communication(
+                topic=self.robot_id, message=response_message
+            )
 
-            self.blackboard.set(name=self.keys["navigation_first_key"], value=self.destination)
+            self.blackboard.set(
+                name=self.keys["navigation_first_key"], value=self.destination
+            )
+        if self.behavior_timer:
+            self.behavior_timer.update_time(self.name)
+        self.state.set(name=self.keys["behavior_state"], value=self.name)
         return new_status
 
-def create_move_robot_root(robot_communicator, simulator_communicator, robot):
-    # move_action = py_trees.decorators.RunningIsFailure(child=FerryBlocks(name="Ferry", status_identifier="FERRY"))
-    move_action = py_trees.decorators.RunningIsFailure(child=MoveToNewLocation(name="Move",
-                                                                               status_identifier=RobotBehaviors.MOVE,
-                                                                               robot_communicator=robot_communicator))
 
-    move_to_point_behavior = get_move_to_point_tree(robot_communicator=robot_communicator,
-                                                    simulator_communicator=simulator_communicator, robot=robot)
+def create_move_robot_root(
+    robot_communicator, simulator_communicator, robot, behavior_timer=None
+):
+    # move_action = py_trees.decorators.RunningIsFailure(child=FerryBlocks(name="Ferry", status_identifier="FERRY"))
+    move_action = py_trees.decorators.RunningIsFailure(
+        child=MoveToNewLocation(
+            name="Move",
+            status_identifier=RobotBehaviors.MOVE,
+            robot_communicator=robot_communicator,
+            behavior_timer=behavior_timer,
+        )
+    )
+
+    move_to_point_behavior = get_move_to_point_tree(
+        robot_communicator=robot_communicator,
+        simulator_communicator=simulator_communicator,
+        robot=robot,
+    )
     root = py_trees.composites.Selector(name="Root")
 
     move = py_trees.composites.Selector(name="Move to point")
     move.add_children([move_action, move_to_point_behavior])
     root.add_children([move])
     return root
+
 
 ##############################################################################
 # Main
@@ -102,23 +152,33 @@ def main():
 
     root = create_move_robot_root()
 
-
     behaviour_tree = py_trees.trees.BehaviourTree(root)
 
-    blocks_to_place = [Block(position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
-                       Block(position=(1, 1, 1, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
-                       Block(position=(2, 2, 2, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top"))]
+    blocks_to_place = [
+        Block(
+            position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")
+        ),
+        Block(
+            position=(1, 1, 1, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")
+        ),
+        Block(
+            position=(2, 2, 2, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")
+        ),
+    ]
 
     division = Division()
 
     move_store = MoveBlocksStore(blocks_to_remove=blocks_to_place, division=division)
 
-
     writer = py_trees.blackboard.Client(name="Writer")
     writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/block_has_been_placed", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/location_to_move_to", access=py_trees.common.Access.WRITE)
+    writer.register_key(
+        key="state/block_has_been_placed", access=py_trees.common.Access.WRITE
+    )
+    writer.register_key(
+        key="state/location_to_move_to", access=py_trees.common.Access.WRITE
+    )
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
 
     writer.set(name="state/blocks_to_move", value=move_store)
@@ -126,7 +186,6 @@ def main():
     writer.set(name="state/block_has_been_placed", value=True)
     writer.set(name="state/point_to_reach", value=False)
     writer.set(name="state/location_to_move_to", value=(7, 7, 7, "Top"))
-
 
     behaviour_tree.setup(timeout=15)
 
@@ -143,5 +202,6 @@ def main():
             break
     print("\n")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

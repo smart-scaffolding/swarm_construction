@@ -43,11 +43,16 @@ def assign_robots_closest_point(robots, points, robot_communicator, level):
             print(f"\t\tDistance: {robot.desired_target_distance}")
             print("\n")
 
-            robot.pos = (robot.target.pos[0], robot.target.pos[1]) #TODO: Uncomment this and let robots determine new
-            # position
-            if robot_communicator:
-                robot_communicator.send_communication(topic=robot.id, message=MoveToPointMessage(
-                    destination=(robot.target.pos[0], robot.target.pos[1], level)))
+            tolerance = 2
+            if abs(robot.pos[0] - robot.target.pos[0]) > tolerance and abs(robot.pos[1] - robot.target.pos[1]) > \
+                    tolerance:
+                robot.pos = (robot.target.pos[0], robot.target.pos[1]) #TODO: Uncomment this and let robots determine new
+                # position
+                if robot_communicator:
+                    robot_communicator.send_communication(topic=robot.id, message=MoveToPointMessage(
+                        destination=(robot.target.pos[0], robot.target.pos[1], level)))
+            else:
+                print("No need for robot to move, as already there")
 
         else:
             try:

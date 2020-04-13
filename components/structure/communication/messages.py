@@ -51,6 +51,12 @@ class SimulatorStructureMessage(Message):
         self.colors = colors
 
 
+class SimulatorRecordResults(Message):
+    def __init__(self, filename):
+        super(SimulatorRecordResults, self).__init__(message_id=b"STRUCTURE")
+        self.filename = filename
+
+
 class MessageWrapper:
     def __init__(self, topic, message):
         self.topic = topic

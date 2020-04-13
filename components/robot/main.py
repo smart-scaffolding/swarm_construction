@@ -1,6 +1,8 @@
 from components.robot.communication.heartbeat import start_heartbeat
+
 # from .communication import SimulatorCommunication
 from components.robot.communication import *
+
 # from components.robot.communication import StructureCommunication
 from components.robot.behaviors.move_blocks import create_move_blocks_root
 from components.robot import *
@@ -9,11 +11,17 @@ from components.robot.behaviors.update_state import create_update_behavior_root
 from components.robot.behaviors.wait import create__waiting_root
 from components.robot.common.states import *
 import components.robot.config as config
-from components.robot.communication.communicate_with_simulator import SimulatorCommunication
-from components.robot.communication.communicate_with_structure import StructureCommunication
+from components.robot.communication.communicate_with_simulator import (
+    SimulatorCommunication,
+)
+from components.robot.communication.communicate_with_structure import (
+    StructureCommunication,
+)
 from components.robot.communication.messages import *
 from components.robot.pathplanning.searches.face_star import BlockFace
 from components.structure.behaviors.building.common_building import Block
+from components.robot.common.timing import BehaviorTiming
+
 import py_trees
 import time
 import argparse
@@ -27,30 +35,61 @@ class RobotMain:
     def __init__(self):
         self.configuration = config
         try:
-            self.id = config.ROBOT_ID.encode('UTF-8')
+            self.id = config.ROBOT_ID.encode("UTF-8")
             self.heartbeat_connection_in = config.communication["heartbeat_connection_in"]
-            self.heartbeat_connection_out = config.communication["heartbeat_connection_out"]
+            self.heartbeat_connection_out = config.communication[
+                "heartbeat_connection_out"
+            ]
             if self.configuration.TESTING:
                 args = command_line_argument_parser().parse_args()
-                self.id = str(args.robot_id).encode('UTF-8')
+                self.id = str(args.robot_id).encode("UTF-8")
+                self.configuration.ROBOT_ID = self.id
                 print(self.id)
             if self.configuration.SIMULATE:
-                self.simulator_send_messages_socket = config.communication["simulator_send_messages_port"]
+                self.simulator_send_messages_socket = config.communication[
+                    "simulator_send_messages_port"
+                ]
+            if self.configuration.RECORD_METRICS:
+                if self.configuration.TESTING:
+                    self.behavior_timer = BehaviorTiming(
+                        behaviors=[
+                            "Wait",
+                            "Update",
+                            "Build",
+                            "Move",
+                            "Ferry",
+                        ],
+                        filename=f"./results/behavior_time_{self.id.decode()}_{config.EXPERIMENT_NAME}.csv",
+                    )
+                else:
+                    self.behavior_timer = BehaviorTiming(
+                        behaviors=[
+                            "Wait",
+                            "Update",
+                            "Build",
+                            "Move",
+                            "Ferry",
+                            ],
+                        filename=self.configuration.RECORD_BEHAVIOR_TIME_FILE,
+                    )
             self.receive_messages_socket = config.communication["receive_messages_port"]
             self.send_messages_socket = config.communication["send_messages_port"]
         except:
             raise Exception("Must define all parameters in configuration file")
 
-        self.structure_communicator = StructureCommunication(receive_messages_socket=self.receive_messages_socket,
-                                                             send_messages_socket=self.send_messages_socket,
-                                                             send_topics=self.id,
-                                                             receive_topics=self.id)
+        self.structure_communicator = StructureCommunication(
+            receive_messages_socket=self.receive_messages_socket,
+            send_messages_socket=self.send_messages_socket,
+            send_topics=self.id,
+            receive_topics=self.id,
+        )
 
         if self.configuration.SIMULATE:
             print("SIMULATING")
             self.simulator_communicator = SimulatorCommunication(
                 send_messages_socket=self.simulator_send_messages_socket,
-                send_topics=self.id)
+                send_topics=self.id,
+            )
 
     def initialize_communications(self):
         """
@@ -58,12 +97,14 @@ class RobotMain:
         :return:
         """
         print(self.id)
-        start_heartbeat(id=self.id, connection_in=self.heartbeat_connection_in,
-                        connection_out=self.heartbeat_connection_out)
+        start_heartbeat(
+            id=self.id,
+            connection_in=self.heartbeat_connection_in,
+            connection_out=self.heartbeat_connection_out,
+        )
         self.structure_communicator.initialize_communication_with_structure()
         if self.configuration.SIMULATE:
             self.simulator_communicator.initialize_communication_with_simulator()
-
 
     def create_behavior_tree(self):
         """
@@ -73,39 +114,65 @@ class RobotMain:
 
         behaviors = py_trees.composites.Sequence(name="Behaviors")
 
-        communicator = RobotCommunicator(robot_communicator=self.structure_communicator, robot_id=self.id)
-        simulator_communicator = RobotCommunicator(robot_communicator=self.simulator_communicator, robot_id=self.id)
+        communicator = RobotCommunicator(
+            robot_communicator=self.structure_communicator, robot_id=self.id
+        )
+        simulator_communicator = RobotCommunicator(
+            robot_communicator=self.simulator_communicator, robot_id=self.id
+        )
 
-        ferry_behavior = create_move_blocks_root(ferry=True, robot_communicator=communicator,
-                                                 simulator_communicator=simulator_communicator, robot=self.id)
-        build_behavior = create_move_blocks_root(ferry=False, robot_communicator=communicator,
-                                                 simulator_communicator=simulator_communicator, robot=self.id)
-        wait_behavior = create__waiting_root(robot_communicator=communicator)
-        move_behavior = create_move_robot_root(robot_communicator=communicator,
-                                               simulator_communicator=simulator_communicator, robot=self.id)
-        update_behavior = create_update_behavior_root(robot_communicator=communicator)
+        ferry_behavior = create_move_blocks_root(
+            ferry=True,
+            robot_communicator=communicator,
+            simulator_communicator=simulator_communicator,
+            robot=self.id,
+            behavior_timer=self.behavior_timer,
+        )
+        build_behavior = create_move_blocks_root(
+            ferry=False,
+            robot_communicator=communicator,
+            simulator_communicator=simulator_communicator,
+            robot=self.id,
+            behavior_timer=self.behavior_timer,
+        )
+        wait_behavior = create__waiting_root(
+            robot_communicator=communicator, behavior_timer=self.behavior_timer
+        )
+        move_behavior = create_move_robot_root(
+            robot_communicator=communicator,
+            simulator_communicator=simulator_communicator,
+            robot=self.id,
+            behavior_timer=self.behavior_timer,
+        )
+        update_behavior = create_update_behavior_root(
+            robot_communicator=communicator, behavior_timer=self.behavior_timer
+        )
 
-        behaviors.add_children([move_behavior, ferry_behavior, build_behavior, wait_behavior])
+        behaviors.add_children(
+            [move_behavior, ferry_behavior, build_behavior, wait_behavior]
+        )
 
         # root = py_trees.composites.Parallel(name="Root", policy=py_trees.common.ParallelPolicy.SuccessOnSelected(
         #     children=[update_behavior]))
-        root = py_trees.composites.Parallel(name="Root", policy=py_trees.common.ParallelPolicy.SuccessOnOne())
-
+        root = py_trees.composites.Parallel(
+            name="Root", policy=py_trees.common.ParallelPolicy.SuccessOnOne()
+        )
 
         root.add_children([update_behavior, behaviors])
         return root
 
+
 def command_line_argument_parser():
     parser = argparse.ArgumentParser(
-                                        formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     )
-    parser.add_argument('-r', '--receive', type=int, help='Select port to receive values')
-    parser.add_argument('-s', '--send', type=int, help='Select port to send values')
-    parser.add_argument('-i', '--robot_id', type=str, help='Robot id')
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("-r", "--receive", type=int, help="Select port to receive values")
+    parser.add_argument("-s", "--send", type=int, help="Select port to send values")
+    parser.add_argument("-i", "--robot_id", type=str, help="Robot id")
     return parser
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     robot = RobotMain()
     robot.initialize_communications()
@@ -124,14 +191,17 @@ if __name__ == '__main__':
     writer = py_trees.blackboard.Client(name="Writer")
     # writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
     # writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/block_has_been_placed", access=py_trees.common.Access.WRITE)
+    writer.register_key(
+        key="state/block_has_been_placed", access=py_trees.common.Access.WRITE
+    )
     writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/location_to_move_to", access=py_trees.common.Access.WRITE)
+    writer.register_key(
+        key="state/location_to_move_to", access=py_trees.common.Access.WRITE
+    )
     writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
     writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
-
-
+    writer.register_key(key="state/behavior_state", access=py_trees.common.Access.WRITE)
     # blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
     #         Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
     #         Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
@@ -148,16 +218,24 @@ if __name__ == '__main__':
     writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
     writer.set(name="state/block_has_been_placed", value=False)
     writer.set(name="state/point_to_reach", value=True)
-    writer.set(name="state/location_to_move_to",
-               value=(10, 0, 0, "top"))
+    writer.set(name="state/location_to_move_to", value=(10, 0, 0, "top"))
+    writer.set(name="state/behavior_state", value="Wait")
 
-    choice([(1, 1, 0, "top"), (4, 1, 0, "top"), (7, 1, 0, "top"),
-            (1, 4, 0, "top"), (4, 4, 0, "top"), (5, 4, 0, "top"),
-            (1, 7, 0, "top"), (3, 7, 0, "top"), (5, 7, 0, "top"),
-            ])
+    choice(
+        [
+            (1, 1, 0, "top"),
+            (4, 1, 0, "top"),
+            (7, 1, 0, "top"),
+            (1, 4, 0, "top"),
+            (4, 4, 0, "top"),
+            (5, 4, 0, "top"),
+            (1, 7, 0, "top"),
+            (3, 7, 0, "top"),
+            (5, 7, 0, "top"),
+        ]
+    )
 
-    writer.set(name="state/current_position", value=BlockFace(0, 0, 0, 'top'))
-
+    writer.set(name="state/current_position", value=BlockFace(0, 0, 0, "top"))
 
     behaviour_tree.setup(timeout=15)
     #
@@ -165,9 +243,9 @@ if __name__ == '__main__':
     # # Tick Tock
     # ####################
 
-
+    robot.behavior_timer.start_behavior_timing()
     while True:
-    # for unused_i in range(1, 50):
+        # for unused_i in range(1, 50):
         try:
             behaviour_tree.tick()
             # print("Tree is ticking")
