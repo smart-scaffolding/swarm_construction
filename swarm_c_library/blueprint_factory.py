@@ -67,15 +67,15 @@ class BluePrintFactory:
         self.possible_blueprints[
             "RandomWorldConstrained_10x10x5"
         ] = RandomWorldConstrained(10, 10, 3, name="RandomWorldConstrained_10x10x5")
-        # self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
-        # self.possible_blueprints["Torus"] = Torus()
-        # self.possible_blueprints["Castle"] = Castle()
-        # self.possible_blueprints["Church"] = Church()
-        # self.possible_blueprints["TajMahal"] = TajMahal()
-        # self.possible_blueprints["EmpireStateBuilding"] = EmpireStateBuilding()
+        self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
+        self.possible_blueprints["Torus"] = Torus()
+        self.possible_blueprints["Castle"] = Castle()
+        self.possible_blueprints["Church"] = Church()
+        self.possible_blueprints["TajMahal"] = TajMahal()
+        self.possible_blueprints["EmpireStateBuilding"] = EmpireStateBuilding()
         self.possible_blueprints["Temple"] = Temple()
-        # self.possible_blueprints["Colosseum"] = Colosseum()
-        # self.possible_blueprints["StarTrek"] = StarTrek()
+        self.possible_blueprints["Colosseum"] = Colosseum()
+        self.possible_blueprints["StarTrek"] = StarTrek()
 
 
     def get_blueprint(self, blueprint_label):

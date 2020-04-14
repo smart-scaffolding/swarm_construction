@@ -39,7 +39,7 @@ ROBOTS = 1
 
 BLUEPRINT = np.array([[[1] * 1] * 12,] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Temple").data
+BLUEPRINT = BluePrintFactory().get_blueprint("EmpireStateBuilding").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -639,6 +639,6 @@ if __name__ == "__main__":
         socket=socket,
         block_q=block_queue,
     )
-    # sim.simulate()
+    sim.simulate()
     # sim.wait_for_structure_initialization(blueprint=None, colors=COLORS)
-    sim.wait_for_structure_initialization()
+    # sim.wait_for_structure_initialization()
