@@ -1,4 +1,7 @@
 from uuid import uuid1
+from components.structure.behaviors.building.common_building import (
+    Robot,
+)
 
 DEBUG = True  # Use to control printing
 SIMULATE = True  # Use to control whether robot sends updates to simulator
@@ -11,10 +14,18 @@ communication = {
 }
 
 TESTING = True  # Use to configure if need unique id or predefining id
-ROBOT_ID = "ROBOT_1"
 
 # Use for creation of results files to label properly
-EXPERIMENT_NAME = "simulator_results_empire_state_building_2_robots.csv"
-PATH_TO_RESULTS = "results/empire/"  # Path to where results will be stored
-BLUEPRINT = "Temple"
-SIMULATOR_BLUEPRINT = "Plane_20x20x1"
+EXPERIMENT_NAME = "simulator_results_taj_mahal_2_robots.csv"
+PATH_TO_RESULTS = "results/tajmahal/"  # Path to where results will be stored
+BLUEPRINT = "StarTrek"
+SIMULATOR_BLUEPRINT = "Plane_10x10x1"
+
+ROBOTS = [
+        Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
+        Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
+        # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
+        # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
+        ]
+
+DIVISION_SIZE = 5

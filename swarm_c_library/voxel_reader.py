@@ -7,8 +7,8 @@ Use following link to upload obj, be sure to download it as a text file
 https://drububu.com/miscellaneous/voxelizer/?out=txt
 """
 
-FILE = ""
-SAVE_LOCATION = ""
+FILE = "/Users/calebwagner/Downloads/mqp_logo.txt"
+SAVE_LOCATION = "/Users/calebwagner/SmartScaffoldingMQP_Code/swarm_construction/blueprints/mqp_logo"
 
 
 data = pd.read_csv(FILE, header=None)

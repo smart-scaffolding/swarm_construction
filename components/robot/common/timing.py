@@ -39,13 +39,14 @@ class BehaviorTiming:
 
         self.elapsed_time = current_time
 
-        print(behavior)
-        print(parent)
-        config.pusher.trigger(
-            "robot",
-            "behavior_tree",
-            {"behavior": behavior, "parent": parent, "id": config.ROBOT_ID},
-        )
+        # print(behavior)
+        # print(parent)
+
+        # config.pusher.trigger(
+        #     "robot",
+        #     "behavior_tree",
+        #     {"behavior": behavior, "parent": parent, "id": config.ROBOT_ID},
+        # )
         # print("Updated time")
         if (int(time() - self.last_write)) >= self.write_data_interval:
             self.behaviors["Timestamp"] = datetime.now()
@@ -69,16 +70,19 @@ class WriteTimeToFile(threading.Thread):
                 # print("Wrote to file")
             dict_to_write_pusher = copy(dict_to_write)
             dict_to_write_pusher["id"] = config.ROBOT_ID
-            config.pusher.trigger(
-                "robot",
-                "behavior_time",
-                json.dumps(dict_to_write_pusher, default=default),
-            )
+            # if dict_to_write:
+            #     config.pusher.trigger(
+            #         "robot",
+            #         "behavior_time",
+            #         json.dumps(dict_to_write_pusher, default=default),
+            #     )
 
 
 def default(o):
     if isinstance(o, (date, datetime)):
         return o.isoformat()
+    if isinstance(o, (bytes)):
+        return str(o.decode())
 
 
 if __name__ == "__main__":

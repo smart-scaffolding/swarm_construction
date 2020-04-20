@@ -39,7 +39,7 @@ ROBOTS = 1
 
 BLUEPRINT = np.array([[[1] * 1] * 12,] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("EmpireStateBuilding").data
+BLUEPRINT = BluePrintFactory().get_blueprint("MQP_Logo").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -57,8 +57,10 @@ loc = pkg_resources.resource_filename(
     "components", "/".join(("simulator", "media", "block.stl"))
 )
 reader_list = vtk.vtkSTLReader()
+reader_list.GetOutput().GlobalReleaseDataFlagOn()
 reader_list.SetFileName(loc)
 block_file_location = vtk.vtkPolyDataMapper()
+# block_file_location.GlobalImmediateModeRenderingOn()
 block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
 
@@ -73,7 +75,8 @@ move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
 text_actor = vtk.vtkTextActor()
 text_actor.SetInput(
-    f"Simulation Time: 00:00:00\nNumber of Robots: 0\nNumber of Blocks Placed: 0\nNumber of Time steps: 0"
+    f"Simulation Time: 00:00:00\nNumber of Robots: 0\nNumber of Blocks Placed: 0\nNumber of Time steps: 0\nBase "
+    f"Number of Blocks: 0"
 )
 text_actor.GetTextProperty().SetColor(
     uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0)
@@ -228,6 +231,7 @@ class vtkTimerCallback:
         self.block_q = block_q
         self.previous_path = []
         self.structure_q = structure_q
+        self.blueprint_size = BLUEPRINT[BLUEPRINT > 0].shape[0]
 
     def add_robot_to_sim(self, robot, result_queue):
         base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
@@ -289,6 +293,7 @@ class vtkTimerCallback:
             f"Simulation Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}\nNumber of "
             f"Robots: {len(self.robot_actors)}\nNumber of Blocks Placed: {len(self.blocks)}"
             f"\nNumber of Time steps: {self.timer_count}"
+            f"\nBase Number of Blocks: {self.blueprint_size}"
         )
 
         if self.timer_count % 100 == 0:
@@ -520,9 +525,9 @@ class Simulate:
         om2.SetOrientationMarker(axes)
         # Position lower right in the viewport.
         om2.SetViewport(0.8, 0, 1.0, 0.2)
-        om2.SetInteractor(self.pipeline.iren)
-        om2.EnabledOn()
-        om2.InteractiveOn()
+        # om2.SetInteractor(self.pipeline.iren)
+        # om2.EnabledOn()
+        # om2.InteractiveOn()
 
         # self.forward_kinematics_workers = [cb.create_new_thread() for i in range(4)]
 

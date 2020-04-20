@@ -15,7 +15,7 @@ TESTING = True  # Use to configure if need unique id or predefining id
 ROBOT_ID = "ROBOT_1"
 RECORD_METRICS = True
 
-EXPERIMENT_NAME = "empire_state_building_2_robot"
+EXPERIMENT_NAME = "taj_mahal_2_robots"
 
 if RECORD_METRICS:
     RECORD_BEHAVIOR_TIME_FILE = f"../results/behavior_time_{ROBOT_ID}_{EXPERIMENT_NAME}.csv"

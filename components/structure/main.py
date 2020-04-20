@@ -722,19 +722,14 @@ if __name__ == "__main__":
     bx, by, bz = simulator_blueprint_base.shape
     colors = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-    division_size = (10, 10)
+    division_size = config.DIVISION_SIZE
     structure = StructureMain(blueprint=blueprint_status[:, :, 0])
     structure.initialize_communications(colors=colors, blueprint_base=simulator_blueprint_base)
     # time.sleep(3)
 
     # time.sleep(4)
 
-    robots = [
-        Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
-        Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
-        # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-        # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
-        ]
+    robots = config.ROBOTS
 
     x, y, num_of_levels = blueprint_status.shape
     for i in range(num_of_levels):

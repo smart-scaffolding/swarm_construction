@@ -180,7 +180,7 @@ class Church(BlueprintTemplate):
 
 class TajMahal(BlueprintTemplate):
     def __init__(self, name="Church", pad=0):
-        data = np.load("../../blueprints/tajmahal.npy")
+        data = np.load("../blueprints/tajmahal.npy")
         data = pad_blueprint(data, pad)
         x, y, z = data.shape
         super().__init__(
@@ -233,6 +233,15 @@ class EmpireStateBuilding(BlueprintTemplate):
             length=x, width=y, height=z, data=data, name=name
         )
 
+class MQPLogo(BlueprintTemplate):
+    def __init__(self, name="MQP_Logo", pad=0):
+        data = np.load("../../blueprints/mqp_logo.npy")
+        data = pad_blueprint(data, pad)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
 
 def pad_blueprint(blueprint, pad, x=0, y=0, z=0):
     pad_x_before = 0
@@ -257,5 +266,6 @@ if __name__ == "__main__":
     # a = Pyramid(10, 10, 4)
     # a = StairwayToHeaven()
     # a = Torus()
-    a = EmpireStateBuilding()
+    # a = EmpireStateBuilding()
+    a = TajMahal()
     print(a.data.shape)

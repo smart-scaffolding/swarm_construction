@@ -31,6 +31,15 @@ files = {
     ]
 }
 
+files = {
+    "Pyramid_10x10x4 (316 Blocks)": [
+        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_1_robots.csv",
+        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_2_robots.csv",
+        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_3_robots.csv",
+        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_4_robots.csv",
+    ]
+}
+
 
 def get_building_alg_times(files, fig, name):
     number_of_robots = [x + 1 for x in range(len(files))]
@@ -68,7 +77,15 @@ def plot_building_alg_times(fig, files, experiment_name):
             )
         ],
         showlegend=True,
+	xaxis = dict(
+      		range=[1,4],  # sets the range of xaxis
+    	),
+	#yaxis = dict(
+      	#	range=[0,65000],  # sets the range of xaxis
+    	#),
     )
+    fig.update_xaxes(tick0=0, dtick=1.0)
+
     return fig
     # fig.show()
 

@@ -20,13 +20,31 @@ import pandas as pd
 #     "Robot 2": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_3_robot.csv",
 #     "Robot 3": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_3_robot.csv",
 # }
+# files = {
+#     "Robot 1": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_4_robot.csv",
+#     "Robot 2": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_4_robot.csv",
+#     "Robot 3": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_4_robot.csv",
+#     "Robot 4": "../robot/results/behavior_time_ROBOT_4_plane_10x10x1_4_robot.csv",
+# }
 files = {
-    "Robot 1": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_4_robot.csv",
-    "Robot 2": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_4_robot.csv",
-    "Robot 3": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_4_robot.csv",
-    "Robot 4": "../robot/results/behavior_time_ROBOT_4_plane_10x10x1_4_robot.csv",
+    "Robot 1": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_1_robot.csv",
 }
 
+# files = {
+#     "Robot 1": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_2_robots.csv",
+#     "Robot 2": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_2_robots.csv",
+# }
+# files = {
+#     "Robot 1": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_3_robots.csv",
+#     "Robot 2": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_3_robots.csv",
+#     "Robot 3": "../robot/results/behavior_time_ROBOT_3_pyramid_10x10x4_3_robots.csv",
+# }
+# files = {
+#     "Robot 1": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_4_robots.csv",
+#     "Robot 2": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_4_robots.csv",
+#     "Robot 3": "../robot/results/behavior_time_ROBOT_3_pyramid_10x10x4_4_robots.csv",
+#     "Robot 4": "../robot/results/behavior_time_ROBOT_4_pyramid_10x10x4_4_robots.csv",
+# }
 
 # fig.add_trace(
 #     go.Scatterpolar(
@@ -63,11 +81,11 @@ def read_behavior_time_files(files, fig, row=1, col=1):
         read_behavior_time_files_helper(files[graphname], graphname, fig, row, col)
 
 
-def plot_radar_behavior_times(files, fig, row=1, col=1):
+def plot_radar_behavior_times(files, fig, row=None, col=None):
     read_behavior_time_files(files, fig, row, col)
 
     fig.update_layout(
-        title="Behavior Time for Robots (seconds)",
+        title="Behavior Time for Robots for Pyramid 10x10x4 316 blocks (seconds)",
         polar=dict(
             radialaxis=dict(visible=True, title="Seconds"),
             angularaxis=dict(rotation=55, direction="clockwise"),
@@ -95,44 +113,81 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 
-# fig = go.Figure()
-# plot_radar_behavior_times(files, fig)
-# fig.show()
+fig = go.Figure()
+plot_radar_behavior_times(files, fig)
+fig.show()
 
 
+# batch_files = [
+#     (
+#         1,
+#         1,
+#         {
+#             "Robot 1 (1 robot)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_1_robot.csv",
+#         },
+#     ),
+#     (
+#         1,
+#         2,
+#         {
+#             "Robot 1 (2 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_2_robot.csv",
+#             "Robot 2 (2 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_2_robot.csv",
+#         },
+#     ),
+#     (
+#         2,
+#         1,
+#         {
+#             "Robot 1 (3 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_3_robot.csv",
+#             "Robot 2 (3 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_3_robot.csv",
+#             "Robot 3 (3 robots)": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_3_robot.csv",
+#         },
+#     ),
+#     (
+#         2,
+#         2,
+#         {
+#             "Robot 1 (4 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_4_robot.csv",
+#             "Robot 2 (4 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_4_robot.csv",
+#             "Robot 3 (4 robots)": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_4_robot.csv",
+#             "Robot 4 (4 robots)": "../robot/results/behavior_time_ROBOT_4_plane_10x10x1_4_robot.csv",
+#         },
+#     ),
+# ]
+#
 batch_files = [
     (
         1,
         1,
         {
-            "Robot 1 (1 robot)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_1_robot.csv",
+            "Robot 1 (1 robot)": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_1_robot.csv",
         },
     ),
     (
         1,
         2,
         {
-            "Robot 1 (2 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_2_robot.csv",
-            "Robot 2 (2 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_2_robot.csv",
+            "Robot 1 (2 robots)": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_2_robots.csv",
+            "Robot 2 (2 robots)": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_2_robots.csv",
         },
     ),
     (
         2,
         1,
         {
-            "Robot 1 (3 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_3_robot.csv",
-            "Robot 2 (3 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_3_robot.csv",
-            "Robot 3 (3 robots)": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_3_robot.csv",
+            "Robot 1 (3 robots)": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_3_robots.csv",
+            "Robot 2 (3 robots)": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_3_robots.csv",
+            "Robot 3 (3 robots)": "../robot/results/behavior_time_ROBOT_3_pyramid_10x10x4_3_robots.csv",
         },
     ),
     (
         2,
         2,
         {
-            "Robot 1 (4 robots)": "../robot/results/behavior_time_ROBOT_1_plane_10x10x1_4_robot.csv",
-            "Robot 2 (4 robots)": "../robot/results/behavior_time_ROBOT_2_plane_10x10x1_4_robot.csv",
-            "Robot 3 (4 robots)": "../robot/results/behavior_time_ROBOT_3_plane_10x10x1_4_robot.csv",
-            "Robot 4 (4 robots)": "../robot/results/behavior_time_ROBOT_4_plane_10x10x1_4_robot.csv",
+            "Robot 1 (4 robots)": "../robot/results/behavior_time_ROBOT_1_pyramid_10x10x4_4_robots.csv",
+            "Robot 2 (4 robots)": "../robot/results/behavior_time_ROBOT_2_pyramid_10x10x4_4_robots.csv",
+            "Robot 3 (4 robots)": "../robot/results/behavior_time_ROBOT_3_pyramid_10x10x4_4_robots.csv",
+            "Robot 4 (4 robots)": "../robot/results/behavior_time_ROBOT_4_pyramid_10x10x4_4_robots.csv",
         },
     ),
 ]

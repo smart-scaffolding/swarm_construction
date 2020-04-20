@@ -76,6 +76,7 @@ class BluePrintFactory:
         self.possible_blueprints["Temple"] = Temple()
         self.possible_blueprints["Colosseum"] = Colosseum()
         self.possible_blueprints["StarTrek"] = StarTrek()
+        self.possible_blueprints["MQP_Logo"] = MQPLogo()
 
 
     def get_blueprint(self, blueprint_label):
