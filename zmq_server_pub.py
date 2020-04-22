@@ -7,16 +7,16 @@ from random import choice, randint
 import numpy as np
 
 # port = "5556"
-port = "5557"
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
+# port = "5557"
+# if len(sys.argv) > 1:
+#     port =  sys.argv[1]
+#     int(port)
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 # socket.bind(f"tcp://*:{port}")
 # socket.bind("tcp://127.0.0.1:5559")
-socket.connect("tcp://127.0.0.1:5559")
+socket.connect("tcp://192.168.1.29:5559")
 
 
 while True:

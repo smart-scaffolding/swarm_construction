@@ -13,7 +13,7 @@ communication = {
 
 TESTING = True  # Use to configure if need unique id or predefining id
 ROBOT_ID = "ROBOT_1"
-RECORD_METRICS = True
+RECORD_METRICS = False
 
 EXPERIMENT_NAME = "taj_mahal_2_robots"
 

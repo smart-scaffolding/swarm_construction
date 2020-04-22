@@ -55,14 +55,14 @@ class MessageWrapper:
         self.topic = topic
         self.message = message
 
-port = "5557"
-if len(sys.argv) > 1:
-    port = sys.argv[1]
-    int(port)
+# port = "5557"
+# if len(sys.argv) > 1:
+#     port = sys.argv[1]
+#     int(port)
 
-if len(sys.argv) > 2:
-    port1 = sys.argv[2]
-    int(port1)
+# if len(sys.argv) > 2:
+#     port1 = sys.argv[2]
+#     int(port1)
 
 # Socket to talk to server
 context = zmq.Context()
@@ -71,11 +71,11 @@ socket = context.socket(zmq.SUB)
 print("Collecting updates...")
 # socket.connect(f"tcp://localhost:{port}")
 # socket.connect("tcp://127.0.0.1:5558")
-socket.bind("tcp://127.0.0.1:5558")
+socket.bind("tcp://0.0.0.0:5559")
 
 
-if len(sys.argv) > 2:
-    socket.connect(f"tcp://localhost:{port1}")
+# if len(sys.argv) > 2:
+#     socket.connect(f"tcp://localhost:{port1}")
 
 topicfilter = b""
 socket.setsockopt(zmq.SUBSCRIBE, topicfilter)

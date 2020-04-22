@@ -140,7 +140,7 @@ class RandomWorldConstrained(BlueprintTemplate):
 
 class StairwayToHeaven(BlueprintTemplate):
     def __init__(self, name="StairwayToHeaven", pad=4):
-        data = np.load("../../blueprints/StairwayToHeaven.npy")
+        data = np.load("../blueprints/StairwayToHeaven.npy")
         data = pad_blueprint(data, pad)
         x, y, z = data.shape
         super().__init__(
@@ -149,9 +149,11 @@ class StairwayToHeaven(BlueprintTemplate):
 
 
 class Torus(BlueprintTemplate):
+    # 1064 blocks
+    # (24, 24, 24)
     def __init__(self, name="Torus", pad=0):
-        data = np.load("../../blueprints/torus.npy")
-        data = pad_blueprint(data, pad)
+        data = np.load("../blueprints/torus.npy")
+        data = pad_blueprint(data, pad, y=17)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
@@ -159,9 +161,11 @@ class Torus(BlueprintTemplate):
 
 
 class Castle(BlueprintTemplate):
+    # 4436 blocks
+    # (39, 39, 62)
     def __init__(self, name="Castle", pad=0):
-        data = np.load("../../blueprints/castle.npy")
-        data = pad_blueprint(data, pad)
+        data = np.load("../blueprints/castle.npy")
+        data = pad_blueprint(data, pad, y=13)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
@@ -169,9 +173,11 @@ class Castle(BlueprintTemplate):
 
 
 class Church(BlueprintTemplate):
+    # 88509 blocks
+    # (151, 151, 151)
     def __init__(self, name="Church", pad=0):
-        data = np.load("../../blueprints/church.npy")
-        data = pad_blueprint(data, pad)
+        data = np.load("../blueprints/church.npy")
+        data = pad_blueprint(data, pad, y=45)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
@@ -179,30 +185,34 @@ class Church(BlueprintTemplate):
 
 
 class TajMahal(BlueprintTemplate):
+    # 17494 blocks
+    # (57, 57, 57)
     def __init__(self, name="Church", pad=0):
         data = np.load("../blueprints/tajmahal.npy")
-        data = pad_blueprint(data, pad)
+        data = pad_blueprint(data, pad, y=24)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
         )
-
 
 
 class StarTrek(BlueprintTemplate):
+    # 2170 blocks
+    # (25, 25, 40)
     def __init__(self, name="StarTrek", pad=0):
-        data = np.load("../../blueprints/startrek.npy")
-        data = pad_blueprint(data, pad, y=3)
+        data = np.load("../blueprints/startrek.npy")
+        data = pad_blueprint(data, pad, y=13)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
         )
 
 
-
 class Temple(BlueprintTemplate):
+    # 2529 blocks
+    # (20, 20, 28)
     def __init__(self, name="Temple", pad=0):
-        data = np.load("../../blueprints/temple.npy")
+        data = np.load("../blueprints/temple.npy")
         data = np.swapaxes(data, 1, 2)
         data = np.flip(data, 1)
         data = pad_blueprint(data, pad, x=5, y=2)
@@ -212,16 +222,16 @@ class Temple(BlueprintTemplate):
         )
 
 
-
 class Colosseum(BlueprintTemplate):
+    # 3843 blocks
+    # (29, 29, 29)
     def __init__(self, name="Colosseum", pad=0):
-        data = np.load("../../blueprints/colosseum.npy")
-        data = pad_blueprint(data, pad)
+        data = np.load("../blueprints/colosseum.npy")
+        data = pad_blueprint(data, pad, y=20)
         x, y, z = data.shape
         super().__init__(
             length=x, width=y, height=z, data=data, name=name
         )
-
 
 
 class EmpireStateBuilding(BlueprintTemplate):
@@ -233,9 +243,12 @@ class EmpireStateBuilding(BlueprintTemplate):
             length=x, width=y, height=z, data=data, name=name
         )
 
+
 class MQPLogo(BlueprintTemplate):
+    # 16912 blocks
+    # (221, 8, 18)
     def __init__(self, name="MQP_Logo", pad=0):
-        data = np.load("../../blueprints/mqp_logo.npy")
+        data = np.load("../blueprints/mqp_logo.npy")
         data = pad_blueprint(data, pad)
         x, y, z = data.shape
         super().__init__(
@@ -243,12 +256,159 @@ class MQPLogo(BlueprintTemplate):
         )
 
 
-def pad_blueprint(blueprint, pad, x=0, y=0, z=0):
-    pad_x_before = 0
+class Building(BlueprintTemplate):
+    # 1397 blocks
+    # (15 22 15)
+    def __init__(self, name="MQP_Logo", pad=0):
+        data = np.load("../../blueprints/building.npy")
+        data = data[47:62, :, 47:62]
+        data = pad_blueprint(data, pad, x=7)
+        x, y, z = data.shape
+        # print(x, y, z)
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Cottage(BlueprintTemplate):
+    # 1945 blocks
+    # (15 15 16)
+    def __init__(self, name="Cottage", pad=0):
+        data = np.load("../../blueprints/cottage.npy")
+        data = data[33:48, 21:34, 122:138]
+        # data = np.flip(data, 0)
+        data = pad_blueprint(data, pad, y=2)
+        x, y, z = data.shape
+        # print(x, y, z)
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Sofa(BlueprintTemplate):
+    # 963 blocks
+    # (23 23 10)
+    def __init__(self, name="Sofa", pad=0):
+        data = np.load("../../blueprints/sofa.npy")
+        data = data[:, 2:, :]
+        data = pad_blueprint(data, pad, y=18)
+        x, y, z = data.shape
+        # print(x, y, z)
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Bed(BlueprintTemplate):
+    # 222 blocks
+    # (10 10 5)
+    def __init__(self, name="Bed", pad=0):
+        data = np.load("../../blueprints/bed.npy")
+        data = np.flip(data, 1)
+
+        data = pad_blueprint(data, pad, x=2)
+        x, y, z = data.shape
+        # print(x, y, z)
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Camaro(BlueprintTemplate):
+    # 663 blocks
+    # (10 10 25)
+    def __init__(self, name="Camaro", pad=0):
+        data = np.load("../../blueprints/camaro.npy")
+        data = data[:, :, :]
+        data = pad_blueprint(data, pad, y=3)
+        x, y, z = data.shape
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Tower(BlueprintTemplate):
+    # 117 blocks
+    # (5 5 9)
+    def __init__(self, name="Tower", pad=0):
+        data = np.load("../../blueprints/tower.npy")
+        data = data[:, :, :]
+        data = pad_blueprint(data, pad)
+        data = np.swapaxes(data, 1, 2)
+
+        x, y, z = data.shape
+        print(f"Blueprint [{name}]: {x, y, z}")
+
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+class Thor(BlueprintTemplate):
+    # 443 blocks
+    # (12 7 21)
+    # Division size: 4
+    def __init__(self, name="Thor", pad=0):
+        data = np.load("../../blueprints/thor.npy")
+        data = data[:, :, :]
+        data = np.swapaxes(data, 1, 2)
+        data = pad_blueprint(data, pad, y=5)
+        x, y, z = data.shape
+
+        print(f"Blueprint [{name}]: {x, y, z}")
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+class House(BlueprintTemplate):
+    def __init__(self, length, width, height, name="House"):
+        base = np.ones((length, width, 1))
+        blueprint_base = np.array([[[1] * 3] * (length-3)] * (width-3))
+        blueprint_base = pad_blueprint(blueprint_base, 0, x=1, y=1, before_x=2, before_y=2)
+        blueprint_status = list()
+        blueprint_status.append(base)
+        blueprint_status.append(blueprint_base)
+        blueprint_status.append(
+            blueprint_base
+        )  # append second time to have blocks above base (first layer)
+
+        for i in range(height - 1):
+            next_level = np.array([[[1] * 1] * length] * width)
+            for block in range(i + 1):
+                next_level[block, :, :] = 0
+                next_level[(block) * -1, :, :] = 0
+                next_level[:, block, :] = 0
+                next_level[:, (block) * -1, :] = 0
+
+            blueprint_status.append(next_level)
+
+        data = np.dstack(blueprint_status)
+        super().__init__(data=data, length=length, width=width, height=height, name=name)
+
+
+class StatueOfLiberty(BlueprintTemplate):
+    # 697 blocks
+    # (11 9 34)
+    # Division size 10
+    def __init__(self, name="StatueOfLiberty", pad=0):
+        data = np.load("../../blueprints/liberty.npy")
+        data = data[:, :, :]
+        data = np.swapaxes(data, 1, 2)
+        data = pad_blueprint(data, pad, y=2)
+
+        x, y, z = data.shape
+        print(f"Blueprint [{name}]: {x, y, z}")
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
+def pad_blueprint(blueprint, pad, x=0, y=0, z=0, before_x=0, before_y=0, before_z=0):
+    pad_x_before = before_x
     pad_x_after = pad + x
-    pad_y_before = 0
+    pad_y_before = before_y
     pad_y_after = pad + y
-    pad_z_before = 0
+    pad_z_before = before_z
     pad_z_after = pad + z
     return np.pad(
         blueprint,

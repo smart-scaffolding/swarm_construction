@@ -18,7 +18,7 @@ TESTING = True  # Use to configure if need unique id or predefining id
 # Use for creation of results files to label properly
 EXPERIMENT_NAME = "simulator_results_taj_mahal_2_robots.csv"
 PATH_TO_RESULTS = "results/tajmahal/"  # Path to where results will be stored
-BLUEPRINT = "StarTrek"
+BLUEPRINT = "Tower"
 SIMULATOR_BLUEPRINT = "Plane_10x10x1"
 
 ROBOTS = [
@@ -28,4 +28,4 @@ ROBOTS = [
         # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
         ]
 
-DIVISION_SIZE = 5
+DIVISION_SIZE = (2, 2)

@@ -187,7 +187,7 @@ def get_path_to_point(
     )
 
     print(dist)
-    # time.sleep(dist / 10)
+    time.sleep(dist / 100)
 
 
 

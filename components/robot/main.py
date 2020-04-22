@@ -34,6 +34,7 @@ configuration = None
 class RobotMain:
     def __init__(self):
         self.configuration = config
+        self.behavior_timer = None
         try:
             self.id = config.ROBOT_ID.encode("UTF-8")
             self.heartbeat_connection_in = config.communication["heartbeat_connection_in"]
@@ -71,7 +72,7 @@ class RobotMain:
                             "Ferry",
                             ],
                         filename=self.configuration.RECORD_BEHAVIOR_TIME_FILE,
-                    )
+                    )                    
             self.receive_messages_socket = config.communication["receive_messages_port"]
             self.send_messages_socket = config.communication["send_messages_port"]
         except:
@@ -242,8 +243,8 @@ if __name__ == "__main__":
     # ####################
     # # Tick Tock
     # ####################
-
-    robot.behavior_timer.start_behavior_timing()
+    if robot.behavior_timer:
+        robot.behavior_timer.start_behavior_timing()
     while True:
         # for unused_i in range(1, 50):
         try:

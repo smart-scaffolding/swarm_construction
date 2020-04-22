@@ -1,6 +1,6 @@
 import time
 from copy import deepcopy
-
+import sys
 # from queue import Queue
 # import asyncio
 from multiprocessing import Queue
@@ -98,7 +98,7 @@ class StructureMain:
         :return:
         """
         print(f"[Structure] Starting all communications")
-        start_hearbeat_detector(self.robot_queue)
+        self.heartbeater = start_hearbeat_detector(self.robot_queue)
         self.robot_communicator.initialize_communication_with_structure()
         if config.SIMULATE:
             self.initialize_simulator(colors=colors, blueprint_base=blueprint_base)
@@ -727,7 +727,7 @@ if __name__ == "__main__":
     structure.initialize_communications(colors=colors, blueprint_base=simulator_blueprint_base)
     # time.sleep(3)
 
-    # time.sleep(4)
+    time.sleep(15)
 
     robots = config.ROBOTS
 
@@ -743,3 +743,7 @@ if __name__ == "__main__":
 
     get_results = SimulatorRecordResults(filename=config.PATH_TO_RESULTS + config.EXPERIMENT_NAME)
     structure.simulator_communicator.send_communication(message=get_results)
+    time.sleep(2)
+    structure.heartbeater.join()
+    print("Exiting main")
+    sys.exit()

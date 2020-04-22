@@ -23,14 +23,22 @@ class BluePrintFactory:
             40, 40, 10, name="Pyramid_40x40x10"
         )
 
-        self.possible_blueprints["Cube_10x10x10"] = Cube(10, 10, 10, name="Cube_10x10x10")
-        self.possible_blueprints["Cube_20x20x10"] = Cube(20, 20, 10, name="Cube_20x20x10")
-        self.possible_blueprints["Cube_5x5x5"] = Cube(5, 5, 5, name="Cube_5x5x5")
-        self.possible_blueprints["Plane_5x5x1"] = Plane(5, 5, name="Plane_5x5x1")
-        self.possible_blueprints["Plane_10x10x1"] = Plane(10, 10, name="Plane_10x10x1")
-        self.possible_blueprints["Plane_12x12x1"] = Plane(12, 12, name="Plane_12x12x1")
-        self.possible_blueprints["Plane_20x20x1"] = Plane(20, 20, name="Plane_20x20x1")
-        self.possible_blueprints["Plane_40x40x1"] = Plane(40, 40, name="Plane_40x40x1")
+        self.possible_blueprints["Cube_10x10x10"] = Cube(
+            10, 10, 10, name="Cube_10x10x10")
+        self.possible_blueprints["Cube_20x20x10"] = Cube(
+            20, 20, 10, name="Cube_20x20x10")
+        self.possible_blueprints["Cube_5x5x5"] = Cube(
+            5, 5, 5, name="Cube_5x5x5")
+        self.possible_blueprints["Plane_5x5x1"] = Plane(
+            5, 5, name="Plane_5x5x1")
+        self.possible_blueprints["Plane_10x10x1"] = Plane(
+            10, 10, name="Plane_10x10x1")
+        self.possible_blueprints["Plane_12x12x1"] = Plane(
+            12, 12, name="Plane_12x12x1")
+        self.possible_blueprints["Plane_20x20x1"] = Plane(
+            20, 20, name="Plane_20x20x1")
+        self.possible_blueprints["Plane_40x40x1"] = Plane(
+            40, 40, name="Plane_40x40x1")
         self.possible_blueprints["Plane_5x5x1_NoPadding"] = Plane(
             5, 5, name="Plane_5x5x1_NoPadding", pad=0
         )
@@ -67,17 +75,25 @@ class BluePrintFactory:
         self.possible_blueprints[
             "RandomWorldConstrained_10x10x5"
         ] = RandomWorldConstrained(10, 10, 3, name="RandomWorldConstrained_10x10x5")
-        self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
-        self.possible_blueprints["Torus"] = Torus()
-        self.possible_blueprints["Castle"] = Castle()
-        self.possible_blueprints["Church"] = Church()
-        self.possible_blueprints["TajMahal"] = TajMahal()
-        self.possible_blueprints["EmpireStateBuilding"] = EmpireStateBuilding()
-        self.possible_blueprints["Temple"] = Temple()
-        self.possible_blueprints["Colosseum"] = Colosseum()
-        self.possible_blueprints["StarTrek"] = StarTrek()
-        self.possible_blueprints["MQP_Logo"] = MQPLogo()
-
+        # self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
+        # self.possible_blueprints["Torus"] = Torus()
+        # self.possible_blueprints["Castle"] = Castle()
+        # self.possible_blueprints["Church"] = Church()
+        # self.possible_blueprints["TajMahal"] = TajMahal()
+        # self.possible_blueprints["EmpireStateBuilding"] = EmpireStateBuilding()
+        # self.possible_blueprints["Temple"] = Temple()
+        # self.possible_blueprints["Colosseum"] = Colosseum()
+        # self.possible_blueprints["StarTrek"] = StarTrek()
+        # self.possible_blueprints["MQP_Logo"] = MQPLogo()
+        self.possible_blueprints["Building"] = Building()
+        self.possible_blueprints["Cottage"] = Cottage()
+        self.possible_blueprints["Sofa"] = Sofa()
+        self.possible_blueprints["Bed"] = Bed()
+        self.possible_blueprints["Camaro"] = Camaro()
+        self.possible_blueprints["Thor"] = Thor()
+        self.possible_blueprints["Tower"] = Tower()
+        self.possible_blueprints["StatueOfLiberty"] = StatueOfLiberty()
+        self.possible_blueprints["House_10x10x4"] = House(10, 10, 8, name="House_10x10x4")
 
     def get_blueprint(self, blueprint_label):
         return self.possible_blueprints[blueprint_label]

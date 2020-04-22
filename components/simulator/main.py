@@ -26,6 +26,8 @@ from sys import exit
 from swarm_c_library.blueprint_factory import BluePrintFactory
 from csv import DictWriter
 import os
+import components.simulator.config as config
+
 POINTS = True
 ROBOTS = 1
 # BLUEPRINT = np.array([
@@ -39,7 +41,7 @@ ROBOTS = 1
 
 BLUEPRINT = np.array([[[1] * 1] * 12,] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("MQP_Logo").data
+BLUEPRINT = BluePrintFactory().get_blueprint("House_10x10x4").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
@@ -389,24 +391,45 @@ class vtkTimerCallback:
         while not self.structure_q.empty():
             print("Saving results to file")
             topic, message = self.structure_q.get()
-            filename = message.message.filename
-            dict_to_write = {
-                "Number of timesteps": self.timer_count,
-                "Number of blocks": len(self.blocks),
-                "Number of robots": len(self.robot_actors),
-                "Simulation time": time.strftime('%H:%M:%S', time.gmtime(elapsed_time)),
-            }
-            with open(filename, "a", newline="") as csvfile:
-                fieldnames = dict_to_write.keys()
-                writer = DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerow(dict_to_write)
+            print(message)
+            try:
+                filename = message.message.filename
+                dict_to_write = {
+                    "Number of timesteps": self.timer_count,
+                    "Number of blocks": len(self.blocks),
+                    "Number of robots": len(self.robot_actors),
+                    "Simulation time": time.strftime('%H:%M:%S', time.gmtime(elapsed_time)),
+                }
+                with open(filename, "a", newline="") as csvfile:
+                    fieldnames = dict_to_write.keys()
+                    writer = DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerow(dict_to_write)
 
-            for _ in range(5):
+                for _ in range(5):
+                    os.system("""
+                        osascript -e 'display notification "Done simulating" with title "Finished" sound name "Glass"'
+                        """)
+                    time.sleep(0.5)
+                print("About to sleep")
+                time.sleep(2)
                 os.system("""
-                    osascript -e 'display notification "Done simulating" with title "Finished" sound name "Glass"'
-                    """)
-                time.sleep(1)
+                osascript -e '
+                tell application "QuickTime Player"
+                    stop document "screen recording"
+                end tell'
+                """)
+            except:
+                print("About to sleep")
+                time.sleep(2)
+                os.system("""
+                osascript -e '
+                tell application "QuickTime Player"
+                    stop document "screen recording"
+                end tell'
+                """)
+                continue
+            
         iren = obj
         iren.GetRenderWindow().Render()
 
@@ -424,6 +447,7 @@ class Simulate:
         self.structure_q = Queue()
 
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
+        
         global BLUEPRINT
         global COLORS
         if blueprint is not None:
@@ -439,9 +463,18 @@ class Simulate:
             print(f"[Worker thread]: {topic} {messagedata}")
             if topic == b"STRUCTURE":
                 BLUEPRINT = messagedata.message.blueprint
-                # COLORS = messagedata.message.colors
+                COLORS = messagedata.message.colors
                 print(BLUEPRINT)
-                # print(COLORS)
+                print(COLORS)
+                os.system("""
+                osascript -e '
+                tell application "QuickTime Player"
+                set newScreenRecording to new screen recording
+                tell newScreenRecording
+                        start
+                    end tell
+                end tell'
+                """)
                 # break
                 # except:
             #     continue
@@ -525,9 +558,9 @@ class Simulate:
         om2.SetOrientationMarker(axes)
         # Position lower right in the viewport.
         om2.SetViewport(0.8, 0, 1.0, 0.2)
-        # om2.SetInteractor(self.pipeline.iren)
-        # om2.EnabledOn()
-        # om2.InteractiveOn()
+        om2.SetInteractor(self.pipeline.iren)
+        om2.EnabledOn()
+        om2.InteractiveOn()
 
         # self.forward_kinematics_workers = [cb.create_new_thread() for i in range(4)]
 
@@ -599,14 +632,14 @@ def axesUniversal():
 
 
 if __name__ == "__main__":
-    port = "5559"
-    if len(sys.argv) > 1:
-        port = sys.argv[1]
-        int(port)
+    # port = "5559"
+    # if len(sys.argv) > 1:
+    #     port = sys.argv[1]
+    #     int(port)
 
-    if len(sys.argv) > 2:
-        port1 = sys.argv[2]
-        int(port1)
+    # if len(sys.argv) > 2:
+    #     port1 = sys.argv[2]
+    #     int(port1)
 
     # Socket to talk to server
     context = zmq.Context()
@@ -614,7 +647,7 @@ if __name__ == "__main__":
 
     # socket1 = context.socket(zmq.SUB)
     print("Collecting updates from simulator...")
-    socket.bind("tcp://0.0.0.0:5559")
+    socket.bind(config.communication["receive_messages_port"])
     # socket1.connect(f"tcp://localhost:{port}")
 
     # if len(sys.argv) > 2:
@@ -644,6 +677,6 @@ if __name__ == "__main__":
         socket=socket,
         block_q=block_queue,
     )
-    sim.simulate()
+    # sim.simulate()
     # sim.wait_for_structure_initialization(blueprint=None, colors=COLORS)
-    # sim.wait_for_structure_initialization()
+    sim.wait_for_structure_initialization()
