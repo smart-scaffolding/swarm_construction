@@ -1,7 +1,9 @@
 from collections import namedtuple
-
+from components.robot.main import RobotMain
+from components.structure.behaviors.building.common_building import Block
 from components.robot.original.move_robot_new import robot_trajectory_serial_demo
-
+from components.robot.communication.messages import *
+import time
 Point = namedtuple("Point", "x y z direction holding_block")
 
 ##############################################################################
@@ -47,7 +49,7 @@ the total number of angles will be three
 """
 
 TIMEOUT = 0.02  # seconds 0.03
-NUM_VIA_POINTS = 20  # 25
+NUM_VIA_POINTS = 5  # 25
 
 ##############################################################################
 # Path Selection
@@ -57,66 +59,147 @@ Use to select which path (trajectory) the robot will perform. Make sure that
 you comment out the paths that you do 
 not wish to run and uncomment the single path you do wish to run.
 """
-
+block_id = "BLOCK_1"
 # D link moves forward one step
 path = [
-    Point(1, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
+    Point(3, 2, 5, "top", block_id),
+    Point(3, 1, 4, "top", None),
+
+    Point(3, 4, 5, "top", block_id),
+    Point(3, 3, 4, "top", None),
+    
+    Point(3, 6, 4, "top", block_id),
+    Point(3, 5, 4, "top", None),
+    
+    Point(4, 7, 4, "top", block_id),
+    Point(4, 5, 3, "top", None),
+    
+    Point(4, 8, 4, "top", block_id),
+    Point(4, 6, 3, "top", None),
+    
+    Point(4, 9, 4, "top", block_id),
+    Point(4, 7, 3, "top", None),
+    
+    Point(3, 10, 4, "top", block_id),
+    Point(3, 8, 3, "top", None),
+
+    Point(3, 11, 4, "top", block_id),
+    Point(3, 9, 3, "top", None),
+
+    # Point(3, 8, 3, "top", None),
+
+    # Point(4, 12, 3, "top", None),
+    # Point(3, 9, 3, "top", None),
 ]
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(2, 4, 0, "top", None),
-    Point(2, 6, 0, "top", None),
-    Point(2, 8, 0, "top", None),
-]
+a = 11
+d = 9
+for i in range(9):
+    a += 1
+    d += 1
+    path.append(Point(3, a, 4, "top", block_id))
+    path.append(Point(3, d, 3, "top", None))
+a+=1
+d+=1
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(4, 4, 0, "top", None),
-    Point(6, 6, 0, "top", None),
-    Point(8, 8, 0, "top", None),
-]
+path.append(Point(3, a, 3, "top", block_id))
+path.append(Point(3, d, 3, "top", None))
+path.append(Point(3, a, 2, "top", block_id))
+path.append(Point(3, d, 3, "top", None))
 
-block_id = "1"
-block_id_2 = "2"
-block_id_3 = "3"
-path = [
-    Point(3, 0, 1, "top", block_id),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 1, "top", block_id),
-    Point(4, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(0, 0, 1, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id_2),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 2, "top", block_id_2),
-    Point(4, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(0, 0, 1, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id_3),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 2, "top", None),
-    Point(4, 0, 1, "top", None),
-    Point(5, 1, 3, "top", None),
-    Point(5, 0, 2, "top", None),
-    Point(4, 2, 3, "top", None),
-    Point(5, 1, 3, "top", None),
-    Point(3, 1, 1, "top", None),
-    Point(4, 1, 2, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
-]
+# a -= 1
+path.append(Point(3, a-1, 3, "top", None))
+
+
+for i in range(13):
+    a-= 1
+    d -= 1
+    path.append(Point(3, d, 3, "top", None))
+    path.append(Point(3, a-1, 3, "top", None))
+# path.append(Point(3, d, 3, "top", None))
+
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(2, 4, 0, "top", None),
+#     Point(2, 6, 0, "top", None),
+#     Point(2, 8, 0, "top", None),
+# ]
+
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(4, 4, 0, "top", None),
+#     Point(6, 6, 0, "top", None),
+#     Point(8, 8, 0, "top", None),
+# ]
+
+# block_id = "BLOCK_1"
+# block_id_2 = "BLOCK_2"
+# block_id_3 = "BLOCK_3"
+# path = [
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 1, "top", block_id),
+#     Point(4, 0, 0, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(3, 0, 0, "top", None),
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id_2),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 2, "top", block_id_2),
+#     Point(4, 0, 0, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(3, 0, 0, "top", None),
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id_3),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 2, "top", None),
+#     Point(4, 0, 1, "top", None),
+#     Point(5, 1, 3, "top", None),
+#     Point(5, 0, 2, "top", None),
+#     Point(4, 2, 3, "top", None),
+#     Point(5, 1, 3, "top", None),
+#     Point(3, 1, 1, "top", None),
+#     Point(4, 1, 2, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(0, 0, 0, "top", None),
+# ]
+destinations = [
+        ("BLOCK_1", (0, 0, 1)),
+        ("BLOCK_2", (0, 0, 1)),
+        ("BLOCK_3", (0, 0, 1))
+
+    ]
+
+blocks = []
+for block_id, destination in destinations:
+    block = Block(final_destination=(8, 6, 1))
+    block.set_next_location(destination)
+    block.location = destination
+    block.id = block_id
+    blocks.append(block)
+blocks.reverse()
+
+# print(blocks)
+# robot = RobotMain()
+# robot.initialize_communications()
+# time.sleep(3)
+# for block in blocks:
+#     robot.simulator_communicator.send_communication(
+#         topic=block.id.encode(),
+#         message=BlockLocationMessage(
+#             block_id=block.id,
+#             location=(
+#                 block.location[0],
+#                 block.location[1] + 0.5,
+#                 block.location[2] + 0.5,
+#             ),
+#         ),
+#     )
+#     print(f"Sending block with id {block.id}")
 
 # D link moves forward one step and will stop at block height (use to reach
 # block)
@@ -326,27 +409,27 @@ def convert_js_bool(output):
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) > 1:
-        output = get_command_line_input(sys.argv, 1)
-        SERIAL = SERIAL if output is None else convert_js_bool(str(output))
+    # if len(sys.argv) > 1:
+    #     output = get_command_line_input(sys.argv, 1)
+    #     SERIAL = SERIAL if output is None else convert_js_bool(str(output))
 
-        output = get_command_line_input(sys.argv, 2)
-        PORT = PORT if output is None else str(output)
+    #     output = get_command_line_input(sys.argv, 2)
+    #     PORT = PORT if output is None else str(output)
 
-        output = get_command_line_input(sys.argv, 3)
-        BAUD = BAUD if output is None else int(output)
+    #     output = get_command_line_input(sys.argv, 3)
+    #     BAUD = BAUD if output is None else int(output)
 
-        output = get_command_line_input(sys.argv, 4)
-        TIMEOUT = TIMEOUT if output is None else float(output)
+    #     output = get_command_line_input(sys.argv, 4)
+    #     TIMEOUT = TIMEOUT if output is None else float(output)
 
-        output = get_command_line_input(sys.argv, 5)
-        NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
+    #     output = get_command_line_input(sys.argv, 5)
+    #     NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
 
-        output = get_command_line_input(sys.argv, 6)
-        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
+    #     output = get_command_line_input(sys.argv, 6)
+    #     USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
 
-        output = get_command_line_input(sys.argv, 7)
-        path = path if output is None else get_path(str(output))
+    #     output = get_command_line_input(sys.argv, 7)
+    #     path = path if output is None else get_path(str(output))
 
     print(f"Serial: {SERIAL}")
     print(f"Port: {PORT}")

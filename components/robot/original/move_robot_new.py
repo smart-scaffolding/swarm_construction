@@ -15,7 +15,7 @@ from components.robot.original.common import (
     round_end_effector_position,
 )
 from components.robot.original.quintic_trajectory_planner import *
-from defined_blueprints import *
+from swarm_c_library.defined_blueprints import *
 
 accuracy = 1e-7
 threshold = 1
@@ -29,7 +29,7 @@ TOPIC = b"ROBOT_1"
 
 JOINT_ANGLE_PKT_SIZE = 8
 
-robot_ee_starting_point = (2.5, 0.5, 1)
+robot_ee_starting_point = (3.5, 0.5, 5)
 
 blueprint = np.array(
     [
@@ -56,9 +56,9 @@ blueprint = np.array(
     ]
 )
 
-blueprint = Plane(12, 12, name="Plane_12x12x1").data
+blueprint = EmpireStateBuilding().data
 
-base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 1, 5.0], [0, 0, 0, 1]])
 
 
 class AnimationUpdate:
@@ -98,7 +98,7 @@ def robot_trajectory_serial_demo(
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     ik_motion, path, directions, animation_update = follow_path(
-        robot, num_steps, offset=1.20, path=path
+        robot, num_steps, offset=1, path=path
     )
 
     robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
@@ -424,12 +424,12 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             move_base = [int(x) for x in move_base]
             modified_blueprint = np.copy(blueprint)
 
-            pad_x_before = 3
-            pad_x_after = 3
-            pad_y_before = 3
-            pad_y_after = 3
-            pad_z_before = 3
-            pad_z_after = 3
+            pad_x_before = 10
+            pad_x_after = 10
+            pad_y_before = 10
+            pad_y_after = 10
+            pad_z_before = 10
+            pad_z_after = 10
             modified_blueprint = np.pad(
                 modified_blueprint,
                 (
@@ -583,12 +583,12 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             move_base = [int(x) for x in move_base]
             modified_blueprint = np.copy(blueprint)
-            pad_x_before = 3
-            pad_x_after = 3
-            pad_y_before = 3
-            pad_y_after = 3
-            pad_z_before = 3
-            pad_z_after = 3
+            pad_x_before = 10
+            pad_x_after = 10
+            pad_y_before = 10
+            pad_y_after = 10
+            pad_z_before = 10
+            pad_z_after = 10
             modified_blueprint = np.pad(
                 modified_blueprint,
                 (

@@ -23,7 +23,7 @@ POINTS = False
 ROBOTS = 1
 DEBUG = False
 DEBUG_TOGGLED = False
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("EmpireStateBuilding").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
@@ -34,6 +34,7 @@ loc = pkg_resources.resource_filename(
     "components", "/".join(("simulator", "media", "block.stl"))
 )
 reader_list = vtk.vtkSTLReader()
+reader_list.GetOutput().GlobalReleaseDataFlagOn()
 reader_list.SetFileName(loc)
 block_file_location = vtk.vtkPolyDataMapper()
 block_file_location.SetInputConnection(reader_list.GetOutputPort())
@@ -90,6 +91,8 @@ class WorkerThread(threading.Thread):
                 if "BLOCK" in str(topic.decode()):
                     # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
+                    logger.info(f"Got block message: {topic} -> {messagedata}")
+
                 if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
                         # print("[Worker thread]: Received new robot connection, adding to queue")
@@ -138,7 +141,7 @@ class CalculatorThread(WorkerThread):
         """
         while not self.stoprequest.isSet():
             if not self.dir_q.empty():
-                actor, message = self.dir_q.get()
+                actor, message = self.dir_q.get(block=False)
 
                 """
                 DISPLAY ROBOTS
@@ -221,7 +224,7 @@ class vtkTimerCallback:
         self.previous_path = []
         self.robot_texts = defaultdict(lambda: None)
         self.last_block_showing = None
-        self.time_till_next_block = 80
+        self.time_till_next_block = 120
         self.last_block_counter = self.time_till_next_block
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
@@ -288,7 +291,7 @@ class vtkTimerCallback:
 
         self.timer_count += 1
         while not self.new_actors.empty():
-            topic, message, queue = self.new_actors.get()
+            topic, message, queue = self.new_actors.get(block=False)
             result_q = Queue()
             logger.debug(f"Callback: Creating new thread for actor: {topic} {queue}")
             self.create_new_thread(queue, result_q)
@@ -305,7 +308,7 @@ class vtkTimerCallback:
                     path,
                     block_on_ee,
                     debug_text,
-                ) = robot_queue.get()
+                ) = robot_queue.get(block=False)
 
                 for index in range(len(transforms)):
                     assembly = vtk.vtkAssembly()
@@ -426,7 +429,7 @@ class vtkTimerCallback:
                     self.pipeline.animate()
 
         while not self.block_q.empty():
-            topic, message = self.block_q.get()
+            topic, message = self.block_q.get(block=False)
             if isinstance(message.message, BlockLocationMessage):
                 if topic in self.blocks:
                     location, actor, showing = self.blocks[message.message.id]
@@ -442,6 +445,7 @@ class vtkTimerCallback:
                     # print(message.message.location[0])
                     if location[0] == 0 and location[1] == 0.5:
                         self.blocks_at_starting_location.append(message.message.id)
+                        logger.info(f"Adding block at this location: {message.message.id}")
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
