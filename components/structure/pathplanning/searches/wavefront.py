@@ -23,14 +23,21 @@ class Wavefront(PathPlannerImp):
     def map_wavefront_values_to_divisions(self, divisions):
         for position in self.layer.positions:
             try:
-                divisions[position].order = self.layer.positions[position] + self.level
+                # divisions[position].order = self.layer.positions[position] + self.level
+                divisions[position].order = self.layer.positions[position]
                 # print(position)
                 # print(self.layer.positions[position])
                 # print(divisions[position].order)
 
             except KeyError:
                 print(f"Unable to find key: {position} in divisions")
-                continue
+                # continue
+            except AttributeError:
+                print(f"Unable to find key: {position} in divisions")
+                print(f"Divisions: {divisions}")
+                print(f"layer: {self.layer.positions}")
+                # continue
+
         # print(divisions)
         return divisions
 
@@ -43,7 +50,8 @@ class Wavefront(PathPlannerImp):
             for x in range(xdim-1, -1, -1):
                 positions[(x, y)] = blueprint[x][y]
 
-        # print(positions)
+        print(positions)
+        # print()
         return Layer(xdim, ydim, positions, blueprint)
 
     def initialize_wavefront(self, goal, start):

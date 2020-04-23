@@ -73,13 +73,14 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
         self.state.register_key(
             key=blocks_to_move_key, access=py_trees.common.Access.WRITE
         )
-        self.state.register_key(key=robot_state, access=py_trees.common.Access.WRITE)
+        self.state.register_key(
+            key=robot_state, access=py_trees.common.Access.WRITE)
         self.state.register_key(
             key=block_placed_state, access=py_trees.common.Access.WRITE
         )
         self.state.register_key(
             key=behavior_state, access=py_trees.common.Access.WRITE
-            )
+        )
 
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
         self.behavior_timer = behavior_timer
@@ -138,8 +139,9 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
                 ),
             )
 
-            print("Sent finished status to structure (done moving blocks)")
-            self.state.set(name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
+            # print("Sent finished status to structure (done moving blocks)")
+            self.state.set(
+                name=self.keys["robot_state"], value=RobotBehaviors.WAIT)
             if self.behavior_timer:
                 self.behavior_timer.update_time(self.name)
             self.state.set(name=self.keys["behavior_state"], value=self.name)
@@ -156,7 +158,7 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             self.communicator.send_communication(
                 topic=self.robot_id, message=response_message
             )
-            print(f"[{self.name.upper()}]: Still moving")
+            # print(f"[{self.name.upper()}]: Still moving")
             if self.behavior_timer:
                 self.behavior_timer.update_time(self.name)
             self.state.set(name=self.keys["behavior_state"], value=self.name)
@@ -178,8 +180,9 @@ class MoveBlocks(py_trees.behaviour.Behaviour):
             print(
                 f"[{self.name.upper()}]: New block destination: {self.block_destination}"
             )
-            print("\n")
-            self.blackboard.set(name=self.keys["remove_block_key"], value=self.move_block)
+            # print("\n")
+            self.blackboard.set(
+                name=self.keys["remove_block_key"], value=self.move_block)
             self.blackboard.set(
                 name=self.keys["navigation_first_key"], value=self.block_destination
             )  # TODO: Change
@@ -285,11 +288,14 @@ def main():
 
     division = Division()
 
-    move_store = MoveBlocksStore(blocks_to_remove=blocks_to_place, division=division)
+    move_store = MoveBlocksStore(
+        blocks_to_remove=blocks_to_place, division=division)
 
     writer = py_trees.blackboard.Client(name="Writer")
-    writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/blocks_to_move",
+                        access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/robot_status",
+                        access=py_trees.common.Access.WRITE)
     writer.register_key(
         key="state/block_has_been_placed", access=py_trees.common.Access.WRITE
     )

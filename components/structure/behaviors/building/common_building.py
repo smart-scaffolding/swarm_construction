@@ -45,7 +45,6 @@ class Division:
         else:
             return self.order < other.order
 
-
     def __repr__(self):
         return f"\nID: {self.id}\nOrder: {self.order}\n\tChildren: {self.children}\n\tDirection: {self.direction}\n\t" \
             f"Num Blocks: {self.num_blocks}\n\tPosition: {self.pos}\n\tX_Range: {self.x_range}"\
@@ -130,8 +129,9 @@ class Robot:
 
     def find_new_target(self, points):
         # print(f"Unfiltered closest points: {self.closest_points}")
-        self.closest_points.remove((self.desired_target_distance, self.desired_target))
-        print(f"Filtered closest points: {self.closest_points}")
+        self.closest_points.remove(
+            (self.desired_target_distance, self.desired_target))
+        # print(f"Filtered closest points: {self.closest_points}")
 
         arg_min_score = np.argmin(np.array(self.closest_points)[:, 0])
         self.desired_target = self.closest_points[arg_min_score][1]
@@ -159,7 +159,7 @@ class Robot:
 
     def __repr__(self):
         return f"\n Robot ID: {self.id}\n\tPos: {self.pos}\n\tClaimed: {self.claimed_division}" \
-                f"\n\tTarget: {self.target}\n\tDesired Target: {self.desired_target}\n\tClosest points: {self.closest_points}"
+            f"\n\tTarget: {self.target}\n\tDesired Target: {self.desired_target}\n\tClosest points: {self.closest_points}"
 
     def __hash__(self):
         return hash(self.id)
@@ -172,7 +172,8 @@ def spiral_sort():
     #      [[7, 8, 9], [10, 11, 12]],
     #      [[13, 14, 15], [16, 17, 18]]])
 
-    blueprint = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]])
+    blueprint = np.array(
+        [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]])
     # print(f"Blueprint: {blueprint}")
     # print(f"Blueprint size: {len(blueprint)} -- {len(blueprint[0])} -- {len(blueprint[0][0])}")
     rows = len(blueprint)
@@ -181,13 +182,13 @@ def spiral_sort():
     layer = spiral_sort_helper(rows, columns, blueprint[:, :])
     layer = layer[::-1]
     sorted_blueprint.append(layer)
-        # for block in layer:
-        #     print(f"Spiral sorted block at {block.position[0]}-{block.position[1]}-{block.position[2]}")
-    print(sorted_blueprint)
+    # for block in layer:
+    #     print(f"Spiral sorted block at {block.position[0]}-{block.position[1]}-{block.position[2]}")
+    # print(sorted_blueprint)
     return sorted_blueprint[::-1]
 
 
-def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, block_placed=1):
+def spiral_sort_helper(m, n, a, level=1, x_offset=0, y_offset=0, z_offset=0, block_placed=1):
     sorted_array = []
     new_positions = []
     k = 0
@@ -209,13 +210,13 @@ def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, bloc
                 new_positions.append((k+x_offset, i+y_offset, level+z_offset))
         k += 1
 
-
         for i in range(k, m):
             # print(a[i][n - 1], end=" ")
             if a[i][n-1] == block_placed:
                 sorted_array.append(a[i][n-1])
                 print(f"{a[i][n-1]}: ({i},{n-1})")
-                new_positions.append((i+x_offset, n-1+y_offset, level+z_offset))
+                new_positions.append(
+                    (i+x_offset, n-1+y_offset, level+z_offset))
 
         n -= 1
 
@@ -226,7 +227,8 @@ def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, bloc
                 if a[m-1][i] == block_placed:
                     sorted_array.append(a[m-1][i])
                     print(f"{a[m-1][i]}: ({m-1},{i})")
-                    new_positions.append((m-1+x_offset, i+y_offset, level+z_offset))
+                    new_positions.append(
+                        (m-1+x_offset, i+y_offset, level+z_offset))
             m -= 1
 
         if (l < n):
@@ -235,14 +237,16 @@ def spiral_sort_helper(m, n, a, level=1,x_offset=0, y_offset=0, z_offset=0, bloc
                 if a[i][l] == block_placed:
                     sorted_array.append(a[i][l])
                     print(f"{a[i][l]}: ({i},{l})")
-                    new_positions.append((i+x_offset, l+y_offset, level+z_offset))
+                    new_positions.append(
+                        (i+x_offset, l+y_offset, level+z_offset))
             l += 1
     return sorted_array, new_positions
 
+
 if __name__ == '__main__':
     blueprint2 = np.array([
-                              [[1] * 1] * 10,
-                          ] * 10)
+        [[1] * 1] * 10,
+    ] * 10)
 
     blueprint2[0, :, :] = 0
     blueprint2[1, :, :] = 0

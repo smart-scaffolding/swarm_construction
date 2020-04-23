@@ -9,14 +9,14 @@ import numpy as np
 # port = "5556"
 port = "5557"
 if len(sys.argv) > 1:
-    port =  sys.argv[1]
+    port = sys.argv[1]
     int(port)
 
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 # socket.bind(f"tcp://*:{port}")
 # socket.bind("tcp://127.0.0.1:5559")
-socket.connect("tcp://127.0.0.1:5559")
+socket.connect("tcp://192.168.1.26:5559")
 
 
 while True:
@@ -33,7 +33,8 @@ while True:
     # locations = [(0, 0, 1), (0, 1, 1), (1, 0, 1), (1, 1, 1)]
     location = (randint(0, 8), randint(0, 8), 1)
     blocks_to_place = [Block(position=(0, 0, 0, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
-                       Block(position=(1, 1, 1, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top")),
+                       Block(position=(1, 1, 1, "Top"), status="Ferry",
+                             final_destination=(9, 9, 9, "Top")),
                        Block(position=(2, 2, 2, "Top"), status="Ferry", final_destination=(9, 9, 9, "Top"))]
 
     # division = Division()
@@ -41,33 +42,32 @@ while True:
     # move_store = MoveBlocksStore(blocks_to_remove=blocks_to_place, division=division)
     # messagedata = BuildMessage(blocks_to_move=move_store)
 
-
     # messagedata = MoveToPointMessage(destination=(7, 7, 7, "Bottom"))
 
     base = np.matrix([[1, 0, 0, 0.5],
-                     [0, 1, 0, 0.5],
-                     [0, 0, 1, 1.],
-                     [0, 0, 0, 1]])
+                      [0, 1, 0, 0.5],
+                      [0, 0, 1, 1.],
+                      [0, 0, 0, 1]])
     base1 = np.matrix([[1, 0, 0, 1.5],
-                      [0, 1, 0, 0.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+                       [0, 1, 0, 0.5],
+                       [0, 0, 1, 1.],
+                       [0, 0, 0, 1]])
     base2 = np.matrix([[1, 0, 0, 1.5],
-                      [0, 1, 0, 1.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+                       [0, 1, 0, 1.5],
+                       [0, 0, 1, 1.],
+                       [0, 0, 0, 1]])
     base3 = np.matrix([[1, 0, 0, 4.5],
-                      [0, 1, 0, 0.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+                       [0, 1, 0, 0.5],
+                       [0, 0, 1, 1.],
+                       [0, 0, 0, 1]])
     base4 = np.matrix([[1, 0, 0, 4.5],
-                      [0, 1, 0, 1.5],
-                      [0, 0, 1, 3.],
-                      [0, 0, 0, 1]])
+                       [0, 1, 0, 1.5],
+                       [0, 0, 1, 3.],
+                       [0, 0, 0, 1]])
     base5 = np.matrix([[1, 0, 0, 5.5],
-                      [0, 1, 0, 0.5],
-                      [0, 0, 1, 1.],
-                      [0, 0, 0, 1]])
+                       [0, 1, 0, 0.5],
+                       [0, 0, 1, 1.],
+                       [0, 0, 0, 1]])
 
     base = choice([base, base1, base2, base3, base4, base5])
 
@@ -78,7 +78,8 @@ while True:
     trajectory4 = np.array([[np.pi, 0, np.pi/2, np.pi/2, 0]])
     trajectory5 = np.array([[2*np.pi, np.pi/2, 0, 0, 0]])
 
-    trajectory_choice = choice([trajectory2, trajectory3, trajectory4, trajectory5])
+    trajectory_choice = choice(
+        [trajectory2, trajectory3, trajectory4, trajectory5])
     trajectories = np.linspace(trajectory1, trajectory_choice, 60)
     for i in trajectories:
 

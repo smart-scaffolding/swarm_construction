@@ -92,31 +92,31 @@ class UpdateState(py_trees.behaviour.Behaviour):
         new_status = py_trees.common.Status.RUNNING
         updates = self.communicator.get_communication()
         for update in updates:
-            print(f"[{self.name.upper()}]: update -> {update}")
+            # print(f"[{self.name.upper()}]: update -> {update}")
             topic, message = update
             message_id = message.message_id
             if message_id == RobotBehaviors.FERRY:
-                print(
-                    f"[{self.name.upper()}]: Received ferry message {message}, sending to handler"
-                )
+                # print(
+                #     f"[{self.name.upper()}]: Received ferry message {message}, sending to handler"
+                # )
                 self.handle_ferry_message(message)
 
             elif message_id == RobotBehaviors.BUILD:
-                print(
-                    f"[{self.name.upper()}]: Received build message {message}, sending to handler"
-                )
+                # print(
+                #     f"[{self.name.upper()}]: Received build message {message}, sending to handler"
+                # )
                 self.handle_build_message(message)
 
             elif message_id == RobotBehaviors.WAIT:
-                print(
-                    f"[{self.name.upper()}]: Received wait message {message}, sending to handler"
-                )
+                # print(
+                #     f"[{self.name.upper()}]: Received wait message {message}, sending to handler"
+                # )
                 self.handle_wait_message(message)
 
             elif message_id == RobotBehaviors.MOVE:
-                print(
-                    f"[{self.name.upper()}]: Received move message {message}, sending to handler"
-                )
+                # print(
+                #     f"[{self.name.upper()}]: Received move message {message}, sending to handler"
+                # )
                 self.handle_move_message(message)
 
             else:

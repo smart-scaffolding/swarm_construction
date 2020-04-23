@@ -34,7 +34,8 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
         text_mapper.SetInputConnection(text.GetOutputPort())
         text_actor = vtk.vtkActor()
         text_actor.SetMapper(text_mapper)
-        text_actor.GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
+        text_actor.GetProperty().SetColor(
+            uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))
         text_actor.AddPosition(0, 0, 1)
         text_actor.RotateX(60)
         text_actor.SetScale(0.5)
@@ -42,7 +43,6 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
         assembly = vtk.vtkAssembly()
         assembly.AddPart(actor)
         assembly.AddPart(text_actor)
-
 
         return [], [assembly], []
     stl_files = setup_file_names(4)
@@ -54,7 +54,8 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
     mapper_list = [0] * len(stl_files)
     for i in range(len(stl_files)):
         reader_list[i] = vtk.vtkSTLReader()
-        loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', stl_files[i])))
+        loc = pkg_resources.resource_filename(
+            "components", '/'.join(('simulator', 'media', stl_files[i])))
         # print(loc)
         reader_list[i].SetFileName(loc)
         mapper_list[i] = vtk.vtkPolyDataMapper()
@@ -66,14 +67,16 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
 
     if block_on_end_effector:
         reader_list.append(vtk.vtkSTLReader())
-        loc = pkg_resources.resource_filename("components", '/'.join(('simulator','media', "robot_block.stl")))
+        loc = pkg_resources.resource_filename(
+            "components", '/'.join(('simulator', 'media', "robot_block.stl")))
         # print(loc)
         reader_list[-1].SetFileName(loc)
         mapper_list.append(vtk.vtkPolyDataMapper())
         mapper_list[-1].SetInputConnection(reader_list[i].GetOutputPort())
         actor_list.append(vtk.vtkActor())
         actor_list[-1].SetMapper(mapper_list[-1])
-        actor_list[-1].GetProperty().SetColor(uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0))  # (R,G,B)
+        actor_list[-1].GetProperty().SetColor(uniform(0.0, 1.0),
+                                              uniform(0.0, 1.0), uniform(0.0, 1.0))  # (R,G,B)
         actor_list[-1].SetScale(0.013)
 
     return reader_list, actor_list, mapper_list
@@ -126,7 +129,7 @@ def setup_structure_display(blueprint, pipeline, color, block_file_location):
                     # print("SCALE: {}".format(actor_list.GetScale()))
                     # print("POSITION: {}".format(actor_list.GetPosition()))
                     pipeline.add_actor(actor_list)
-    return None, None, actor_list
+    return
 
 
 def add_block(position, block_file_location):
@@ -151,7 +154,7 @@ def add_block(position, block_file_location):
 
 
 def display_path(path=[(0, 0, 0, "top"), (1, 0, 0, "top"), (2, 0, 0, "top"), (3, 0, 0, "top"), (4, 0, 0, "top"),
-                              (5, 0, 0, "top"), ]):
+                       (5, 0, 0, "top"), ]):
     actors = []
     for point in path:
         prop_assembly = cubeForPath(point)

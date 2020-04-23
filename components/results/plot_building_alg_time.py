@@ -51,7 +51,8 @@ def get_building_alg_times(files, fig, name):
         building_alg_times.append(value)
 
     fig.add_trace(
-        go.Scatter(x=number_of_robots, y=building_alg_times, mode="lines", name=name)
+        go.Scatter(x=number_of_robots, y=building_alg_times,
+                   mode="lines", name=name)
     )
     return building_alg_times
 
@@ -77,17 +78,18 @@ def plot_building_alg_times(fig, files, experiment_name):
             )
         ],
         showlegend=True,
-	xaxis = dict(
-      		range=[1,4],  # sets the range of xaxis
-    	),
-	#yaxis = dict(
-      	#	range=[0,65000],  # sets the range of xaxis
-    	#),
+        xaxis=dict(
+            range=[1, 4],  # sets the range of xaxis
+        ),
+        yaxis=dict(
+            range=[0, 65000],  # sets the range of xaxis
+        ),
     )
     fig.update_xaxes(tick0=0, dtick=1.0)
 
     return fig
     # fig.show()
+
 
 fig = go.Figure()
 plot_building_alg_times(fig, files, experiment_name="")

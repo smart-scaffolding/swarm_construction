@@ -34,6 +34,7 @@ configuration = None
 class RobotMain:
     def __init__(self):
         self.configuration = config
+        self.behavior_timer = None
         try:
             self.id = config.ROBOT_ID.encode("UTF-8")
             self.heartbeat_connection_in = config.communication["heartbeat_connection_in"]
@@ -69,7 +70,7 @@ class RobotMain:
                             "Build",
                             "Move",
                             "Ferry",
-                            ],
+                        ],
                         filename=self.configuration.RECORD_BEHAVIOR_TIME_FILE,
                     )
             self.receive_messages_socket = config.communication["receive_messages_port"]
@@ -166,8 +167,10 @@ def command_line_argument_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("-r", "--receive", type=int, help="Select port to receive values")
-    parser.add_argument("-s", "--send", type=int, help="Select port to send values")
+    parser.add_argument("-r", "--receive", type=int,
+                        help="Select port to receive values")
+    parser.add_argument("-s", "--send", type=int,
+                        help="Select port to send values")
     parser.add_argument("-i", "--robot_id", type=str, help="Robot id")
     return parser
 
@@ -194,14 +197,19 @@ if __name__ == "__main__":
     writer.register_key(
         key="state/block_has_been_placed", access=py_trees.common.Access.WRITE
     )
-    writer.register_key(key="state/blocks_to_move", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/robot_status", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/blocks_to_move",
+                        access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/robot_status",
+                        access=py_trees.common.Access.WRITE)
     writer.register_key(
         key="state/location_to_move_to", access=py_trees.common.Access.WRITE
     )
-    writer.register_key(key="state/point_to_reach", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/current_position", access=py_trees.common.Access.WRITE)
-    writer.register_key(key="state/behavior_state", access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/point_to_reach",
+                        access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/current_position",
+                        access=py_trees.common.Access.WRITE)
+    writer.register_key(key="state/behavior_state",
+                        access=py_trees.common.Access.WRITE)
     # blocks = [Block(location=(3, 0, 1), next_destination=(6, 3, 1), final_destination=(6, 3, 1)),
     #         Block(location=(3, 1, 1), next_destination=(6, 4, 1), final_destination=(6, 4, 1)),
     #         Block(location=(3, 2, 1), next_destination=(6, 5, 1), final_destination=(6, 5, 1)),
@@ -242,8 +250,8 @@ if __name__ == "__main__":
     # ####################
     # # Tick Tock
     # ####################
-
-    robot.behavior_timer.start_behavior_timing()
+    if robot.behavior_timer:
+        robot.behavior_timer.start_behavior_timing()
     while True:
         # for unused_i in range(1, 50):
         try:

@@ -37,17 +37,18 @@ ROBOTS = 1
 #         [[1, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]],
 #     ])
 
-BLUEPRINT = np.array([[[1] * 1] * 12,] * 12)
+BLUEPRINT = np.array([[[1] * 1] * 12, ] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("MQP_Logo").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx
 
-COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+COLORS = np.array([[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx)
+
 
 # COLORS[0][1][0] = [vtk_named_colors(["Blue"])[0]]
-# print(COLORS)
+print(COLORS)
 # colors[0]4][1] = vtk_named_colors(["Blue"])
 # colors[0][4][4] = vtk_named_colors(["Blue"])
 # colors[0][4][7] = vtk_named_colors(["Blue"])
@@ -234,7 +235,8 @@ class vtkTimerCallback:
         self.blueprint_size = BLUEPRINT[BLUEPRINT > 0].shape[0]
 
     def add_robot_to_sim(self, robot, result_queue):
-        base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+        base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5],
+                          [0, 0, 1, 1.0], [0, 0, 0, 1]])
 
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
@@ -244,7 +246,7 @@ class vtkTimerCallback:
         for link in robot_actor:
             self.pipeline.add_actor(link)
 
-        print("Should be seeing new robot, as it was just added")
+        # print("Should be seeing new robot, as it was just added")
 
         self.robot_actors[robot] = (robot_actor, new_robot, result_queue)
         # print(f"Robot added to known robots: {self.robot_actors}")
@@ -269,7 +271,7 @@ class vtkTimerCallback:
         # print("Callback: Should now be seeing robot")
 
     def create_new_thread(self, queue, result_queue):
-        print("Callback: Creating new thread for robot")
+        # print("Callback: Creating new thread for robot")
         calculate_thread = CalculatorThread(
             dir_q=queue,
             result_q=result_queue,
@@ -296,15 +298,72 @@ class vtkTimerCallback:
             f"\nBase Number of Blocks: {self.blueprint_size}"
         )
 
-        if self.timer_count % 100 == 0:
+        if self.timer_count % 10000 == 0:
             print(self.timer_count)
+
+        start = 40
+        if self.timer_count == start+20:
+            self.timer_count += 1
+            print("Calling structure")
+            COLORS[:5, :5] = vtk_named_colors(["Blue"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start+40:
+            self.timer_count += 1
+
+            print("Calling structure")
+            COLORS[:5, 5:] = vtk_named_colors(["Red"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start+60:
+            self.timer_count += 1
+
+            print("Calling structure")
+            COLORS[5:, 5:] = vtk_named_colors(["White"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start+80:
+            self.timer_count += 1
+
+            print("Calling structure")
+            COLORS[5:, :5] = vtk_named_colors(["Gray"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
         self.timer_count += 1
         while not self.new_actors.empty():
             topic, message, queue = self.new_actors.get()
             result_q = Queue()
             print(f"Callback: Creating new thread for actor: {topic} {queue}")
             self.create_new_thread(queue, result_q)
-            print(f"Callback: Adding new actor to sim: {topic}")
+            # print(f"Callback: Adding new actor to sim: {topic}")
             self.add_robot_to_sim(topic, result_q)
 
         for robot in self.robot_actors:
@@ -339,7 +398,7 @@ class vtkTimerCallback:
                             self.pipeline.ren.AddActor(new_block_tool)
 
                         elif index <= 3:
-                            print("Updating robot with new transforms")
+                            # print("Updating robot with new transforms")
                             actors[index].SetUserMatrix(transforms[index])
                             actors[index].SetScale(0.013)
 
@@ -375,13 +434,15 @@ class vtkTimerCallback:
                     # print(self.blocks)
                     location, actor = self.blocks[message.message.id]
                     actor.SetPosition(message.message.location)
-                    self.blocks[message.message.id] = (message.message.location, actor)
+                    self.blocks[message.message.id] = (
+                        message.message.location, actor)
                     # self.pipeline.animate()
                 else:
                     actor, _, _ = add_block(
                         message.message.location, block_file_location=block_file_location
                     )
-                    self.blocks[message.message.id] = (message.message.location, actor)
+                    self.blocks[message.message.id] = (
+                        message.message.location, actor)
                     self.pipeline.add_actor(actor)
                     self.pipeline.ren.AddActor(actor)
                     # self.pipeline.animate()
@@ -439,7 +500,7 @@ class Simulate:
             print(f"[Worker thread]: {topic} {messagedata}")
             if topic == b"STRUCTURE":
                 BLUEPRINT = messagedata.message.blueprint
-                # COLORS = messagedata.message.colors
+                COLORS = messagedata.message.colors
                 print(BLUEPRINT)
                 # print(COLORS)
                 # break
@@ -569,6 +630,7 @@ class Simulate:
             self.pipeline.animate()
             # self.windowToImageFilter.Modified()
             # self.writer.Write()
+
         except KeyboardInterrupt:
             print("Exiting")
             pass
@@ -646,4 +708,4 @@ if __name__ == "__main__":
     )
     sim.simulate()
     # sim.wait_for_structure_initialization(blueprint=None, colors=COLORS)
-    # sim.wait_for_structure_initialization()
+    sim.wait_for_structure_initialization()

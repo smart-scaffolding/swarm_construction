@@ -7,15 +7,15 @@ from components.structure.pathplanning.searches.wavefront import Wavefront
 from components.structure.behaviors.building.select_ferry_regions import determine_ferry_regions
 from math import sqrt
 
+
 class BuildingPlanner:
     def __init__(self, blueprint, feeding_location):
         self.blueprint = blueprint
         self.structure = None
         self.feeding_location = feeding_location
 
-    def create_divisions(self, division_size=(3, 3), level=0):
-        self.level = level
-        #TODO: Change so does not need to be square
+    def create_divisions(self, division_size=3, level=0):
+        # TODO: Change so does not need to be square
         x, y, z = self.blueprint.shape
         colors = np.array([[["DarkGreen"] * z] * y] * x)
         # if x != y:
@@ -29,16 +29,14 @@ class BuildingPlanner:
         self.divisions = []
 
         if z == 1:
-            for xi in range(increment[0], x+increment[0], increment[0]):
-                for yi in range(increment[1], y+increment[1], increment[1]):
-                    #create division
-                    if yi + increment[1] > y:
+            for xi in range(increment, x+increment, increment):
+                for yi in range(increment, y+increment, increment):
+                    # create division
+                    if yi + increment > y:
                         yi = y
-                    if xi + increment[0] > x:
+                    if xi + increment > x:
                         xi = x
 
-                    if p_xi == xi or p_yi == yi:
-                        break
                     d = Division((p_xi, xi), (p_yi, yi), (level, level+1),
                                  num_blocks=np.sum(self.blueprint[p_xi:xi, p_yi:yi, 0:1]))
                     colors[p_xi:xi, p_yi:yi, 0:1] = next(vtk_colors)
@@ -54,7 +52,7 @@ class BuildingPlanner:
             for zi in range(increment, z+increment, increment):
                 for xi in range(increment, x+increment, increment):
                     for yi in range(increment, y+increment, increment):
-                        #create division
+                        # create division
                         if yi + increment > y:
                             yi = y
                         if xi + increment > x:
@@ -77,15 +75,19 @@ class BuildingPlanner:
         return self.divisions, self.structure
 
     def _reshape_divisions_helper(self):
-        a, b = int(len(self.divisions) / 2), len(self.divisions) - int(len(self.divisions) / 2)
+        a, b = int(len(self.divisions) / 2), len(self.divisions) - \
+            int(len(self.divisions) / 2)
         reshape_value = int(sqrt(len(self.divisions)))
-
-        reshaped = np.asarray(self.divisions)
+        divisions_array = np.asarray(self.divisions)
+        if divisions_array.shape[0] / reshape_value is not reshape_value:
+            while divisions_array.shape[0] % 2 is not 0:
+                divisions_array = np.pad(
+                    divisions_array, ((0, 1)), mode='constant')
+                reshape_value = int(sqrt(divisions_array.shape[0]))
         try:
-            reshaped = reshaped.reshape((reshape_value, reshape_value))
+            reshaped = divisions_array.reshape((reshape_value, reshape_value))
         except ValueError:
-            reshaped = reshaped.reshape(len(self.divisions), 1)
-            # pass
+            reshaped = divisions_array.reshape((-1, 2))
         # print(reshaped.shape)
 
         x, y = reshaped.shape
@@ -102,13 +104,11 @@ class BuildingPlanner:
 
     def _assign_children_helper(self):
         wf = Wavefront(blueprint=self.structure, feeding_location=(0, 0),
-                       furthest_division=(len(self.structure), len(self.structure[0])),
-                       divisions=self.divisions, print=False, level=self.level)
-
-
-        self.divisions[(0, 0)].order = 1 + self.level #TODO: May want to remove this
+                       furthest_division=(
+                           len(self.structure), len(self.structure[0])),
+                       divisions=self.divisions, print=False)
+        self.divisions[(0, 0)].order = 1  # TODO: May want to remove this
         # print(self.divisions)
-        new_node = None
         for division in self.divisions:
 
             # node = self.divisions[division]
@@ -142,7 +142,8 @@ class BuildingPlanner:
                 # new_node = Node(wavefront_order=wavefront_order, id=node_id, pos=actual_pos, child=next_point,
                 #                 direction=direction)
 
-                new_node = Division(x_range=x_range, y_range=y_range, z_range=z_range, id=node_id)
+                new_node = Division(
+                    x_range=x_range, y_range=y_range, z_range=z_range, id=node_id)
 
                 # new_node = self.divisions[pos]
                 new_node.num_blocks = num_blocks
@@ -166,32 +167,8 @@ class BuildingPlanner:
 
                 modified_path.append(new_node)
 
-
             original_node = self.divisions[division]
             original_node.path_to_node = modified_path
-            # children = set()
-
-            # for node in modified_path:
-            #     if node.id != original_node.id:
-            #         for update_pos, value in self.divisions.items():
-            #             print(update_pos)
-            #             print(value)
-            #             if value.id == node.id:
-            #                 try:
-            #                     self.divisions[update_pos].children.remove(None)
-            #                 except KeyError:
-            #                     continue
-            #                 self.divisions[update_pos].children.add(original_node.id)
-            #                 for index, path_node in enumerate(value.path_to_node):
-            #                     if path_node.id == node.id:
-            #                         try:
-            #                             self.divisions[update_pos].path_to_node[index].children.remove(None)
-            #                         except KeyError:
-            #                             continue
-            #                         self.divisions[update_pos].path_to_node[index].children.add(original_node.id)
-
-                    # children.add(node)
-            # original_node.children = children
             self.divisions[pos] = original_node
 
         # print(self.divisions)
@@ -214,8 +191,8 @@ class BuildingPlanner:
             y_start, y_end = division.y_range
             z_start, z_end = division.z_range
             print(x_start, x_end, y_start, y_end, z_start, z_end)
-            self.colors[x_start:x_end, y_start:y_end, z_start:z_end] = next(cycol)
-
+            self.colors[x_start:x_end, y_start:y_end,
+                        z_start:z_end] = next(cycol)
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -240,7 +217,6 @@ class BuildingPlanner:
         plt.show()
 
 
-
 if __name__ == '__main__':
     blueprint = np.array([
         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]],
@@ -254,27 +230,17 @@ if __name__ == '__main__':
         [[1]*1]*15,
     ]*15)
 
-    from swarm_c_library.blueprint_factory import BluePrintFactory
+    buildingPlanner = BuildingPlanner(blueprint)
 
-    blueprint = BluePrintFactory().get_blueprint("StarTrek").data
-    blueprint_state = blueprint[:, :, 0]
-    if len(blueprint_state.shape) < 3:
-        x, y = blueprint_state.shape
-        blueprint_state = blueprint_state.reshape((x, y, 1))
-    buildingPlanner = BuildingPlanner(blueprint_state, feeding_location=(0, 0))
-
-    divisions, wavefront_blueprint = buildingPlanner.create_divisions(division_size=(5,3))
-    print(divisions)
-    # print(wavefront_blueprint)
-    while True:
-        pass
+    divisions, _ = buildingPlanner.create_divisions(division_size=5)
+    # print(divisions)
     # x, y, z = blueprint.shape
     a, b = int(len(divisions) / 2), len(divisions) - int(len(divisions) / 2)
     reshape_value = int(sqrt(len(divisions)))
     reshaped = np.asarray(divisions).reshape((reshape_value, reshape_value))
     # print(reshaped.shape)
 
-    x,y = reshaped.shape
+    x, y = reshaped.shape
 
     new_structure = {}
     wavefront_blueprint = np.zeros((x, y))
@@ -285,17 +251,16 @@ if __name__ == '__main__':
     # print(new_structure)
     print(wavefront_blueprint)
 
-    wf = Wavefront(blueprint=wavefront_blueprint, feeding_location=(0,0),
-                   furthest_division=(len(wavefront_blueprint), len(wavefront_blueprint[0])),
+    wf = Wavefront(blueprint=wavefront_blueprint, feeding_location=(0, 0),
+                   furthest_division=(len(wavefront_blueprint),
+                                      len(wavefront_blueprint[0])),
                    divisions=new_structure, print=False)
-
 
     goal = new_structure[(2, 1)].id
 
     path = wf.get_path(start=(0, 0), goal=(2, 1))
-    path.append(((2,1), None))
+    path.append(((2, 1), None))
     print(path)
-
 
     for item in new_structure:
         print(new_structure[item])
@@ -311,12 +276,14 @@ if __name__ == '__main__':
         num_blocks = node.num_blocks
         x_offset, y_offset, z_offset = node.centroid
 
-
         _, new_block_locations = determine_ferry_regions(level, num_rows=m, num_cols=n, direction=node.direction,
                                                          ferry_region_size=2,
-                                                         x_offset=round(x_offset)-2,
-                                                         y_offset=round(y_offset)-2,
-                                                         z_offset=round(z_offset),
+                                                         x_offset=round(
+                                                             x_offset)-2,
+                                                         y_offset=round(
+                                                             y_offset)-2,
+                                                         z_offset=round(
+                                                             z_offset),
                                                          num_blocks={
                                                              "FRONT": 0,
                                                              "RIGHT": node.num_blocks,
@@ -336,6 +303,5 @@ if __name__ == '__main__':
     # layer, new_pos = spiral_sort_helper(rows, columns, blueprint[:, :])
     # print(layer)
     # print(new_pos)
-
 
     # buildingPlanner.display()

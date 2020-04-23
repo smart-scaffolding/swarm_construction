@@ -11,7 +11,7 @@ from multiprocessing import Process, Queue
 
 
 class HeartBeater():
-    def __init__(self, robot_queue, period=1000):
+    def __init__(self, robot_queue, period=5000):
         context = zmq.Context()
         pub = context.socket(zmq.PUB)
 
@@ -61,7 +61,7 @@ class HeartBeater():
             self.handle_heart_failure(heartfailures)
         self.responses = set()
 
-        print("%i beating hearts: %s"%(len(self.hearts),self.hearts))
+        print("%i beating hearts: %s" % (len(self.hearts), self.hearts))
         self.pingstream.send(str(self.lifetime).encode())
 
     def handle_new_heart(self, heart):
@@ -81,7 +81,8 @@ class HeartBeater():
             elif "ROBOT" in str(heart_failure):
                 print(f"A robot has been disconnected, {heart_failure}")
             else:
-                print(f"Heart {str(heart_failure)} failed, no longer connected")
+                print(
+                    f"Heart {str(heart_failure)} failed, no longer connected")
             self.hearts.remove(heart_failure)
 
     def handle_pong(self, msg):
@@ -101,7 +102,6 @@ def start_hearbeat_detector(robot_queue):
     p = Process(target=create_heartbeat_detector, args=[robot_queue])
     p.start()
     return p
-
 
 
 
