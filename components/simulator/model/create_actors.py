@@ -36,8 +36,8 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
             uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0)
         )
         text_actor.AddPosition(0, 0, 1)
-        # text_actor.RotateX(60)
-        text_actor.RotateZ(60)
+        text_actor.RotateX(60)
+        # text_actor.RotateZ(60)
 
         text_actor.SetScale(0.5)
 

@@ -118,31 +118,66 @@ for i in range(13):
     path.append(Point(3, a - 1, 3, "top", None))
 # path.append(Point(3, d, 3, "top", None))
 
-
+block_id_2 = "BLOCK_2"
 path = [
-    Point(2, 3, 5, "top", block_id),
-    Point(1, 3, 4, "top", None),
+    Point(4, 12, 6, "top", block_id),
+    Point(5, 12, 6, "top", block_id_2),
 
-    Point(4, 3, 5, "top", block_id),
-    Point(3, 3, 4, "top", None),
+    Point(8, 12, 6, "top", block_id),
+    Point(6, 12, 6, "top", block_id_2),
 
-    Point(6, 3, 4, "top", block_id),
-    Point(5, 3, 4, "top", None),
+    Point(9, 12, 7, "top", block_id),
+    Point(8, 12, 6, "top", block_id_2),
 
-    Point(7, 4, 4, "top", block_id),
-    Point(5, 4, 4, "top", None),
+    Point(10, 12, 7, "top", block_id),
+    Point(9, 12, 7, "top", block_id_2),
 
-    Point(8, 4, 4, "top", block_id),
-    Point(6, 4, 4, "top", None),
+    Point(12, 12, 7, "top", block_id),
+    Point(10, 12, 7, "top", block_id_2),
 
-    Point(9, 4, 4, "top", block_id),
-    Point(7, 4, 4, "top", None),
+    Point(13, 13, 7, "top", block_id),
+    Point(15, 13, 7, "top", block_id_2),
 
-    Point(10, 3, 4, "top", block_id),
-    Point(8, 3, 3, "top", None),
+    Point(17, 15, 8, "top", block_id),
+    Point(19, 17, 8, "top", block_id_2),
 
-    Point(11, 3, 4, "top", block_id),
-    Point(9, 3, 3, "top", None),
+    Point(21, 17, 8, "top", block_id),
+    Point(23, 17, 7, "top", None),
+
+
+    Point(25, 17, 8, "top", block_id),
+    Point(27, 17, 8, "top", None),
+
+    Point(29, 17, 8, "top", block_id),
+    Point(30, 17, 7, "top", None),
+
+    Point(30, 18, 8, "top", block_id),
+    Point(32, 18, 7, "top", None),
+
+    Point(34, 18, 9, "top", block_id),
+    Point(33, 18, 7, "top", None),
+
+    Point(31, 18, 7, "top", None),
+    Point(29, 17, 7, "top", None),
+    # Point(10, 12, 8, "top", block_id),
+    # Point(12, 12, 7, "top", block_id_2),
+    # Point(6, 3, 4, "top", block_id),
+    # Point(5, 3, 4, "top", None),
+
+    # Point(7, 4, 4, "top", block_id),
+    # Point(5, 4, 4, "top", None),
+
+    # Point(8, 4, 4, "top", block_id),
+    # Point(6, 4, 4, "top", None),
+
+    # Point(9, 4, 4, "top", block_id),
+    # Point(7, 4, 4, "top", None),
+
+    # Point(10, 3, 4, "top", block_id),
+    # Point(8, 3, 3, "top", None),
+
+    # Point(11, 3, 4, "top", block_id),
+    # Point(9, 3, 3, "top", None),
 
     # Point(3, 8, 3, "top", None),
 
@@ -150,30 +185,30 @@ path = [
     # Point(9, 3, 3, "top", None),
 ]
 
-a = 11
-d = 9
-for i in range(9):
-    a += 1
-    d += 1
-    path.append(Point(a, 3, 4, "top", block_id))
-    path.append(Point(d, 3, 3, "top", None))
-a += 1
-d += 1
+# a = 11
+# d = 9
+# for i in range(9):
+#     a += 1
+#     d += 1
+#     path.append(Point(a, 3, 4, "top", block_id))
+#     path.append(Point(d, 3, 3, "top", None))
+# a += 1
+# d += 1
 
-path.append(Point(a, 3, 3, "top", block_id))
-path.append(Point(d, 3, 3, "top", None))
-path.append(Point(a, 3, 2, "top", block_id))
-path.append(Point(d, 3, 3, "top", None))
+# path.append(Point(a, 3, 3, "top", block_id))
+# path.append(Point(d, 3, 3, "top", None))
+# path.append(Point(a, 3, 2, "top", block_id))
+# path.append(Point(d, 3, 3, "top", None))
 
-# a -= 1
-path.append(Point(a - 1, 3, 3, "top", None))
+# # a -= 1
+# path.append(Point(a - 1, 3, 3, "top", None))
 
 
-for i in range(7):
-    a -= 2
-    d -= 2
-    path.append(Point(d, 3, 3, "top", None))
-    path.append(Point(a - 1, 3, 3, "top", None))
+# for i in range(7):
+#     a -= 2
+#     d -= 2
+#     path.append(Point(d, 3, 3, "top", None))
+#     path.append(Point(a - 1, 3, 3, "top", None))
 # path = [
 #     Point(2, 2, 0, "top", None),
 #     Point(2, 4, 0, "top", None),

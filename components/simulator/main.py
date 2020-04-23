@@ -23,7 +23,7 @@ POINTS = False
 ROBOTS = 1
 DEBUG = False
 DEBUG_TOGGLED = False
-BLUEPRINT = BluePrintFactory().get_blueprint("EmpireStateBuilding").data
+BLUEPRINT = BluePrintFactory().get_blueprint("MilleniumFalcon").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape

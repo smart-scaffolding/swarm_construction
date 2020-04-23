@@ -387,6 +387,24 @@ class StatueOfLiberty(BlueprintTemplate):
         )
 
 
+class MilleniumFalcon(BlueprintTemplate):
+
+    def __init__(self, name="MilleniumFalcon", pad=0):
+        data = np.load(os.path.join(Path, "falcon.npy"))
+        data = data[:, :, :]
+        data = pad_blueprint(data, pad)
+        # data = np.swapaxes(data, 0, 1)
+        # data = np.flip(data, 0)
+        data = np.swapaxes(data, 1, 2)
+        data = np.swapaxes(data, 0, 1)
+
+        x, y, z = data.shape
+        print(f"Blueprint [{name}]: {x, y, z}")
+        super().__init__(
+            length=x, width=y, height=z, data=data, name=name
+        )
+
+
 def pad_blueprint(blueprint, pad, x=0, y=0, z=0):
     pad_x_before = 0
     pad_x_after = pad + x
