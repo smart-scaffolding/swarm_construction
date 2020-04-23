@@ -157,19 +157,19 @@ def axesCube(
         z_bound[0, 1],
     )
     cube_axes_actor.SetCamera(ren.GetActiveCamera())
-    cube_axes_actor.GetTitleTextProperty(0).SetColor(1.0, 0.0, 0.0)
-    cube_axes_actor.GetLabelTextProperty(0).SetColor(1.0, 0.0, 0.0)
+    cube_axes_actor.GetTitleTextProperty(1).SetColor(1.0, 0.0, 0.0)
+    cube_axes_actor.GetLabelTextProperty(1).SetColor(1.0, 0.0, 0.0)
 
     cube_axes_actor.GetTitleTextProperty(2).SetColor(0.0, 1.0, 0.0)
     cube_axes_actor.GetLabelTextProperty(2).SetColor(0.0, 1.0, 0.0)
 
-    cube_axes_actor.GetTitleTextProperty(1).SetColor(0.0, 0.0, 1.0)
-    cube_axes_actor.GetLabelTextProperty(1).SetColor(0.0, 0.0, 1.0)
+    cube_axes_actor.GetTitleTextProperty(0).SetColor(0.0, 0.0, 1.0)
+    cube_axes_actor.GetLabelTextProperty(0).SetColor(0.0, 0.0, 1.0)
 
     cube_axes_actor.SetFlyModeToStaticTriad()
     x_label = vtk.vtkStringArray()
-    cube_axes_actor.SetXTitle("X-Axis")
-    cube_axes_actor.SetYTitle("Z-Axis")
+    cube_axes_actor.SetXTitle("Z-Axis")
+    cube_axes_actor.SetYTitle("X-Axis")
     cube_axes_actor.SetZTitle("Y-Axis")
 
     return cube_axes_actor

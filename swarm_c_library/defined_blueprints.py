@@ -4,6 +4,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.abspath("../../"))
 Path = os.path.join(ROOT_DIR, "blueprints")
 
+
 class BlueprintTemplate:
     def __init__(
         self,
@@ -241,7 +242,10 @@ class EmpireStateBuilding(BlueprintTemplate):
     def __init__(self, name="EmpireStateBuilding", pad=0):
         data = np.load(os.path.join(Path, "empire.npy"))
         data = pad_blueprint(data, pad)
+        # data = np.flip(data, 1)
+
         data = np.swapaxes(data, 1, 2)
+        data = np.swapaxes(data, 0, 1)
 
         x, y, z = data.shape
         super().__init__(
