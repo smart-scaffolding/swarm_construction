@@ -171,11 +171,13 @@ if __name__ == "__main__":
     logger.info(header)
     logger.info("x" * len(header))
     logger.info("\n")
-
+    import time
+    time.sleep(5)
     robot = RobotMain()
     root = robot.create_behavior_tree(blueprint=None)
 
-    a_end_effector = [3.5, 0.5, 1]
+    a_end_effector = robot.position
+    # a_end_effector = [3.5, 0.5, 1]
     x, y, z = a_end_effector
     d_end_effector = [x + 2, y, z]
 
@@ -340,32 +342,32 @@ if __name__ == "__main__":
         blocks.append(block)
     blocks.reverse()
 
-    for block in blocks:
-        robot.simulator_communicator.send_communication(
-            topic=block.id,
-            message=BlockLocationMessage(
-                block_id=block.id,
-                location=(
-                    block.location[0],
-                    block.location[1] + 0.5,
-                    block.location[2] + 0.5,
-                ),
-            ),
-        )
+    # for block in blocks:
+    #     robot.simulator_communicator.send_communication(
+    #         topic=block.id,
+    #         message=BlockLocationMessage(
+    #             block_id=block.id,
+    #             location=(
+    #                 block.location[0],
+    #                 block.location[1] + 0.5,
+    #                 block.location[2] + 0.5,
+    #             ),
+    #         ),
+    #     )
 
     writer.set(name="state/blocks_to_move", value=blocks)
     # If setting to ferry/move,
-    writer.set(name="state/robot_status", value=RobotBehaviors.BUILD)
+    writer.set(name="state/robot_status", value=RobotBehaviors.WAIT)
     # must set block_has_been_placed to true
 
     # Set to true if trying to place block
-    writer.set(name="state/block_has_been_placed", value=True)
+    writer.set(name="state/block_has_been_placed", value=False)
     # writer.set(name="state/point_to_reach", value=False)
     # Set to false if trying to move
-    writer.set(name="state/point_to_reach", value=False)
+    writer.set(name="state/point_to_reach", value=True)
     # writer.set(name="state/location_to_move_to",
     #            value=(6, 0, 1, "top"))
-    writer.set(name="state/location_to_move_to", value=(6, 0, 1, "top", "D"))
+    writer.set(name="state/location_to_move_to", value=(6, 6, 1, "top", "D"))
     writer.set(name="state/robot", value=robot_model)
     writer.set(name="state/blueprint", value=robot.blueprint)
     writer.set(name="state/blocks_robot_has_moved", value=[])

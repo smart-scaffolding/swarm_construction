@@ -378,10 +378,10 @@ class StructureMain:
             # order
 
             robots = [
-                Robot(id=b"ROBOT_1", pos=(1.5, 1.5), claimed_division=1),
-                Robot(id=b"ROBOT_2", pos=(4.5, 1.5), claimed_division=2),
-                # Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
-                # Robot(id=b'ROBOT_4', pos=(7.5, 1.5), claimed_division=4),
+                Robot(id=b"ROBOT_1", pos=(0.5, 0.5), claimed_division=1),
+                Robot(id=b"ROBOT_2", pos=(3.5, 0.5), claimed_division=2),
+                Robot(id=b'ROBOT_3', pos=(4.5, 4.5), claimed_division=3),
+                Robot(id=b'ROBOT_4', pos=(3.5, 2.5), claimed_division=4),
             ]
 
             # for i in need_to_visit_again:
@@ -415,6 +415,27 @@ class StructureMain:
                     self.currently_claimed_set.append(node)
 
             # print(currently_claimed_set)
+
+            if len(self.currently_claimed_set) != len(robots):
+                print("Number of points does not match number of robots")
+                print(
+                    f"Currently claimed set: {len(self.currently_claimed_set)}")
+                print(f"Number of robots: {len(robots)}")
+                print(robots)
+                print(self.currently_claimed_set)
+
+                currently_claimed_ids = [
+                    division.id for division in self.currently_claimed_set]
+                possible_divisions = list(self.divisions.values())
+                possible_divisions.sort(key=lambda x: x.order)
+                while len(self.currently_claimed_set) < len(robots):
+                    try:
+                        selected_division = possible_divisions.pop(0)
+                    except IndexError:
+                        raise Exception(
+                            "Unable to assign divisions to all robots. Something went wrong")
+                    if selected_division.id not in currently_claimed_ids:
+                        self.currently_claimed_set.append(selected_division)
 
             assign_robots_closest_point(
                 robots,
@@ -596,6 +617,14 @@ class StructureMain:
                 #
                 # print(f"Currently Claimed Set: {len(currently_claimed_set)} Number of robots: {len(robots)}")
                 # print(f"Current claimed set: {currently_claimed_set}")
+
+                if len(self.currently_claimed_set) != len(robots):
+                    print("Number of points does not match number of robots")
+                    print(
+                        f"Currently claimed set: {len(self.currently_claimed_set)}")
+                    print(f"Number of robots: {len(robots)}")
+                    raise Exception("Points not equal")
+
                 assign_robots_closest_point(
                     robots,
                     self.currently_claimed_set,
@@ -753,8 +782,8 @@ class StructureMain:
 
 
 if __name__ == "__main__":
-
-    blueprint_status = BluePrintFactory().get_blueprint("Plane_20x20x2").data
+    time.sleep(8)
+    blueprint_status = BluePrintFactory().get_blueprint("Plane_10x10x2").data
 
     division_size = 5
     structure = StructureMain(

@@ -23,12 +23,12 @@ POINTS = False
 ROBOTS = 1
 DEBUG = False
 DEBUG_TOGGLED = False
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
 
-COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+COLORS = np.array([[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx)
 
 loc = pkg_resources.resource_filename(
     "components", "/".join(("simulator", "media", "block.stl"))
@@ -149,7 +149,10 @@ class CalculatorThread(WorkerThread):
                     trajectory = message.message.trajectory
                     path = message.message.path
                     block_on_ee = message.message.block_on_ee
-                    debug_text = message.message.debug_text
+                    try:
+                        debug_text = message.message.debug_text
+                    except AttributeError:
+                        debug_text = ""
                     robot = Inchworm(base=base)
                     standing_on_block = True if block_on_ee else False
                     transform, robot_actors = robot.fkine(
@@ -287,6 +290,57 @@ class vtkTimerCallback:
             logger.debug(self.timer_count)
 
         self.timer_count += 1
+
+        start = 200
+        if self.timer_count == start + 20:
+            print("Calling structure")
+            COLORS[:5, :5] = vtk_named_colors(["Blue"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start + 40:
+
+            print("Calling structure")
+            COLORS[:5, 5:] = vtk_named_colors(["Red"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start + 60:
+            print("Calling structure")
+            COLORS[5:, 5:] = vtk_named_colors(["White"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
+
+        if self.timer_count == start + 80:
+
+            print("Calling structure")
+            COLORS[5:, :5] = vtk_named_colors(["Gray"])
+
+            setup_structure_display(
+                blueprint=BLUEPRINT,
+                pipeline=self.pipeline,
+                color=COLORS,
+                block_file_location=block_file_location,
+            )
+            self.pipeline.animate()
         while not self.new_actors.empty():
             topic, message, queue = self.new_actors.get()
             result_q = Queue()

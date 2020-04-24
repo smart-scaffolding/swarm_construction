@@ -69,4 +69,4 @@ pusher = Pusher(
 #
 # BLUEPRINT = np.dstack(blueprints)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data

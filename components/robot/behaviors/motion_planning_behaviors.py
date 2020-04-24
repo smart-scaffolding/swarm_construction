@@ -432,10 +432,11 @@ def get_path_to_point(
 
     # armReach = [1.5, 1.5]
 
-    # logger.debug(f"BLUEPRINT: {blueprint}")
+    # blueprint = np.array([[[1] * 1] * 10] * 10)
+    logger.debug(f"BLUEPRINT: {blueprint}")
 
     faceStarPlanner = FaceStar(blueprint, armReach)
-
+    logger.error(blueprint.shape)
     try:
         direction = destination[3]
     except IndexError:
