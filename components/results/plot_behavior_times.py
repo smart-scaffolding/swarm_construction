@@ -1,3 +1,6 @@
+import dash_html_components as html
+import dash_core_components as dcc
+import dash
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
@@ -70,7 +73,8 @@ def read_behavior_time_files_helper(filename, graphname, fig, row=1, col=1):
         value = float([x for x in data[label].values()][0])
         values.append(value)
     fig.add_trace(
-        go.Scatterpolar(r=values, theta=labels, fill="toself", name=graphname,),
+        go.Scatterpolar(r=values, theta=labels,
+                        fill="toself", name=graphname,),
         row=row,
         col=col,
     )
@@ -78,44 +82,48 @@ def read_behavior_time_files_helper(filename, graphname, fig, row=1, col=1):
 
 def read_behavior_time_files(files, fig, row=1, col=1):
     for graphname in files:
-        read_behavior_time_files_helper(files[graphname], graphname, fig, row, col)
+        read_behavior_time_files_helper(
+            files[graphname], graphname, fig, row, col)
 
 
 def plot_radar_behavior_times(files, fig, row=None, col=None):
     read_behavior_time_files(files, fig, row, col)
 
+    font_size = 7
     fig.update_layout(
         title="Behavior Time for Robots for Pyramid 10x10x4 316 blocks (seconds)",
         polar=dict(
-            radialaxis=dict(visible=True, title="Seconds"),
+            radialaxis=dict(visible=True, title="",
+                            tickfont=dict(size=font_size), title_font=dict(size=font_size)),
             angularaxis=dict(rotation=55, direction="clockwise"),
         ),
         polar2=dict(
-            radialaxis=dict(visible=True, title="Seconds"),
+            radialaxis=dict(visible=True, title="",
+                            tickfont=dict(size=font_size)),
             angularaxis=dict(rotation=55, direction="clockwise"),
         ),
         polar3=dict(
-            radialaxis=dict(visible=True, title="Seconds"),
+            radialaxis=dict(visible=True, title="",
+                            tickfont=dict(size=font_size)),
             angularaxis=dict(rotation=55, direction="clockwise"),
         ),
         polar4=dict(
-            radialaxis=dict(visible=True, title="Seconds"),
+            radialaxis=dict(visible=True, title="",
+                            tickfont=dict(size=font_size)),
             angularaxis=dict(rotation=55, direction="clockwise"),
         ),
         showlegend=True,
         template="plotly_dark",
+        paper_bgcolor='rgba(0,0,0,1)',
+        plot_bgcolor='rgba(0,0,0,1)'
     )
     return fig
     # fig.show()
 
 
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-
-fig = go.Figure()
-plot_radar_behavior_times(files, fig)
-fig.show()
+# fig = go.Figure()
+# plot_radar_behavior_times(files, fig)
+# fig.show()
 
 
 # batch_files = [
