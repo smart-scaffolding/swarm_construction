@@ -783,7 +783,7 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     # print(f"BASE: {base}")
     # print(f"TYPE: {type(base)}")
     trajectory[0] -= 90
-    trajectory[4] -= 90
+    trajectory[4] += 90
     trajectory = trajectory * np.pi / 180
     # print(f"TRAJ: {trajectory.shape}")
     trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])

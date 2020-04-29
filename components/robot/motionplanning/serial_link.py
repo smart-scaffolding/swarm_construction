@@ -429,8 +429,8 @@ class SerialLink:
             print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
-        if q1 < -179.8:
-            q1 = 0
+        # if q1 < -179.8:
+        #     q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
         # new_x = x / cos(q1)
