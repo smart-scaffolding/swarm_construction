@@ -563,15 +563,18 @@ class SerialLink:
             print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
-        if q1 < -179.8:
-            q1 = 0
+        # if q1 < -np.pi*0.98 or q1 < np.pi*0.02:
+        #     q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
-        new_x = x / cos(q1)
+        # new_x = x / cos(q1)
+        new_x = sqrt(x ** 2 + y ** 2)
 
         x3 = new_x - L1 * cos(localGamma)
         z3 = new_z - L1 * sin(localGamma)  # reduce to the 2dof planar robot
 
+        # print(f"Square: {x3 ** 2 + z3 ** 2}")
+        # print(f"ACos: {(L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))}")
         beta = acos(
             (L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))
         )
@@ -585,7 +588,7 @@ class SerialLink:
             q2 = pi / 2 - (atan2(z3, x3) - beta)
 
         q4 = (localGamma - pi / 2 + q2 + q3) * -1
-        q5 = phi - q1
+        q5 = phi + q1
         q = np.array([q1, q2, q3, q4, q5])
 
         # check which ee is requested and flip angles accordingly

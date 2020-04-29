@@ -454,7 +454,7 @@ class SerialLink:
             q2 = pi / 2 - (atan2(z3, x3) - beta)
 
         q4 = (localGamma - pi / 2 + q2 + q3) * -1
-        q5 = phi - q1
+        q5 = phi + q1
         q = np.array([q1, q2, q3, q4, q5])
 
         # check which ee is requested and flip angles accordingly
