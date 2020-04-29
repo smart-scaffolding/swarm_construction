@@ -156,7 +156,7 @@ class CalculatorThread(WorkerThread):
                         stance=trajectory,
                         apply_stance=True,
                         standing_on_block=standing_on_block,
-                        num_links=4,
+                        num_links=5,
                     )
 
                     text_position = np.eye(4)
@@ -215,7 +215,7 @@ class vtkTimerCallback:
         self.result_q = result_q
         self.socket = socket
         self.pipeline = pipeline
-        self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
+        self.colors = vtk_named_colors(["Firebrick", "Gray", "Firebrick", "Firebrick", "Gray", "Firebrick"])
         self.blocks = OrderedDict()
         self.block_q = block_q
         self.previous_path = []
@@ -314,7 +314,7 @@ class vtkTimerCallback:
                     ROBOT
                     """
                     if not POINTS:
-                        if index == 4:
+                        if index == 6:
 
                             if block_on_ee not in self.blocks:
                                 new_block_tool, _, _ = add_block(
@@ -359,7 +359,7 @@ class vtkTimerCallback:
                                 #     f"Moving block {block_on_ee} to new location"
                                 # )
 
-                        elif index <= 3:
+                        elif index <= 5:
                             if index == 0:
                                 if self.robot_texts[robot_id]:
                                     rendered_id = self.robot_texts[robot_id]

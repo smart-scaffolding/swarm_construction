@@ -15,7 +15,7 @@ from components.robot.original.common import (
     round_end_effector_position,
 )
 from components.robot.original.quintic_trajectory_planner import *
-from defined_blueprints import *
+from swarm_c_library.defined_blueprints import *
 
 accuracy = 1e-7
 threshold = 1
@@ -263,6 +263,8 @@ def move_to_point(
     forward_2 = []
     forward_3 = []
     forward_4 = []
+    forward_5 = []
+
     base = robot.AEE_POSE
 
     for index, point in enumerate(setPoints):
@@ -280,6 +282,8 @@ def move_to_point(
         forward_2.append(ik_angles[1])
         forward_3.append(ik_angles[2])
         forward_4.append(ik_angles[3])
+        forward_5.append(ik_angles[4])
+
         # print(f'each ik_angle {ik_angles}')
 
         if previous_angles is None:
@@ -297,14 +301,15 @@ def move_to_point(
     forward_2 = np.asmatrix(forward_2)
     forward_3 = np.asmatrix(forward_3)
     forward_4 = np.asmatrix(forward_4)
+    forward_5 = np.asmatrix(forward_5)
 
-    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
+    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4, forward_5), axis=0)
     return ik_angles.T
 
 
 def map_angles_from_robot_to_simulation(angles):
     angles = angles * 180 / np.pi
-    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3]])
+    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3], angles[4]])
     # angles = np.array([0,90-27,-124,0])
     return angles
 
@@ -770,8 +775,19 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     # })
     # time.sleep(0.01)
 
+    # base = np.matrix([[1, 0, 0, 0.5],
+    #                   [0, 1, 0, 0.5],
+    #                   [0, 0, 1, 1.],
+    #                   [0, 0, 0, 1]])
+    base = np.matrix(base)
+    # print(f"BASE: {base}")
+    # print(f"TYPE: {type(base)}")
     trajectory[0] = trajectory[0] - 90
     trajectory = trajectory * np.pi / 180
+    # print(f"TRAJ: {trajectory.shape}")
+    trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
+    # trajectory = np.array([[-1.57079633, 0., 1.08612036, -2.17062641, -0.48629028, 0., 0.]])
+    # print(f"LENGTH OF TRAJECTORY: {trajectory.shape}")
     # print(f'after converted to pi: {trajectory}')
     messagedata = AnimationUpdateMessage(
         robot_base=base, trajectory=trajectory, block_on_ee=holding_block
@@ -782,6 +798,7 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     z = zlib.compress(p)
     # print(f"{topic} {z}")
     socket.send_multipart([topic, z])
+    # time.sleep(1)
 
 
 if __name__ == "__main__":

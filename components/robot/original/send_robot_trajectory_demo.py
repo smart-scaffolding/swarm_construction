@@ -68,19 +68,19 @@ path = [
     Point(0, 0, 0, "top", None),
 ]
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(2, 4, 0, "top", None),
-    Point(2, 6, 0, "top", None),
-    Point(2, 8, 0, "top", None),
-]
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(2, 4, 0, "top", None),
+#     Point(2, 6, 0, "top", None),
+#     Point(2, 8, 0, "top", None),
+# ]
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(4, 4, 0, "top", None),
-    Point(6, 6, 0, "top", None),
-    Point(8, 8, 0, "top", None),
-]
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(4, 4, 0, "top", None),
+#     Point(6, 6, 0, "top", None),
+#     Point(8, 8, 0, "top", None),
+# ]
 
 block_id = "1"
 block_id_2 = "2"
@@ -90,7 +90,7 @@ path = [
     Point(2, 0, 0, "top", None),
     Point(4, 0, 1, "top", block_id),
     Point(3, 0, 0, "top", None),
-    Point(5, 0, 1, "top", block_id),
+    Point(5, 1, 1, "top", block_id),
     Point(4, 0, 0, "top", None),
     Point(2, 0, 0, "top", None),
     Point(3, 0, 0, "top", None),

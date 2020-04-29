@@ -313,10 +313,10 @@ class SerialLink:
         """
         if not flip_angles:
             print("NOPE")
-            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
+            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1, q[4]])
         else:
             print("FLIPPING ANGLES")
-            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1]])
+            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1], q[4]])
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
         print("Final Angles: {}".format(qTemp[1:]))
 

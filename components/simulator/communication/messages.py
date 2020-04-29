@@ -66,6 +66,7 @@ class AnimationUpdateMessage(Message):
         placedObstacle=False,
         obstacle=None,
         block_on_ee=False,
+        debug_text=""
     ):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base
@@ -75,6 +76,7 @@ class AnimationUpdateMessage(Message):
         self.placedObstacle = placedObstacle
         self.obstacle = obstacle
         self.block_on_ee = block_on_ee
+        self.debug_text = debug_text
 
 
 class FerryBlocksStatusFinished(Message):
