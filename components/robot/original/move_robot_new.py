@@ -61,7 +61,7 @@ blueprint = EmpireStateBuilding().data
 
 # blueprint = Plane(12, 12, name="Plane_12x12x1").data
 
-base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 5, 1.0], [0, 0, 0, 1]])
+base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 1, 5.0], [0, 0, 0, 1]])
 
 
 class AnimationUpdate:
