@@ -23,7 +23,7 @@ POINTS = False
 ROBOTS = 1
 DEBUG = False
 DEBUG_TOGGLED = False
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_20x20x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
@@ -88,7 +88,7 @@ class WorkerThread(threading.Thread):
                 messagedata = pickle.loads(message)
                 logger.debug(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
@@ -221,7 +221,7 @@ class vtkTimerCallback:
         self.previous_path = []
         self.robot_texts = defaultdict(lambda: None)
         self.last_block_showing = None
-        self.time_till_next_block = 80
+        self.time_till_next_block = 100
         self.last_block_counter = self.time_till_next_block
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
@@ -440,7 +440,7 @@ class vtkTimerCallback:
                     location = np.array(message.message.location)
                     # print(message.message.location)
                     # print(message.message.location[0])
-                    if location[0] == 0 and location[1] == 0.5:
+                    if location[0] == 0.5 and location[1] == 0.5:
                         self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)

@@ -29,7 +29,7 @@ TOPIC = b"ROBOT_1"
 
 JOINT_ANGLE_PKT_SIZE = 8
 
-robot_ee_starting_point = (2.5, 0.5, 1)
+robot_ee_starting_point = (3.5, 0.5, 1)
 
 blueprint = np.array(
     [
@@ -56,9 +56,10 @@ blueprint = np.array(
     ]
 )
 
-blueprint = Plane(12, 12, name="Plane_12x12x1").data
+# blueprint = Plane(12, 12, name="Plane_12x12x1").data
 
-base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+
+base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
 
 
 class AnimationUpdate:
@@ -98,7 +99,7 @@ def robot_trajectory_serial_demo(
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     ik_motion, path, directions, animation_update = follow_path(
-        robot, num_steps, offset=1.20, path=path
+        robot, num_steps, offset=1.2, path=path
     )
 
     robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
@@ -588,12 +589,12 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             move_base = [int(x) for x in move_base]
             modified_blueprint = np.copy(blueprint)
-            pad_x_before = 3
-            pad_x_after = 3
-            pad_y_before = 3
-            pad_y_after = 3
-            pad_z_before = 3
-            pad_z_after = 3
+            pad_x_before = 5
+            pad_x_after = 5
+            pad_y_before = 5
+            pad_y_after = 5
+            pad_z_before = 0
+            pad_z_after = 5
             modified_blueprint = np.pad(
                 modified_blueprint,
                 (
@@ -609,7 +610,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             ] = 0
 
             planner = PathPlanner(
-                blueprint=modified_blueprint, arm_reach=(1, 1), search=PathPlanners.AStar,
+                blueprint=modified_blueprint, arm_reach=(2.38, 2.38), search=PathPlanners.AStar,
             )
 
             start = ee_up
@@ -744,7 +745,7 @@ def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, t
 def check_if_point_reachable(robot, base, goal):
     delta = goal - base
     dist = np.sqrt(delta[0] ** 2 + delta[1] ** 2 + delta[2] ** 2)
-    if dist > (robot.links[1].length + robot.links[2].length) * 0.95:
+    if dist > (robot.links[3].length + robot.links[4].length) * 0.95:
         raise ValueError(f"Robot cannot reach from base {base} to goal {goal}")
 
 
@@ -783,7 +784,7 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     # print(f"BASE: {base}")
     # print(f"TYPE: {type(base)}")
     trajectory[0] -= 90
-    trajectory[4] += 90
+    trajectory[4] -= 90
     trajectory = trajectory * np.pi / 180
     # print(f"TRAJ: {trajectory.shape}")
     trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
