@@ -55,7 +55,7 @@ def check_if_point_reachable(robot, base, goal):
 
 def map_angles_from_robot_to_simulation(angles):
     angles = angles * 180 / np.pi
-    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3]])
+    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3], angles[4]])
     # angles = np.array([0,90-27,-124,0])
     return angles
 
@@ -141,8 +141,11 @@ def send_to_simulator(
         },
     )
 
-    trajectory[0] = trajectory[0] - 90
+    trajectory[0] -= 90
+    trajectory[4] -= 90
     trajectory = trajectory * np.pi / 180
+    # print(f"TRAJ: {trajectory.shape}")
+    trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
     # if place_block:
     #     base[2, 3] = base[2, 3] + 1
     messagedata = AnimationUpdateMessage(

@@ -44,7 +44,7 @@ def setup_pipeline_objs(colors, robot_id, points=False, block_on_end_effector=Fa
         assembly.AddPart(text_actor)
 
         return [assembly], []
-    stl_files = setup_file_names(4)
+    stl_files = setup_file_names(6)
     print("STL FILES: {}".format(stl_files))
     reader_list = [0] * len(stl_files)
     actor_list = [0] * len(stl_files)
@@ -157,5 +157,5 @@ def setup_file_names(num):
     file_names = []
     for i in range(0, num):
         file_names.append("link" + str(i) + ".stl")
-
+    print(f"NUMBER OF STL FILES: {file_names}")
     return file_names

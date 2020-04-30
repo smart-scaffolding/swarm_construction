@@ -1,6 +1,9 @@
 from collections import namedtuple
 
 from components.robot.original.move_robot_new import robot_trajectory_serial_demo
+from components.robot.main import RobotMain
+import time
+from components.robot.communication.messages import BlockLocationMessage
 
 Point = namedtuple("Point", "x y z direction holding_block")
 
@@ -68,25 +71,25 @@ path = [
     Point(0, 0, 0, "top", None),
 ]
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(2, 4, 0, "top", None),
-    Point(2, 6, 0, "top", None),
-    Point(2, 8, 0, "top", None),
-]
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(2, 4, 0, "top", None),
+#     Point(2, 6, 0, "top", None),
+#     Point(2, 8, 0, "top", None),
+# ]
 
-path = [
-    Point(2, 2, 0, "top", None),
-    Point(4, 4, 0, "top", None),
-    Point(6, 6, 0, "top", None),
-    Point(8, 8, 0, "top", None),
-]
+# path = [
+#     Point(2, 2, 0, "top", None),
+#     Point(4, 4, 0, "top", None),
+#     Point(6, 6, 0, "top", None),
+#     Point(8, 8, 0, "top", None),
+# ]
 
-block_id = "1"
-block_id_2 = "2"
-block_id_3 = "3"
+block_id = b"BLOCK_1"
+block_id_2 = b"BLOCK_2"
+block_id_3 = b"BLOCK_3"
 path = [
-    Point(3, 0, 1, "top", block_id),
+    Point(0, 0, 1, "top", None),
     Point(2, 0, 0, "top", None),
     Point(4, 0, 1, "top", block_id),
     Point(3, 0, 0, "top", None),
@@ -117,6 +120,38 @@ path = [
     Point(2, 0, 0, "top", None),
     Point(0, 0, 0, "top", None),
 ]
+
+
+robot = RobotMain()
+robot.initialize_communications()
+time.sleep(2)
+
+blocks = [
+    block_id_3, block_id_2, block_id
+]
+
+for block in blocks:
+    robot.simulator_communicator.send_communication(
+        topic=block,
+        message=BlockLocationMessage(
+            block_id=block,
+            location=(
+                0 + 0.5,
+                0 + 0.5,
+                1 + 0.6,
+            ),
+        ),
+    )
+    print(f"Just Sent block message: {block}")
+
+
+# path = [
+#     Point(3, 0, 1, "top", block_id),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 1, 1, "top", block_id),
+#     Point(3, 0, 0, "top", None),
+#     Point(2, 0, 0, "top", None),
+# ]
 
 # D link moves forward one step and will stop at block height (use to reach
 # block)
@@ -324,29 +359,29 @@ def convert_js_bool(output):
 
 
 if __name__ == "__main__":
-    import sys
+    # import sys
 
-    if len(sys.argv) > 1:
-        output = get_command_line_input(sys.argv, 1)
-        SERIAL = SERIAL if output is None else convert_js_bool(str(output))
+    # if len(sys.argv) > 1:
+    #     output = get_command_line_input(sys.argv, 1)
+    #     SERIAL = SERIAL if output is None else convert_js_bool(str(output))
 
-        output = get_command_line_input(sys.argv, 2)
-        PORT = PORT if output is None else str(output)
+    #     output = get_command_line_input(sys.argv, 2)
+    #     PORT = PORT if output is None else str(output)
 
-        output = get_command_line_input(sys.argv, 3)
-        BAUD = BAUD if output is None else int(output)
+    #     output = get_command_line_input(sys.argv, 3)
+    #     BAUD = BAUD if output is None else int(output)
 
-        output = get_command_line_input(sys.argv, 4)
-        TIMEOUT = TIMEOUT if output is None else float(output)
+    #     output = get_command_line_input(sys.argv, 4)
+    #     TIMEOUT = TIMEOUT if output is None else float(output)
 
-        output = get_command_line_input(sys.argv, 5)
-        NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
+    #     output = get_command_line_input(sys.argv, 5)
+    #     NUM_VIA_POINTS = NUM_VIA_POINTS if output is None else int(output)
 
-        output = get_command_line_input(sys.argv, 6)
-        USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
+    #     output = get_command_line_input(sys.argv, 6)
+    #     USE_GRIPPERS = USE_GRIPPERS if output is None else convert_js_bool(str(output))
 
-        output = get_command_line_input(sys.argv, 7)
-        path = path if output is None else get_path(str(output))
+    #     output = get_command_line_input(sys.argv, 7)
+    #     path = path if output is None else get_path(str(output))
 
     print(f"Serial: {SERIAL}")
     print(f"Port: {PORT}")

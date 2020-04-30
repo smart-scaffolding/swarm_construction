@@ -402,17 +402,18 @@ if __name__ == "__main__":
     robot.initialize_communications()
     helpers.send_to_simulator(
         base=robot_model.AEE_POSE,
-        trajectory=np.array([0, 62, -1.23793284e02, -28]),
+
+        trajectory=np.array([0, 0, 62, -1.23793284e02, -28, 0]),
         id=robot.id,
     )
     helpers.send_to_simulator(
         base=robot_model.AEE_POSE,
-        trajectory=np.array([0, 62, -1.23793284e02, -28]),
+        trajectory=np.array([0, 0, 62, -1.23793284e02, -28, 0]),
         id=robot.id,
     )
     helpers.send_to_simulator(
         base=robot_model.AEE_POSE,
-        trajectory=np.array([0, 62, -1.23793284e02, -28]),
+        trajectory=np.array([0, 0, 62, -1.23793284e02, -28, 0]),
         id=robot.id,
     )
 

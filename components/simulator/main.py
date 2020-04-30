@@ -25,6 +25,7 @@ DEBUG = False
 DEBUG_TOGGLED = False
 BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data
 
+
 # BLUEPRINT = np.load("blueprint.npy")
 bx, by, bz = BLUEPRINT.shape
 
@@ -88,7 +89,7 @@ class WorkerThread(threading.Thread):
                 messagedata = pickle.loads(message)
                 logger.debug(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
@@ -159,7 +160,7 @@ class CalculatorThread(WorkerThread):
                         stance=trajectory,
                         apply_stance=True,
                         standing_on_block=standing_on_block,
-                        num_links=4,
+                        num_links=5,
                     )
 
                     text_position = np.eye(4)
@@ -218,13 +219,13 @@ class vtkTimerCallback:
         self.result_q = result_q
         self.socket = socket
         self.pipeline = pipeline
-        self.colors = vtk_named_colors(["Red", "Blue", "Blue", "Purple"])
+        self.colors = vtk_named_colors(["Firebrick", "Gray", "Firebrick", "Firebrick", "Gray", "Firebrick"])
         self.blocks = OrderedDict()
         self.block_q = block_q
         self.previous_path = []
         self.robot_texts = defaultdict(lambda: None)
         self.last_block_showing = None
-        self.time_till_next_block = 80
+        self.time_till_next_block = 100
         self.last_block_counter = self.time_till_next_block
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
@@ -249,7 +250,7 @@ class vtkTimerCallback:
             self.pipeline.add_actor(rendered_id)
             self.robot_texts[robot] = rendered_id
 
-        logger.debug("Should be seeing new robot, as it was just added")
+        logger.info("Should be seeing new robot, as it was just added")
 
         self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
         self.pipeline.animate()
@@ -368,7 +369,7 @@ class vtkTimerCallback:
                     ROBOT
                     """
                     if not POINTS:
-                        if index == 4:
+                        if index == 6:
 
                             if block_on_ee not in self.blocks:
                                 new_block_tool, _, _ = add_block(
@@ -413,7 +414,7 @@ class vtkTimerCallback:
                                 #     f"Moving block {block_on_ee} to new location"
                                 # )
 
-                        elif index <= 3:
+                        elif index <= 5:
                             if index == 0:
                                 if self.robot_texts[robot_id]:
                                     rendered_id = self.robot_texts[robot_id]
@@ -458,6 +459,7 @@ class vtkTimerCallback:
                                 rendered_id.SetUserMatrix(text_position)
                             actors[index].SetUserMatrix(transforms[index])
                             actors[index].SetScale(0.013)
+                            logger.info("Moving robot")
 
                     """
                     POINT
@@ -494,7 +496,7 @@ class vtkTimerCallback:
                     location = np.array(message.message.location)
                     # print(message.message.location)
                     # print(message.message.location[0])
-                    if location[0] == 0 and location[1] == 0.5:
+                    if location[0] == 0.5 and location[1] == 0.5:
                         self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)

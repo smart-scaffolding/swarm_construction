@@ -173,6 +173,8 @@ def move_to_point(
     forward_2 = []
     forward_3 = []
     forward_4 = []
+    forward_5 = []
+
     base = robot.AEE_POSE
 
     if baseID == "D":
@@ -195,6 +197,7 @@ def move_to_point(
         forward_2.append(ik_angles[1])
         forward_3.append(ik_angles[2])
         forward_4.append(ik_angles[3])
+        forward_5.append(ik_angles[4])
 
         angle_update = ik_angles
 
@@ -212,8 +215,9 @@ def move_to_point(
     forward_2 = np.asmatrix(forward_2)
     forward_3 = np.asmatrix(forward_3)
     forward_4 = np.asmatrix(forward_4)
+    forward_5 = np.asmatrix(forward_5)
 
-    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
+    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4, forward_5), axis=0)
     return ik_angles.T
 
 

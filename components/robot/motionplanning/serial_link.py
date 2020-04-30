@@ -352,6 +352,7 @@ class SerialLink:
         """
 
         # flipped=False
+        has_rotation = [1, 3, 4, 5, 7]
 
         if apply_stance and update is None:
             raise Exception("Must have data to update with")
@@ -362,23 +363,15 @@ class SerialLink:
         if timer is None:
             timer = 0
 
-        if apply_stance:
-            self.base = update.robot_base
-        if stance is None:
+            angles = stance[timer, 0]
+
+            # t = t * self.links[0].A(angles)
             t = self.links[0].transform_matrix
         else:
             t = self.base
 
-            angles = stance[timer, 0]
-
-            t = t * self.links[0].A(angles)
-        if apply_stance:
-            actor_list[0].SetUserMatrix(transforms.np2vtk(t))
-            actor_list[0].SetScale(self.scale)
-        for i in range(1, num_links, 1):
-            # print("I: {}".format(i))
-            # print("\tT: {}".format(t))
-            if stance is None:
+        for i in range(1, 8, 1):
+            if i not in has_rotation:
                 t = t * self.links[i].transform_matrix
             else:
                 angles = stance[timer, i]
@@ -393,6 +386,7 @@ class SerialLink:
 
     # Units: inches, radians
     # inputs should be in the global reference frame
+
     def ikin(
         self, goalPos, gamma, phi, baseID, simHuh=False, elbow_up=1, placeBlock=False
     ):
@@ -413,8 +407,10 @@ class SerialLink:
         # L1 = 4.125  # L1 in inches
         # L2 = 6.43  # L2 in inches
         # blockWidth = 3
-        L1 = self.links[0].length * 10
-        L2 = self.links[1].length
+        # L1 = self.links[0].length * 10
+        # L2 = self.links[1].length
+        L1 = self.links[0].length + self.links[1].length
+        L2 = self.links[3].length
 
         relativePos, localGamma = self.handlePlaneChanges(
             goalPos=goalPos, gamma=gamma, baseID=baseID, placeBlock=placeBlock
@@ -429,8 +425,8 @@ class SerialLink:
             print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
-        if q1 < -179.8:
-            q1 = 0
+        # if q1 < -179.8:
+        #     q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
         # new_x = x / cos(q1)
@@ -454,7 +450,7 @@ class SerialLink:
             q2 = pi / 2 - (atan2(z3, x3) - beta)
 
         q4 = (localGamma - pi / 2 + q2 + q3) * -1
-        q5 = phi - q1
+        q5 = phi + q1
         q = np.array([q1, q2, q3, q4, q5])
 
         # check which ee is requested and flip angles accordingly

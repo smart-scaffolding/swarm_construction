@@ -46,6 +46,7 @@ class SerialLink:
         """
         self.pipeline = None
         self.links = links
+        self.actuated_links = [link for index, link in enumerate(self.links) for index in [1, 3, 4, 5, 7]]
         if q is None:
             self.q = np.matrix([0 for each in links])
         if base is None:
@@ -124,6 +125,7 @@ class SerialLink:
         :rtype: numpy.ndarray
         """
         q = np.zeros(self.length)
+
         for i, link in enumerate(self.links):
             q[i] = link.theta
         if unit == "deg":
@@ -263,7 +265,7 @@ class SerialLink:
         :return: int
         """
         # return len(self.links)
-        return 4
+        return 8
 
     def get_velocity_controller_term(self, index, total_num_points, offset):
         lower_vel_bound = (total_num_points / 3) - offset
@@ -313,10 +315,10 @@ class SerialLink:
         """
         if not flip_angles:
             print("NOPE")
-            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1])
+            qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1, q[4]])
         else:
             print("FLIPPING ANGLES")
-            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1]])
+            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1], q[4]])
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
         print("Final Angles: {}".format(qTemp[1:]))
 
@@ -379,6 +381,7 @@ class SerialLink:
         """
 
         # flipped=False
+        has_rotation = [1, 3, 4, 5, 7]
 
         if apply_stance and update is None:
             raise Exception("Must have data to update with")
@@ -407,23 +410,19 @@ class SerialLink:
         #         #     # print("EE_POS: {}".format(ee_pos))
         #         #     self.base = new_base
 
-        if apply_stance:
-            self.base = update.robot_base
-        if stance is None:
+            angles = stance[timer, 0]
+
+            # t = t * self.links[0].A(angles)
             t = self.links[0].transform_matrix
         else:
             t = self.base
-
-            angles = stance[timer, 0]
-
-            t = t * self.links[0].A(angles)
-        if apply_stance:
-            actor_list[0].SetUserMatrix(transforms.np2vtk(t))
-            actor_list[0].SetScale(self.scale)
-        for i in range(1, num_links, 1):
+        # if apply_stance:
+        #     actor_list[0].SetUserMatrix(transforms.np2vtk(t))
+        #     actor_list[0].SetScale(self.scale)
+        for i in range(1, 8, 1):
             # print("I: {}".format(i))
             # print("\tT: {}".format(t))
-            if stance is None:
+            if i not in has_rotation:
                 t = t * self.links[i].transform_matrix
             else:
                 angles = stance[timer, i]
@@ -434,6 +433,41 @@ class SerialLink:
                 actor_list[i].SetScale(self.scale)
 
         t = t * self.tool
+
+        # if apply_stance:
+        #     self.base = update.robot_base
+        # if stance is None:
+        #     t = self.links[0].transform_matrix
+        # else:
+        #     t = self.base
+        #     # t[2, 3] += 0.6359652
+        #     angles = stance[timer, 0]
+        #     # actors.append(transforms.np2vtk(t))
+        #     # t = t * self.links[0].A(angles)
+        #     t *= self.links[0].transform_matrix
+        # if apply_stance:
+        #     actors.append(transforms.np2vtk(t))
+        #     # actor_list[0].SetUserMatrix(transforms.np2vtk(t))
+        #     # actor_list[0].SetScale(self.scale)
+        # for i in range(1, 8, 1):
+        #     # print("I: {}".format(i))
+        #     # print("\tT: {}".format(t))
+
+        #     if i not in has_rotation:
+        #         t = t * self.links[i].transform_matrix
+        #     else:
+        #         angles = stance[timer, i - 1]
+
+        #         t = t * self.links[i].A(angles)
+        #         if apply_stance:
+        #             # if i == 5:
+        #             #     final_point = create_point_from_homogeneous_transform(t)
+        #             #     t *= create_homogeneous_transform_from_point((final_point[0]-20, final_point[1]-20, final_point))
+        #             actors.append(transforms.np2vtk(t))
+        #         #
+        #         # actor_list[i].SetUserMatrix(transforms.np2vtk(t))
+        #         # actor_list[i].SetScale(self.scale)
+        # t = t * self.links[7].transform_matrix
         return t
 
     def ikineConstrained(
@@ -547,8 +581,8 @@ class SerialLink:
         # L1 = 4.125  # L1 in inches
         # L2 = 6.43  # L2 in inches
         # blockWidth = 3
-        L1 = self.links[0].length
-        L2 = self.links[1].length
+        L1 = self.links[0].length + self.links[1].length
+        L2 = self.links[3].length
 
         relativePos, localGamma = self.handlePlaneChanges(
             goalPos=goalPos, gamma=gamma, baseID=baseID, inching=inching
@@ -563,15 +597,18 @@ class SerialLink:
             print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
-        if q1 < -179.8:
-            q1 = 0
+        # if q1 < -np.pi*0.98 or q1 < np.pi*0.02:
+        #     q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
-        new_x = x / cos(q1)
+        # new_x = x / cos(q1)
+        new_x = sqrt(x ** 2 + y ** 2)
 
         x3 = new_x - L1 * cos(localGamma)
         z3 = new_z - L1 * sin(localGamma)  # reduce to the 2dof planar robot
 
+        # print(f"Square: {x3 ** 2 + z3 ** 2}")
+        # print(f"ACos: {(L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))}")
         beta = acos(
             (L2 ** 2 + (x3 ** 2 + z3 ** 2) - L2 ** 2) / (2 * L2 * sqrt(x3 ** 2 + z3 ** 2))
         )
@@ -585,7 +622,7 @@ class SerialLink:
             q2 = pi / 2 - (atan2(z3, x3) - beta)
 
         q4 = (localGamma - pi / 2 + q2 + q3) * -1
-        q5 = phi - q1
+        q5 = phi + q1
         q = np.array([q1, q2, q3, q4, q5])
 
         # check which ee is requested and flip angles accordingly
@@ -767,8 +804,8 @@ class SerialLink:
         self.AEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         self.DEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         # x y z position
-        self.AEE_POSE[:, 3] = np.array([0.5, 0.5, 1, 1])
-        self.DEE_POSE[:, 3] = np.array([2.5, 0.5, 1, 1])
+        self.AEE_POSE[:, 3] = np.array([1.5, 0.5, 1, 1])
+        self.DEE_POSE[:, 3] = np.array([3.5, 0.5, 1, 1])
 
     def jacob0(self, q=None):
         """Calculates the jacobian in the world frame by finding it in
