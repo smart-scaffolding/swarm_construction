@@ -26,7 +26,7 @@ class FaceStar:
         self.armReach = armReach
         # first element: arm reach in same face situation;
         # second element: arm reach in different face situation
-        logger.debug("\nBuilding Dimensions: {}\n".format(self.building_dimensions))
+        # logger.debug("\nBuilding Dimensions: {}\n".format(self.building_dimensions))
         self.colors = np.array(
             [
                 [[(0, 0, 1, 0.3)] * self.building_dimensions[2]]

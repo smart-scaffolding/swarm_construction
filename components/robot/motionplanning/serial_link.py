@@ -429,8 +429,8 @@ class SerialLink:
             print(f"relativePos: {relativePos}")
 
         q1 = atan2(y, x)  # joint1 angle
-        if q1 < -179.8:
-            q1 = 0
+        # if q1 < -179.8:
+        #     q1 = 0
 
         new_z = z - L1  # take away the height of the first link (vertical)
         # new_x = x / cos(q1)
@@ -454,7 +454,7 @@ class SerialLink:
             q2 = pi / 2 - (atan2(z3, x3) - beta)
 
         q4 = (localGamma - pi / 2 + q2 + q3) * -1
-        q5 = phi - q1
+        q5 = phi + q1
         q = np.array([q1, q2, q3, q4, q5])
 
         # check which ee is requested and flip angles accordingly

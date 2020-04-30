@@ -67,7 +67,7 @@ class SerialLink:
         length property
         :return: int
         """
-        return 4
+        return 6
 
     def fkine(
         self, stance, unit="rad", apply_stance=False, num_links=4, standing_on_block=False
@@ -82,8 +82,11 @@ class SerialLink:
         :return: homogeneous transformation matrix.
         """
 
+        # print(f"LINKS: {len(self.links)}")
         # flipped=False
         actors = []
+        # print(f"STANCE: {stance}")
+        has_rotation = [1, 3, 4, 5, 7]
         if apply_stance is None:
             raise Exception("Must have data to update with")
         if type(stance) is np.ndarray:
@@ -98,32 +101,35 @@ class SerialLink:
             t = self.links[0].transform_matrix
         else:
             t = self.base
-
+            # t[2, 3] += 0.6359652
             angles = stance[timer, 0]
-
-            t = t * self.links[0].A(angles)
+            # actors.append(transforms.np2vtk(t))
+            # t = t * self.links[0].A(angles)
+            t *= self.links[0].transform_matrix
         if apply_stance:
             actors.append(transforms.np2vtk(t))
             # actor_list[0].SetUserMatrix(transforms.np2vtk(t))
             # actor_list[0].SetScale(self.scale)
-        for i in range(1, num_links, 1):
+        for i in range(1, 8, 1):
             # print("I: {}".format(i))
             # print("\tT: {}".format(t))
-            if stance is None:
+
+            if i not in has_rotation:
                 t = t * self.links[i].transform_matrix
             else:
-                angles = stance[timer, i]
+                angles = stance[timer, i - 1]
 
                 t = t * self.links[i].A(angles)
-            if apply_stance:
-                # if i == 5:
-                #     final_point = create_point_from_homogeneous_transform(t)
-                #     t *= create_homogeneous_transform_from_point((final_point[0]-20, final_point[1]-20, final_point))
-                actors.append(transforms.np2vtk(t))
+                if apply_stance:
+                    # if i == 5:
+                    #     final_point = create_point_from_homogeneous_transform(t)
+                    #     t *= create_homogeneous_transform_from_point((final_point[0]-20, final_point[1]-20, final_point))
+                    actors.append(transforms.np2vtk(t))
                 #
                 # actor_list[i].SetUserMatrix(transforms.np2vtk(t))
                 # actor_list[i].SetScale(self.scale)
-
+        t = t * self.links[7].transform_matrix
+        # actors.append(transforms.np2vtk(t))
         # t = t * self.tool
 
         if standing_on_block:
