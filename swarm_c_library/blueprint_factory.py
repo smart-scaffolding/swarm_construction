@@ -7,7 +7,7 @@ class BluePrintFactory:
     def __init__(self):
         self.possible_blueprints = defaultdict(BlueprintTemplate)
         self.initialize_blueprints()
-        
+
     def initialize_blueprints(self):
         self.possible_blueprints["Playground"] = PlaygroundBlueprint()
         self.possible_blueprints["Pyramid_10x10x4"] = Pyramid(
@@ -75,6 +75,7 @@ class BluePrintFactory:
         self.possible_blueprints[
             "RandomWorldConstrained_10x10x5"
         ] = RandomWorldConstrained(10, 10, 3, name="RandomWorldConstrained_10x10x5")
+
         # self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
         # self.possible_blueprints["Torus"] = Torus()
         # self.possible_blueprints["Castle"] = Castle()

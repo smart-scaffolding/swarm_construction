@@ -26,40 +26,96 @@ class Inchworm(SerialLink):
         # 6.429 inches B link
 
         # seg_lens = np.array([1.04775, 1.632966, 1.632966, 1.04775])*1.3
-        seg_lens = np.array([1.375, 2.143, 2.143, 1.375])
+        # seg_lens = np.array([1.375, 2.143, 2.143, 1.375])
+        seg_lens = np.array([0.489204, 0.558546, 1.63322, 1.63322, 0.558546, 0.489204]) * 1.3
 
         # Original model
         links = [
+            # Revolute(
+            #     d=seg_lens[0],
+            #     a=0,
+            #     alpha=pi / 2,
+            #     j=0,
+            #     theta=0,
+            #     offset=0,
+            #     qlim=(0, 0),
+            #     length=seg_lens[0],
+            # ),
+            # Revolute(
+            #     d=0,
+            #     a=seg_lens[1],
+            #     alpha=0,
+            #     j=0,
+            #     theta=0,
+            #     offset=0,
+            #     qlim=(0, 0),
+            #     length=seg_lens[1],
+            # ),
+            # Revolute(
+            #     d=0,
+            #     a=seg_lens[2],
+            #     alpha=0,
+            #     j=0,
+            #     theta=0,
+            #     offset=0,
+            #     qlim=(-180 * pi / 180, 180 * pi / 180),
+            #     length=seg_lens[2],
+            # ),
+            # Revolute(
+            #     d=0,
+            #     a=seg_lens[3],
+            #     alpha=0,
+            #     j=0,
+            #     theta=0,
+            #     offset=0,
+            #     qlim=(-180 * pi / 180, 180 * pi / 180),
+            #     length=seg_lens[3],
+            # ),
+            # 1 
             Revolute(
                 d=seg_lens[0],
                 a=0,
-                alpha=pi / 2,
+                alpha=0,
                 j=0,
                 theta=0,
                 offset=0,
                 qlim=(0, 0),
                 length=seg_lens[0],
             ),
+            # 1.5
             Revolute(
-                d=0,
-                a=seg_lens[1],
-                alpha=0,
+                d=seg_lens[1],
+                a=0,
+                alpha=pi / 2,
                 j=0,
                 theta=0,
                 offset=0,
                 qlim=(0, 0),
                 length=seg_lens[1],
             ),
+            # 2
+            Revolute(
+                d=0,
+                a=0,
+                alpha=0,
+                j=0,
+                theta=0,
+                offset=0,
+                qlim=(0, 0),
+                length=0,
+            ),
+            # 3
             Revolute(
                 d=0,
                 a=seg_lens[2],
                 alpha=0,
                 j=0,
-                theta=0,
+                theta=pi / 2,
                 offset=0,
-                qlim=(-180 * pi / 180, 180 * pi / 180),
+                qlim=(0, 0),
                 length=seg_lens[2],
             ),
+            # 4
             Revolute(
                 d=0,
                 a=seg_lens[3],
@@ -67,8 +123,42 @@ class Inchworm(SerialLink):
                 j=0,
                 theta=0,
                 offset=0,
-                qlim=(-180 * pi / 180, 180 * pi / 180),
+                qlim=(0, 0),
                 length=seg_lens[3],
+            ),
+
+            # 4.5
+            Revolute(
+                d=0,
+                a=seg_lens[4],
+                alpha=0,
+                j=0,
+                theta=pi / 2,
+                offset=0,
+                qlim=(0, 0),
+                length=seg_lens[4],
+            ),
+            # 5
+            Revolute(
+                d=0,
+                a=0,
+                alpha=pi / 2,
+                j=0,
+                theta=pi / 2,
+                offset=0,
+                qlim=(0, 0),
+                length=0,
+            ),
+            # 6
+            Revolute(
+                d=seg_lens[5],
+                a=0,
+                alpha=0,
+                j=0,
+                theta=0,
+                offset=0,
+                qlim=(0, 0),
+                length=seg_lens[5],
             ),
         ]
 

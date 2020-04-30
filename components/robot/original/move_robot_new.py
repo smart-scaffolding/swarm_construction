@@ -58,7 +58,10 @@ blueprint = np.array(
 
 blueprint = EmpireStateBuilding().data
 
-base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 1, 5.0], [0, 0, 0, 1]])
+
+# blueprint = Plane(12, 12, name="Plane_12x12x1").data
+
+base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 5, 1.0], [0, 0, 0, 1]])
 
 
 class AnimationUpdate:
@@ -98,7 +101,8 @@ def robot_trajectory_serial_demo(
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     ik_motion, path, directions, animation_update = follow_path(
-        robot, num_steps, offset=1, path=path
+        robot, num_steps, offset=1.20, path=path
+
     )
 
     robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
@@ -263,6 +267,8 @@ def move_to_point(
     forward_2 = []
     forward_3 = []
     forward_4 = []
+    forward_5 = []
+
     base = robot.AEE_POSE
 
     for index, point in enumerate(setPoints):
@@ -280,6 +286,8 @@ def move_to_point(
         forward_2.append(ik_angles[1])
         forward_3.append(ik_angles[2])
         forward_4.append(ik_angles[3])
+        forward_5.append(ik_angles[4])
+
         # print(f'each ik_angle {ik_angles}')
 
         if previous_angles is None:
@@ -297,14 +305,15 @@ def move_to_point(
     forward_2 = np.asmatrix(forward_2)
     forward_3 = np.asmatrix(forward_3)
     forward_4 = np.asmatrix(forward_4)
+    forward_5 = np.asmatrix(forward_5)
 
-    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4), axis=0)
+    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4, forward_5), axis=0)
     return ik_angles.T
 
 
 def map_angles_from_robot_to_simulation(angles):
     angles = angles * 180 / np.pi
-    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3]])
+    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3], angles[4]])
     # angles = np.array([0,90-27,-124,0])
     return angles
 
@@ -583,12 +592,14 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
 
             move_base = [int(x) for x in move_base]
             modified_blueprint = np.copy(blueprint)
+
             pad_x_before = 10
             pad_x_after = 10
             pad_y_before = 10
             pad_y_after = 10
             pad_z_before = 10
             pad_z_after = 10
+
             modified_blueprint = np.pad(
                 modified_blueprint,
                 (
@@ -604,7 +615,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             ] = 0
 
             planner = PathPlanner(
-                blueprint=modified_blueprint, arm_reach=(1, 1), search=PathPlanners.AStar,
+                blueprint=modified_blueprint, arm_reach=(2.38, 2.38), search=PathPlanners.AStar,
             )
 
             start = ee_up
@@ -739,7 +750,7 @@ def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, t
 def check_if_point_reachable(robot, base, goal):
     delta = goal - base
     dist = np.sqrt(delta[0] ** 2 + delta[1] ** 2 + delta[2] ** 2)
-    if dist > (robot.links[1].length + robot.links[2].length) * 0.95:
+    if dist > (robot.links[3].length + robot.links[4].length) * 0.95:
         raise ValueError(f"Robot cannot reach from base {base} to goal {goal}")
 
 
@@ -770,8 +781,20 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     # })
     # time.sleep(0.01)
 
-    trajectory[0] = trajectory[0] - 90
+    # base = np.matrix([[1, 0, 0, 0.5],
+    #                   [0, 1, 0, 0.5],
+    #                   [0, 0, 1, 1.],
+    #                   [0, 0, 0, 1]])
+    base = np.matrix(base)
+    # print(f"BASE: {base}")
+    # print(f"TYPE: {type(base)}")
+    trajectory[0] -= 90
+    trajectory[4] -= 90
     trajectory = trajectory * np.pi / 180
+    # print(f"TRAJ: {trajectory.shape}")
+    trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
+    # trajectory = np.array([[-1.57079633, 0., 1.08612036, -2.17062641, -0.48629028, 0., 0.]])
+    # print(f"LENGTH OF TRAJECTORY: {trajectory.shape}")
     # print(f'after converted to pi: {trajectory}')
     messagedata = AnimationUpdateMessage(
         robot_base=base, trajectory=trajectory, block_on_ee=holding_block
@@ -782,6 +805,7 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     z = zlib.compress(p)
     # print(f"{topic} {z}")
     socket.send_multipart([topic, z])
+    # time.sleep(1)
 
 
 if __name__ == "__main__":
