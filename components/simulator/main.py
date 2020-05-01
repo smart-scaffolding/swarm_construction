@@ -461,7 +461,7 @@ class vtkTimerCallback:
                                 rendered_id.SetUserMatrix(text_position)
                             actors[index].SetUserMatrix(transforms[index])
                             actors[index].SetScale(0.013)
-                            logger.info("Moving robot")
+                            # logger.info("Moving robot")
 
                     """
                     POINT

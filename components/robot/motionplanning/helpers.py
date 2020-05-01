@@ -147,6 +147,8 @@ def send_to_simulator(
     trajectory = trajectory * np.pi / 180
     # print(f"TRAJ: {trajectory.shape}")
     trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
+    # trajectory = np.array([[trajectory[0], trajectory[1], trajectory[2], trajectory[3], trajectory[4], 0, 0]])
+
     # if place_block:
     #     base[2, 3] = base[2, 3] + 1
     messagedata = AnimationUpdateMessage(
