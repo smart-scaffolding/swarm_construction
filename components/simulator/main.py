@@ -39,7 +39,7 @@ ROBOTS = 1
 
 BLUEPRINT = np.array([[[1] * 1] * 12, ] * 12)
 
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("Temple").data
 
 bx, by, bz = BLUEPRINT.shape
 # COLORS = [[["DarkGreen"] * bz] * by] * bx

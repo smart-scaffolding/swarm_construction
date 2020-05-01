@@ -81,7 +81,7 @@ class BluePrintFactory:
         # self.possible_blueprints["Church"] = Church()
         # self.possible_blueprints["TajMahal"] = TajMahal()
         self.possible_blueprints["EmpireStateBuilding"] = EmpireStateBuilding()
-        # self.possible_blueprints["Temple"] = Temple()
+        self.possible_blueprints["Temple"] = Temple()
         # self.possible_blueprints["Colosseum"] = Colosseum()
         # self.possible_blueprints["StarTrek"] = StarTrek()
         # self.possible_blueprints["MQP_Logo"] = MQPLogo()

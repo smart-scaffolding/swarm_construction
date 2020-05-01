@@ -212,7 +212,7 @@ class Temple(BlueprintTemplate):
     # 2529 blocks
     # (20, 20, 28)
     def __init__(self, name="Temple", pad=0):
-        data = np.load("../blueprints/temple.npy")
+        data = np.load("../../blueprints/temple.npy")
         data = np.swapaxes(data, 1, 2)
         data = np.flip(data, 1)
         data = pad_blueprint(data, pad, x=5, y=2)

@@ -5,7 +5,7 @@ import numpy as np
 import random
 
 class VtkPipeline:
-    def __init__(self, background=(0.15, 0.15, 0.15), total_time_steps=None, timer_rate=60, gif_file=None):
+    def __init__(self, background=(1, 1, 1), total_time_steps=None, timer_rate=60, gif_file=None):
         self.ren = vtk.vtkRenderer()
         self.ren.SetBackground(background[0], background[1], background[2])
         self.ren_win = vtk.vtkRenderWindow()

@@ -64,7 +64,7 @@ def plot_building_alg_times(fig, files, experiment_name):
 
     fig.update_layout(
         title=f"Time Required to Build Structure",
-        template="plotly_dark",
+        # template="plotly_dark",
         xaxis_title="Number of robots",
         yaxis_title="Number of timesteps",
         annotations=[
@@ -84,6 +84,8 @@ def plot_building_alg_times(fig, files, experiment_name):
         yaxis=dict(
             range=[0, 65000],  # sets the range of xaxis
         ),
+        # paper_bgcolor='rgba(0,0,0,0)',
+        # plot_bgcolor='rgba(0,0,0,0)'
     )
     fig.update_xaxes(tick0=0, dtick=1.0)
 
