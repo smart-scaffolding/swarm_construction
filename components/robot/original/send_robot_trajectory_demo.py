@@ -124,12 +124,12 @@ path = [
 
 robot = RobotMain()
 robot.initialize_communications()
-time.sleep(2)
+time.sleep(4)
 
 blocks = [
-    block_id_3, block_id_2, block_id
+    block_id, block_id_2, block_id_3
 ]
-
+# blocks.reverse()
 for block in blocks:
     robot.simulator_communicator.send_communication(
         topic=block,

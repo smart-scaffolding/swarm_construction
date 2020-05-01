@@ -221,7 +221,7 @@ class vtkTimerCallback:
         self.previous_path = []
         self.robot_texts = defaultdict(lambda: None)
         self.last_block_showing = None
-        self.time_till_next_block = 100
+        self.time_till_next_block = 200
         self.last_block_counter = self.time_till_next_block
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
@@ -464,9 +464,10 @@ class vtkTimerCallback:
             if self.removed_starting_block:
                 self.last_block_counter += 1
                 if self.last_block_counter >= self.time_till_next_block:
-                    block = self.blocks_at_starting_location[-1]
+                    block = self.blocks_at_starting_location[0]
                     transform, actor, showing = self.blocks[block]
                     if not showing:
+                        print(f"Showing block: {block}")
                         actor.SetVisibility(True)
                         self.blocks[block] = (transform, actor, True)
                     self.removed_starting_block = False
