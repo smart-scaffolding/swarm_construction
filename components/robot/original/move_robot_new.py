@@ -271,7 +271,7 @@ def move_to_point(
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
         ik_angles = robot.ikin(
-            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=True
+            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=False
         )
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 

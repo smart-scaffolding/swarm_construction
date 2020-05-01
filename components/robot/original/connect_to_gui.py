@@ -92,21 +92,25 @@ def get_command_line_input(arguments, index):
 
 def get_path(case):
     if case == "single_step":
-        return [Point(3, 0, 0, "top", None)]
+        return [Point(4, 0, 0, "top", None)]
     if case == "single_step_block":
-        return [Point(3, 0, 1, "top", None)]
+        return [Point(4, 0, 1, "top", None)]
     if case == "two_step":
-        return [Point(3, 0, 0, "top", None), Point(1, 0, 0, "top", None)]
+        return [Point(4, 0, 0, "top", None), Point(2, 0, 0, "top", None)]
     if case == "two_step_onto_block":
-        return [Point(3, 0, 1, "top", None), Point(1, 0, 0, "top", None)]
+        return [Point(4, 0, 1, "top", None), Point(2, 0, 0, "top", None)]
     if case == "full_playground_inch":
         return [
-            Point(3, 0, 0, "top", None),
-            Point(1, 0, 0, "top", None),
             Point(4, 0, 0, "top", None),
             Point(2, 0, 0, "top", None),
             Point(5, 0, 0, "top", None),
             Point(3, 0, 0, "top", None),
+        ]
+    if case == "move_block":
+        return [
+            Point(4, 0, 1, "top", None), 
+            Point(3, 0, 0, "top", None),
+            Point(5, 0, 1, "top", None),
         ]
     if case == "stairs":
         return [
@@ -116,6 +120,42 @@ def get_path(case):
             Point(3, 0, 1, "top", None),
             Point(5, 0, 3, "top", None),
             Point(4, 0, 2, "top", None),
+        ]
+    if case == "final_demo":
+        block_id = b"BLOCK_1"
+        block_id_2 = b"BLOCK_2"
+        block_id_3 = b"BLOCK_3"
+        return [
+            Point(0, 0, 1, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(4, 0, 1, "top", block_id),
+            Point(3, 0, 0, "top", None),
+            Point(5, 0, 1, "top", block_id),
+            Point(4, 0, 0, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(3, 0, 0, "top", None),
+            Point(0, 0, 1, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(4, 0, 1, "top", block_id_2),
+            Point(3, 0, 0, "top", None),
+            Point(5, 0, 2, "top", block_id_2),
+            Point(4, 0, 0, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(3, 0, 0, "top", None),
+            Point(0, 0, 1, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(4, 0, 1, "top", block_id_3),
+            Point(3, 0, 0, "top", None),
+            Point(5, 0, 2, "top", None),
+            Point(4, 0, 1, "top", None),
+            Point(5, 1, 3, "top", None),
+            Point(5, 0, 2, "top", None),
+            Point(4, 2, 3, "top", None),
+            Point(5, 1, 3, "top", None),
+            Point(3, 1, 1, "top", None),
+            Point(4, 1, 2, "top", None),
+            Point(2, 0, 0, "top", None),
+            Point(0, 0, 0, "top", None),
         ]
     else:
         return [Point(3, 0, 0, "top", None)]
