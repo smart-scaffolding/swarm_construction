@@ -52,7 +52,15 @@ def get_building_alg_times(files, fig, name):
 
     fig.add_trace(
         go.Scatter(x=number_of_robots, y=building_alg_times,
-                   mode="lines", name=name)
+                   mode="lines+markers+text",
+                   name=name,
+                   line=dict(width=10),
+                   marker=dict(size=18,
+                               line=dict(
+                                   width=2,
+                               )
+                               ),
+                   )
     )
     return building_alg_times
 
@@ -63,7 +71,7 @@ def plot_building_alg_times(fig, files, experiment_name):
         get_building_alg_times(files[graphname], fig, graphname)
 
     fig.update_layout(
-        title=f"Time Required to Build Structure",
+        title=f"Time to Build Pyramid (316 Blocks)",
         # template="plotly_dark",
         xaxis_title="Number of robots",
         yaxis_title="Number of timesteps",
@@ -75,17 +83,30 @@ def plot_building_alg_times(fig, files, experiment_name):
                 text=experiment_name,
                 xref="paper",
                 yref="paper",
+                # titlefont=dict(size=25)
+                font=dict(
+                    family="Helvetica, monospace",
+                    size=16,
+                ),
             )
         ],
-        showlegend=True,
+        showlegend=False,
         xaxis=dict(
             range=[1, 4],  # sets the range of xaxis
+            titlefont=dict(size=32),
+            tickfont=dict(size=22)
         ),
         yaxis=dict(
             range=[0, 65000],  # sets the range of xaxis
+            titlefont=dict(size=32),
+            tickfont=dict(size=22)
         ),
+        titlefont=dict(size=35, family="Helvetica, monospace",),
         # paper_bgcolor='rgba(0,0,0,0)',
-        # plot_bgcolor='rgba(0,0,0,0)'
+        # plot_bgcolor='rgba(0,0,0,0)',
+        width=1200,
+
+
     )
     fig.update_xaxes(tick0=0, dtick=1.0)
 
@@ -94,5 +115,6 @@ def plot_building_alg_times(fig, files, experiment_name):
 
 
 fig = go.Figure()
-plot_building_alg_times(fig, files, experiment_name="")
+plot_building_alg_times(
+    fig, files, experiment_name="")
 fig.show()
