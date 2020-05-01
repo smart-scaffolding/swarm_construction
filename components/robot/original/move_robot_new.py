@@ -17,6 +17,8 @@ from components.robot.original.common import (
 from components.robot.original.quintic_trajectory_planner import *
 from swarm_c_library.defined_blueprints import *
 
+from itertools import cycle
+
 accuracy = 1e-7
 threshold = 1
 use_face_star = False
@@ -104,7 +106,7 @@ def robot_trajectory_serial_demo(
 
     robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
 
-    flip_angles = True
+    flip_angles = False
     first_serial_message = True
 
     for index, angle in enumerate(ik_motion):
@@ -119,7 +121,7 @@ def robot_trajectory_serial_demo(
             print("\n SECOND STEP REACHED")
         if index % (num_steps * 3) == 0:
             print("\n THIRD STEP REACHED")
-            flip_angles = True if not flip_angles else False
+            # flip_angles = True if not flip_angles else False
             if serial and use_grippers:
                 if first_serial_message:
                     if flip_angles:
@@ -215,10 +217,10 @@ def robot_trajectory_serial_demo(
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
             continue
 
-        if flip_angles:
-            temp = angle[1]
-            angle[1] = 180 / 2 + angle[3]
-            angle[3] = temp - 180 / 2
+        # if flip_angles:
+        #     temp = angle[1]
+        #     angle[1] = 180 / 2 + angle[3]
+        #     angle[3] = temp - 180 / 2
 
         # print(flip_angles)
         if serial:
@@ -357,10 +359,15 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
     previous_point = None
     back_foot_pos = None
     # previous_direction = "top"
+    # current_ee = "A"
     for index, item in enumerate(path):
-
+        # current_ee = "D" if current_ee == "A" else "A"
         direction = item.direction
         holding_block = item.holding_block
+        ee_to_use = item.ee_to_use
+        # if ee_to_use != current_ee:
+        #     current_ee = "D" if current_ee == "A" else "A"
+        #     continue
         if index == 0:
             global_direction.append((0, "top"))
             previous_direction = "top"
@@ -496,38 +503,41 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             )
 
         else:
-            ee_pos = robot.end_effector_position()
+            # ee_pos = np.copy(robot.DEE_POSE[:3, 3])
+            # ee_pos = robot.end_effector_position()
             initial_angles = previous_angles_3[-1].flatten().tolist()[0]
             #
-            ee_pos = round_end_effector_position(
-                ee_pos.tolist()[0], direction, previous_point
-            )
-            # ee_pos = np.copy(previous_point)
+            # ee_pos = round_end_effector_position(
+            #     ee_pos.tolist()[0], direction, previous_point
+            # )
+            ee_pos = np.copy(previous_point)
+            ee_up = np.copy(previous_point)
+            # if ee_to_use == "D":
+            #     # if (index) % 2 == 0:
 
-            if (index) % 2 == 0:
+            #     # new_base = flip_base(ee_pos, previous_direction, 0)
+            #     new_base = robot.base
+            #     # temp = initial_angles[1]
+            #     # initial_angles[1] = 180 / 2 + initial_angles[3]
+            #     # initial_angles[3] = temp - 180 / 2
+            #     baseID = "A"
 
-                new_base = flip_base(ee_pos, previous_direction, 0)
+            # else:
+            #     new_base = flip_base(ee_pos, previous_direction, 180)
 
-                temp = initial_angles[1]
-                initial_angles[1] = 180 / 2 + initial_angles[3]
-                initial_angles[3] = temp - 180 / 2
-                baseID = "A"
+            #     temp = initial_angles[1]
+            #     initial_angles[1] = 180 / 2 + initial_angles[3]
+            #     initial_angles[3] = temp - 180 / 2
+            #     baseID = "D"
 
-            else:
-                new_base = flip_base(ee_pos, previous_direction, 180)
-
-                temp = initial_angles[1]
-                initial_angles[1] = 180 / 2 + initial_angles[3]
-                initial_angles[3] = temp - 180 / 2
-                baseID = "D"
-
-            robot.base = new_base
-            robot.update_angles(initial_angles, unit="deg")
+            # robot.base = new_base
+            # robot.update_angles(initial_angles, unit="deg")
 
             print("Previous Point: {}".format(previous_point))
-            ee_pos = back_foot_pos
+            # ee_pos = back_foot_pos
 
-            ee_up = np.copy(ee_pos)
+            # ee_up = np.copy(ee_pos)
+            # ee_up = previous_point
             print(
                 "Going to point: {}\t EE Pos: {}\tRounded Pos: {}".format(
                     point, ee_pos, ee_up
@@ -541,12 +551,12 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 def flatten(l):
                     return [item for sublist in l for item in sublist]
 
-                base_up = create_point_from_homogeneous_transform(
-                    update_animation[-1].robot_base
-                ).tolist()
-                base_up = flatten(base_up)
+                # base_up = create_point_from_homogeneous_transform(
+                #     update_animation[-1].robot_base
+                # ).tolist()
+                # base_up = flatten(base_up)
                 ee_up = add_offset(
-                    base_up,
+                    ee_up,
                     previous_direction,
                     offset,
                     path[index - 2].direction,
@@ -613,16 +623,18 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 blueprint=modified_blueprint, arm_reach=(2.38, 2.38), search=PathPlanners.AStar,
             )
 
-            start = ee_up
+            start = np.copy(ee_up)
             start[0] = int(round(start[0] - 0.5 + pad_x_before))
             start[1] = int(round(start[1] - 0.5 + pad_y_before))
             start[2] = int(round(start[2] - offset))
 
-            goal = stop_above
+            goal = np.copy(stop_above)
             goal[0] = int(round(goal[0] - 0.5 + pad_x_before))
             goal[1] = int(round(goal[1] - 0.5 + pad_y_before))
             goal[2] = int(round(goal[2] - offset))
-            new_points = list(planner.get_path(start=tuple(start), goal=tuple(goal)))
+            print(f"TYPE: {type(start[0])}")
+            print(f"START: {tuple(start)}, GOAL: {tuple(goal)}")
+            new_points = list(planner.get_path(start=tuple(start.astype(int)), goal=tuple(goal.astype(int))))
             new_points.pop(0)
             previous_angles_2 = previous_angles_1
             print(f"NEW POINTS: {new_points}")

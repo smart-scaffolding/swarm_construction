@@ -5,7 +5,7 @@ from components.robot.main import RobotMain
 import time
 from components.robot.communication.messages import BlockLocationMessage
 
-Point = namedtuple("Point", "x y z direction holding_block")
+Point = namedtuple("Point", "x y z direction holding_block ee_to_use")
 
 ##############################################################################
 # Serial
@@ -62,14 +62,37 @@ not wish to run and uncomment the single path you do wish to run.
 """
 
 # D link moves forward one step
-path = [
-    Point(1, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
-]
+# path = [
+#     Point(2, 0, 0, "top", None, "D"),
+#     Point(0, 0, 0, "top", None, "A"),
+#     Point(3, 0, 0, "top", None, "D"),
+#     Point(5, 0, 0, "top", None, "A"),
+#     Point(2, 0, 0, "top", None, "D"),
+#     Point(0, 0, 0, "top", None, "A"),
+# ]
+
+# path = [
+#     Point(4, 0, 0, "top", None, "D"),
+#     Point(3, 0, 0, "top", None, "D"),
+#     # Point(4, 0, 0, "top", None, "D"),
+#     # Point(3, 0, 0, "top", None, "D"),
+#     # Point(4, 0, 0, "top", None, "D"),
+#     # Point(3, 0, 0, "top", None, "D"),
+# ]
+
+# path = []
+# for _ in range(10):
+#     path.append(Point(4, 0, 0, "top", None, "D"))
+#     path.append(Point(3, 0, 0, "top", None, "D"))
+
+path = []
+path.append(Point(4, 0, 1, "top", None, "D"))
+path.append(Point(3, 0, 1, "top", "BLOCK_1", "D"))
+
+for _ in range(10):
+    path.append(Point(4, 0, 1, "top", "BLOCK_1", "D"))
+    path.append(Point(3, 0, 1, "top", "BLOCK_1", "D"))
+path.append(Point(4, 0, 1, "top", "BLOCK_1", "D"))
 
 # path = [
 #     Point(2, 2, 0, "top", None),
@@ -85,64 +108,64 @@ path = [
 #     Point(8, 8, 0, "top", None),
 # ]
 
-block_id = b"BLOCK_1"
-block_id_2 = b"BLOCK_2"
-block_id_3 = b"BLOCK_3"
-path = [
-    Point(0, 0, 1, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 1, "top", block_id),
-    Point(4, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(0, 0, 1, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id_2),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 2, "top", block_id_2),
-    Point(4, 0, 0, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(3, 0, 0, "top", None),
-    Point(0, 0, 1, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(4, 0, 1, "top", block_id_3),
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 2, "top", None),
-    Point(4, 0, 1, "top", None),
-    Point(5, 1, 3, "top", None),
-    Point(5, 0, 2, "top", None),
-    Point(4, 2, 3, "top", None),
-    Point(5, 1, 3, "top", None),
-    Point(3, 1, 1, "top", None),
-    Point(4, 1, 2, "top", None),
-    Point(2, 0, 0, "top", None),
-    Point(0, 0, 0, "top", None),
-]
+# block_id = b"BLOCK_1"
+# block_id_2 = b"BLOCK_2"
+# block_id_3 = b"BLOCK_3"
+# path = [
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 1, "top", block_id),
+#     Point(4, 0, 0, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(3, 0, 0, "top", None),
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id_2),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 2, "top", block_id_2),
+#     Point(4, 0, 0, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(3, 0, 0, "top", None),
+#     Point(0, 0, 1, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(4, 0, 1, "top", block_id_3),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 2, "top", None),
+#     Point(4, 0, 1, "top", None),
+#     Point(5, 1, 3, "top", None),
+#     Point(5, 0, 2, "top", None),
+#     Point(4, 2, 3, "top", None),
+#     Point(5, 1, 3, "top", None),
+#     Point(3, 1, 1, "top", None),
+#     Point(4, 1, 2, "top", None),
+#     Point(2, 0, 0, "top", None),
+#     Point(0, 0, 0, "top", None),
+# ]
 
 
-robot = RobotMain()
-robot.initialize_communications()
-time.sleep(2)
+# robot = RobotMain()
+# robot.initialize_communications()
+# time.sleep(2)
 
-blocks = [
-    block_id_3, block_id_2, block_id
-]
+# blocks = [
+#     block_id_3, block_id_2, block_id
+# ]
 
-for block in blocks:
-    robot.simulator_communicator.send_communication(
-        topic=block,
-        message=BlockLocationMessage(
-            block_id=block,
-            location=(
-                0 + 0.5,
-                0 + 0.5,
-                1 + 0.6,
-            ),
-        ),
-    )
-    print(f"Just Sent block message: {block}")
+# for block in blocks:
+#     robot.simulator_communicator.send_communication(
+#         topic=block,
+#         message=BlockLocationMessage(
+#             block_id=block,
+#             location=(
+#                 0 + 0.5,
+#                 0 + 0.5,
+#                 1 + 0.6,
+#             ),
+#         ),
+#     )
+#     print(f"Just Sent block message: {block}")
 
 
 # path = [
