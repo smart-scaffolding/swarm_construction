@@ -804,8 +804,15 @@ class SerialLink:
         self.AEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         self.DEE_POSE = np.matmul(np.array(np.eye(4)), self.getRz(np.pi / 2))
         # x y z position
-        self.AEE_POSE[:, 3] = np.array([1.5, 0.5, 1, 1])
-        self.DEE_POSE[:, 3] = np.array([3.5, 0.5, 1, 1])
+        # self.AEE_POSE[:, 3] = np.array([1.5, 0.5, 1, 1])
+        # self.DEE_POSE[:, 3] = np.array([3.5, 0.5, 1, 1])
+        self.AEE_POSE[0, 3] = self.base[0,3]
+        self.AEE_POSE[1, 3] = self.base[1,3]
+        self.AEE_POSE[2, 3] = self.base[2,3]
+
+        self.DEE_POSE[0, 3] = self.base[0,3]+2
+        self.DEE_POSE[1, 3] = self.base[1,3]
+        self.DEE_POSE[2, 3] = self.base[2,3]
 
     def jacob0(self, q=None):
         """Calculates the jacobian in the world frame by finding it in

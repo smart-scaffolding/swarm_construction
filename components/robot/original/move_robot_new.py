@@ -29,7 +29,8 @@ TOPIC = b"ROBOT_1"
 
 JOINT_ANGLE_PKT_SIZE = 8
 
-robot_ee_starting_point = (3.5, 0.5, 1)
+# robot_ee_starting_point = (3.5, 0.5, 1)
+robot_ee_starting_point = (2.5, 0.5, 1)
 
 blueprint = np.array(
     [
@@ -59,7 +60,8 @@ blueprint = np.array(
 # blueprint = Plane(12, 12, name="Plane_12x12x1").data
 
 
-base = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+ee_pos = [2.5, 0.5, 1]
 
 
 class AnimationUpdate:
@@ -93,16 +95,18 @@ def robot_trajectory_serial_demo(
     path,
     blueprint=blueprint,
     base=base,
+    ee_pos=ee_pos,
     velocity_offset=0,
     use_grippers=False,
+    topic=TOPIC,
 ):
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     ik_motion, path, directions, animation_update = follow_path(
-        robot, num_steps, offset=1.2, path=path
+        robot, base, ee_pos, num_steps, offset=1.2, path=path, topic=topic
     )
 
-    robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
+    # robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)
 
     flip_angles = True
     first_serial_message = True
@@ -242,6 +246,7 @@ def move_to_point(
     previous_angles=None,
     accuracy=accuracy,
     holding_block=False,
+    topic=TOPIC,
 ):
 
     if baseID == "A":
@@ -295,7 +300,7 @@ def move_to_point(
         # print(f'angles: {ik_angles}')
         if SIMULATE:
             send_to_simulator(
-                base=base, trajectory=ik_angles, holding_block=holding_block
+                base=base, trajectory=ik_angles, holding_block=holding_block, topic=topic
             )
 
     forward_1 = np.asmatrix(forward_1)
@@ -330,7 +335,7 @@ def temp_direction_to_gamma_convertion(direction):
         return 0
 
 
-def follow_path(robot, num_steps, offset, path, secondPosition=None):
+def follow_path(robot, base, ee_pos, num_steps, offset, path, secondPosition=None, topic=TOPIC):
 
     global_path = []
     global_path.append((num_steps, path))
@@ -403,7 +408,8 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
         )
 
         if index == 0:
-            ee_up = list(robot_ee_starting_point)
+            # ee_up = list(robot_ee_starting_point)
+            ee_up = list(ee_pos)
 
             # TODO: FIX TO ACCEPT ANY ORIENTATION, NOT JUST +Z
             previous_angles_1, previous_angles_2, previous_angles_3 = None, None, None
@@ -417,6 +423,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 num_steps,
                 baseID="A",
                 holding_block=holding_block,
+                topic=topic,
             )
             stop_above = np.copy(point)
             stop_above = add_offset(stop_above, direction, offset)
@@ -430,12 +437,18 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             move_base = [int(x) for x in move_base]
             modified_blueprint = np.copy(blueprint)
 
-            pad_x_before = 3
-            pad_x_after = 3
-            pad_y_before = 3
-            pad_y_after = 3
-            pad_z_before = 3
-            pad_z_after = 3
+            # pad_x_before = 3
+            # pad_x_after = 3
+            # pad_y_before = 3
+            # pad_y_after = 3
+            # pad_z_before = 3
+            # pad_z_after = 3
+            pad_x_before = 5
+            pad_x_after = 5
+            pad_y_before = 5
+            pad_y_after = 5
+            pad_z_before = 0
+            pad_z_after = 5
             modified_blueprint = np.pad(
                 modified_blueprint,
                 (
@@ -480,6 +493,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                     baseID="A",
                     previous_angles=previous_angles_2[-1].flatten().tolist()[0],
                     holding_block=holding_block,
+                    topic=topic,
                 )
 
             # previous_angles_2 = move_to_point(direction, stop_above, robot, num_steps, baseID='A',
@@ -493,6 +507,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 baseID="A",
                 previous_angles=previous_angles_2[-1].flatten().tolist()[0],
                 holding_block=holding_block,
+                topic=topic,
             )
 
         else:
@@ -580,6 +595,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 baseID=baseID,
                 previous_angles=initial_angles,
                 holding_block=holding_block,
+                topic=topic,
             )
 
             if baseID == "A":
@@ -640,6 +656,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                     baseID=baseID,
                     previous_angles=previous_angles_2[-1].flatten().tolist()[0],
                     holding_block=holding_block,
+                    topic=topic,
                 )
 
             previous_angles_3 = move_to_point(
@@ -650,6 +667,7 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 baseID=baseID,
                 previous_angles=previous_angles_2[-1].flatten().tolist()[0],
                 holding_block=holding_block,
+                topic=topic,
             )
 
         save_path = update_path(

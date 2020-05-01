@@ -5,6 +5,8 @@ from components.robot.main import RobotMain
 import time
 from components.robot.communication.messages import BlockLocationMessage
 
+import numpy as np
+
 Point = namedtuple("Point", "x y z direction holding_block")
 
 ##############################################################################
@@ -122,27 +124,27 @@ path = [
 ]
 
 
-robot = RobotMain()
-robot.initialize_communications()
-time.sleep(2)
+# robot = RobotMain()
+# robot.initialize_communications()
+# time.sleep(2)
 
-blocks = [
-    block_id_3, block_id_2, block_id
-]
-
-for block in blocks:
-    robot.simulator_communicator.send_communication(
-        topic=block,
-        message=BlockLocationMessage(
-            block_id=block,
-            location=(
-                0 + 0.5,
-                0 + 0.5,
-                1 + 0.6,
-            ),
-        ),
-    )
-    print(f"Just Sent block message: {block}")
+# blocks = [
+#     block_id_3, block_id_2, block_id
+# ]
+#
+# for block in blocks:
+#     robot.simulator_communicator.send_communication(
+#         topic=block,
+#         message=BlockLocationMessage(
+#             block_id=block,
+#             location=(
+#                 0 + 0.5,
+#                 0 + 0.5,
+#                 1 + 0.6,
+#             ),
+#         ),
+#     )
+#     print(f"Just Sent block message: {block}")
 
 
 # path = [
@@ -400,12 +402,152 @@ if __name__ == "__main__":
     #     reading.start()
     #
     # time.sleep(0.5)
+    # robot_trajectory_serial_demo(
+    #     num_steps=NUM_VIA_POINTS,
+    #     baud=BAUD,
+    #     serial=SERIAL,
+    #     timeout=TIMEOUT,
+    #     port=PORT,
+    #     path=path,
+    #     use_grippers=USE_GRIPPERS,
+    # )
+
+    # path1 = [
+    #     Point(2, 2, 0, "top", None),
+    # ]
+    # base1 = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 1.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    # ee_pos1 = [2.5,2.5,1]
+    #
+    # robot_trajectory_serial_demo(
+    #     num_steps=NUM_VIA_POINTS,
+    #     baud=BAUD,
+    #     serial=SERIAL,
+    #     timeout=TIMEOUT,
+    #     port=PORT,
+    #     path=path1,
+    #     base=base1,
+    #     ee_pos=ee_pos1,
+    #     use_grippers=USE_GRIPPERS,
+    #     topic=b"ROBOT_1",
+    # )
+
+    path2 = [
+        Point(2, 7, 0, "top", None),
+    ]
+    base2 = np.matrix([[1, 0, 0, 2.5], [0, 1, 0, 5.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    ee_pos2 = [2.5,7.5,1]
+
     robot_trajectory_serial_demo(
         num_steps=NUM_VIA_POINTS,
         baud=BAUD,
         serial=SERIAL,
         timeout=TIMEOUT,
         port=PORT,
-        path=path,
+        path=path2,
+        base=base2,
+        ee_pos=ee_pos2,
         use_grippers=USE_GRIPPERS,
+        topic=b"ROBOT_2",
+    )
+
+    # path3 = [
+    #     Point(7, 2, 0, "top", None),
+    # ]
+    # base3 = np.matrix([[1, 0, 0, 7.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    # ee_pos3 = [7.5,2.5,1]
+    #
+    # robot_trajectory_serial_demo(
+    #     num_steps=NUM_VIA_POINTS,
+    #     baud=BAUD,
+    #     serial=SERIAL,
+    #     timeout=TIMEOUT,
+    #     port=PORT,
+    #     path=path3,
+    #     base=base3,
+    #     ee_pos=ee_pos3,
+    #     use_grippers=USE_GRIPPERS,
+    #     topic=b"ROBOT_3",
+    # )
+
+    path4 = [
+        Point(7, 7, 0, "top", None),
+    ]
+    base4 = np.matrix([[1, 0, 0, 5.5], [0, 1, 0, 6.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    ee_pos4 = [7.5,7.5,1]
+
+    robot_trajectory_serial_demo(
+        num_steps=NUM_VIA_POINTS,
+        baud=BAUD,
+        serial=SERIAL,
+        timeout=TIMEOUT,
+        port=PORT,
+        path=path4,
+        base=base4,
+        ee_pos=ee_pos4,
+        use_grippers=USE_GRIPPERS,
+        topic=b"ROBOT_4",
+    )
+
+    # path1 = [
+    #     Point(0, 0, 1, "top", None),
+    # ]
+    # base1 = np.matrix([[1, 0, 0, 1.5], [0, 1, 0, 1.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    # ee_pos1 = [2.5,2.5,1]
+    #
+    # robot_trajectory_serial_demo(
+    #     num_steps=NUM_VIA_POINTS,
+    #     baud=BAUD,
+    #     serial=SERIAL,
+    #     timeout=TIMEOUT,
+    #     port=PORT,
+    #     path=path1,
+    #     base=base1,
+    #     ee_pos=ee_pos1,
+    #     use_grippers=USE_GRIPPERS,
+    #     topic=b"ROBOT_1",
+    # )
+
+    path1 = [
+        Point(3, 0, 1, "top", block_id),
+        Point(2, 0, 0, "top", None),
+        Point(5, 0, 1, "top", block_id),
+        Point(3, 0, 0, "top", None),
+        Point(4, 0, 0, "top", None),
+    ]
+    base1 = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    ee_pos1 = [2.5,0.5,1]
+
+    robot_trajectory_serial_demo(
+        num_steps=NUM_VIA_POINTS,
+        baud=BAUD,
+        serial=SERIAL,
+        timeout=TIMEOUT,
+        port=PORT,
+        path=path1,
+        base=base1,
+        ee_pos=ee_pos1,
+        use_grippers=USE_GRIPPERS,
+        topic=b"ROBOT_1",
+    )
+
+
+    path3 = [
+        Point(5, 0, 1, "top", None),
+        Point(8, 0, 0, "top", None),
+        Point(8, 2, 1, "top", block_id),
+    ]
+    base3 = np.matrix([[1, 0, 0, 7.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+    ee_pos3 = [7.5,2.5,1]
+
+    robot_trajectory_serial_demo(
+        num_steps=NUM_VIA_POINTS,
+        baud=BAUD,
+        serial=SERIAL,
+        timeout=TIMEOUT,
+        port=PORT,
+        path=path3,
+        base=base3,
+        ee_pos=ee_pos3,
+        use_grippers=USE_GRIPPERS,
+        topic=b"ROBOT_3",
     )
