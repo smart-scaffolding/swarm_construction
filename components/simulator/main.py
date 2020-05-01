@@ -245,7 +245,8 @@ class vtkTimerCallback:
         )
         for link in robot_actor:
             self.pipeline.add_actor(link)
-
+            # self.pipeline.ren.AddActor(link)
+            logger.info("Added link to pipeline")
         if rendered_id:
             self.pipeline.add_actor(rendered_id)
             self.robot_texts[robot] = rendered_id
@@ -253,6 +254,7 @@ class vtkTimerCallback:
         logger.info("Should be seeing new robot, as it was just added")
 
         self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
+
         self.pipeline.animate()
 
     def create_new_thread(self, queue, result_queue):

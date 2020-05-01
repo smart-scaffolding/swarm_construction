@@ -141,6 +141,7 @@ def send_to_simulator(
         },
     )
 
+    base = np.matrix(base)
     trajectory[0] -= 90
     trajectory[4] -= 90
     trajectory = trajectory * np.pi / 180
