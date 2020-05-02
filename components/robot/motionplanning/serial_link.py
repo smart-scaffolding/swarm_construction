@@ -407,10 +407,8 @@ class SerialLink:
         # L1 = 4.125  # L1 in inches
         # L2 = 6.43  # L2 in inches
         # blockWidth = 3
-        # L1 = self.links[0].length * 10
-        # L2 = self.links[1].length
-        L1 = self.links[0].length + self.links[1].length
-        L2 = self.links[3].length
+        L1 = self.links[1].length * 10
+        L2 = self.links[2].length
 
         relativePos, localGamma = self.handlePlaneChanges(
             goalPos=goalPos, gamma=gamma, baseID=baseID, placeBlock=placeBlock
