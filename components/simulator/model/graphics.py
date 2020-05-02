@@ -8,7 +8,8 @@ import vtk
 class VtkPipeline:
     def __init__(
         self,
-        background=(0.15, 0.15, 0.15),
+        # background=(0.15, 0.15, 0.15),
+        background=(1, 1, 1),
         total_time_steps=None,
         timer_rate=60,
         gif_file=None,

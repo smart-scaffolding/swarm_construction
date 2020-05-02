@@ -431,7 +431,8 @@ class vtkTimerCallback:
                                 else:
                                     text_for_robot = robot_id
                                 robot_text = vtk.vtkVectorText()
-                                robot_text.SetText(text_for_robot)
+                                # robot_text.SetText(text_for_robot)
+                                robot_text.SetText("")
                                 robot_text_mapper = vtk.vtkPolyDataMapper()
                                 robot_text_mapper.SetInputConnection(
                                     robot_text.GetOutputPort()
