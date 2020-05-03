@@ -57,7 +57,7 @@ blueprint = np.array(
     ]
 )
 
-# blueprint = Plane(12, 12, name="Plane_12x12x1").data
+blueprint = StairwayToHeaven().data
 
 
 base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
@@ -103,7 +103,7 @@ def robot_trajectory_serial_demo(
     robot = model.Inchworm(base=base, blueprint=blueprint)
 
     ik_motion, path, directions, animation_update = follow_path(
-        robot, base, ee_pos, num_steps, offset=1.2, path=path, topic=topic
+        robot, base, ee_pos, num_steps, offset=1.5, path=path, topic=topic
     )
 
     # robot = model.Inchworm(base=base, blueprint=blueprint, port=port, baud=baud)

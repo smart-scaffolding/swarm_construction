@@ -45,7 +45,7 @@ class BluePrintFactory:
         self.possible_blueprints[
             "RandomWorldConstrained_10x10x5"
         ] = RandomWorldConstrained(10, 10, 3, name="RandomWorldConstrained_10x10x5")
-        # self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
+        self.possible_blueprints["StairwayToHeaven"] = StairwayToHeaven()
 
     def get_blueprint(self, blueprint_label):
         return self.possible_blueprints[blueprint_label]

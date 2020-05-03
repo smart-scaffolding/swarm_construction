@@ -23,7 +23,7 @@ POINTS = False
 ROBOTS = 1
 DEBUG = False
 DEBUG_TOGGLED = False
-BLUEPRINT = BluePrintFactory().get_blueprint("Plane_10x10x1").data
+BLUEPRINT = BluePrintFactory().get_blueprint("StairwayToHeaven").data
 
 
 # BLUEPRINT = np.load("blueprint.npy")
@@ -294,56 +294,6 @@ class vtkTimerCallback:
 
         self.timer_count += 1
 
-        start = 200
-        if self.timer_count == start + 20:
-            print("Calling structure")
-            COLORS[:5, :5] = vtk_named_colors(["Blue"])
-
-            setup_structure_display(
-                blueprint=BLUEPRINT,
-                pipeline=self.pipeline,
-                color=COLORS,
-                block_file_location=block_file_location,
-            )
-            self.pipeline.animate()
-
-        if self.timer_count == start + 40:
-
-            print("Calling structure")
-            COLORS[:5, 5:] = vtk_named_colors(["Red"])
-
-            setup_structure_display(
-                blueprint=BLUEPRINT,
-                pipeline=self.pipeline,
-                color=COLORS,
-                block_file_location=block_file_location,
-            )
-            self.pipeline.animate()
-
-        if self.timer_count == start + 60:
-            print("Calling structure")
-            COLORS[5:, 5:] = vtk_named_colors(["White"])
-
-            setup_structure_display(
-                blueprint=BLUEPRINT,
-                pipeline=self.pipeline,
-                color=COLORS,
-                block_file_location=block_file_location,
-            )
-            self.pipeline.animate()
-
-        if self.timer_count == start + 80:
-
-            print("Calling structure")
-            COLORS[5:, :5] = vtk_named_colors(["Gray"])
-
-            setup_structure_display(
-                blueprint=BLUEPRINT,
-                pipeline=self.pipeline,
-                color=COLORS,
-                block_file_location=block_file_location,
-            )
-            self.pipeline.animate()
         while not self.new_actors.empty():
             topic, message, queue = self.new_actors.get()
             result_q = Queue()
@@ -498,8 +448,8 @@ class vtkTimerCallback:
                     location = np.array(message.message.location)
                     # print(message.message.location)
                     # print(message.message.location[0])
-                    if location[0] == 0.5 and location[1] == 0.5:
-                        self.blocks_at_starting_location.append(message.message.id)
+                    # if location[0] == 0.5 and location[1] == 0.5:
+                    self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
