@@ -140,7 +140,7 @@ for block in blocks:
             location=(
                 11 + 0.5,
                 9 + 0.5,
-                7 + 0.6,
+                8 + 0.6,
             ),
         ),
     )
@@ -248,10 +248,10 @@ path = [
     Point(8, 6, 6, "top", block_id),
     Point(7, 5, 4, "top", None),
     Point(6, 4, 4, "top", block_id),
-    # Point(4, 1, 1, "top", None),
-    # Point(2, 1, 0, "top", block_id),
-    # Point(1, 1, 0, "top", None),
-    # Point(0, 0, 0, "top", block_id),
+    Point(5, 3, 2, "top", None),
+    Point(4, 2, 2, "top", block_id),
+    Point(3, 1, 0, "top", None),
+    Point(1, 0, 1, "top", block_id),
 
 
 

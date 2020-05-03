@@ -436,12 +436,14 @@ class vtkTimerCallback:
         while not self.block_q.empty():
             topic, message = self.block_q.get()
             if isinstance(message.message, BlockLocationMessage):
+                logger.exception("GOT BLOCK, DOING SOMETHING")
                 if topic in self.blocks:
+                    logger.exception("BLOCK IS ALREADY KNOWN")
                     location, actor, showing = self.blocks[message.message.id]
                     actor.SetUserMatrix(
                         create_homogeneous_transform_from_point(message.message.location)
                     )
-
+                    actor.SetVisibility(True)
                     # actor.SetPosition(message.message.location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                 else:
@@ -449,7 +451,7 @@ class vtkTimerCallback:
                     # print(message.message.location)
                     # print(message.message.location[0])
                     # if location[0] == 0.5 and location[1] == 0.5:
-                    self.blocks_at_starting_location.append(message.message.id)
+                    # self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
@@ -463,10 +465,11 @@ class vtkTimerCallback:
 
                     actor.SetUserMatrix(transform)
                     actor.SetScale(0.013)
-                    actor.SetVisibility(False)
-                    self.blocks[message.message.id] = (transform, actor, False)
+                    actor.SetVisibility(True)
+                    self.blocks[message.message.id] = (transform, actor, True)
                     self.pipeline.add_actor(actor)
                     self.pipeline.animate()
+                    logger.exception("SHOWING BLOCK")
 
         if len(self.blocks_at_starting_location) > 0:
             if self.removed_starting_block:
