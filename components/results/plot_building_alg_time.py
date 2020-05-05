@@ -1,7 +1,8 @@
 import plotly.graph_objects as go
+import plotly.express as px
 import pandas as pd
 import numpy as np
-
+from scipy.optimize import curve_fit
 # files = {
 #     "Plane_10x10x1 (100 Blocks)": [
 #         "../simulator/results/plane/simulator_results_plane_1_robots.csv",
@@ -50,9 +51,28 @@ def get_building_alg_times(files, fig, name):
         value = float([x for x in data["Number of timesteps"].values()][0])
         building_alg_times.append(value)
 
+    trendline = curve_fit(lambda t, a, b: a*np.exp(
+        b*t),  np.array(number_of_robots),  np.array(building_alg_times))
+    x = np.linspace(1.0, float(len(files)), num=200)
+    y = 9.27294187e+04 * np.exp(-4.49696822e-01 * x)
+    print(trendline)
     fig.add_trace(
         go.Scatter(x=number_of_robots, y=building_alg_times,
-                   mode="lines+markers+text",
+                   mode="markers+text",
+                   name=name,
+                   line=dict(width=10),
+                   marker=dict(size=30,
+                               line=dict(
+                                   width=2,
+                               )
+                               ),
+                   #    trendline="lowess"
+                   ),
+
+    )
+    fig.add_trace(
+        go.Scatter(x=x, y=y,
+                   #    mode="lines+markers+text",
                    name=name,
                    line=dict(width=10),
                    marker=dict(size=18,
@@ -60,7 +80,9 @@ def get_building_alg_times(files, fig, name):
                                    width=2,
                                )
                                ),
-                   )
+                   #    trendline="lowess"
+                   ),
+
     )
     return building_alg_times
 
@@ -94,12 +116,12 @@ def plot_building_alg_times(fig, files, experiment_name):
         xaxis=dict(
             range=[1, 4],  # sets the range of xaxis
             titlefont=dict(size=32),
-            tickfont=dict(size=22)
+            tickfont=dict(size=40)
         ),
         yaxis=dict(
             range=[0, 65000],  # sets the range of xaxis
             titlefont=dict(size=32),
-            tickfont=dict(size=22)
+            tickfont=dict(size=40)
         ),
         titlefont=dict(size=35, family="Helvetica, monospace",),
         # paper_bgcolor='rgba(0,0,0,0)',
