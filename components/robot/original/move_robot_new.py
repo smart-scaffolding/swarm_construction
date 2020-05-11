@@ -213,7 +213,7 @@ def robot_trajectory_serial_demo(
                     )
                     time.sleep(2)
             print("\n\nIndex: {}  New Flipping Angle: {}".format(index, flip_angles))
-            continue
+            # continue
 
         if flip_angles:
             temp = angle[1]
@@ -221,16 +221,16 @@ def robot_trajectory_serial_demo(
             angle[3] = temp - 180 / 2
 
         # print(flip_angles)
-        if serial:
-            print("Sending angle to robot")
-            robot.send_to_robot(
-                angle,
-                index=index,
-                total_num_points=len(ik_motion),
-                velocity_offset=0,
-                delay=timeout,
-                flip_angles=flip_angles,
-            )
+        # if serial:
+        print("Sending angle to robot")
+        robot.send_to_robot(
+            angle,
+            index=index,
+            total_num_points=len(ik_motion),
+            velocity_offset=0,
+            delay=timeout,
+            flip_angles=flip_angles,
+        )
 
 
 def move_to_point(

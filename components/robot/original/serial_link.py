@@ -301,7 +301,7 @@ class SerialLink:
         targetAngles = self.map_angles_to_robot(
             angle, open_gripper, velocity_controller_term, flip_angles=flip_angles
         )
-        self.serial.write(targetAngles)
+        # self.serial.write(targetAngles)
         time.sleep(delay)
 
     def map_angles_to_robot(
@@ -315,12 +315,17 @@ class SerialLink:
         """
         if not flip_angles:
             print("NOPE")
+            # qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1], q[4]])
+
             qTemp = np.array([q[0], 90 - q[1], q[2] * -1, q[3] * -1, q[4]])
         else:
             print("FLIPPING ANGLES")
-            qTemp = np.array([q[0], q[3] * -1, q[2] * -1, 90 - q[1], q[4]])
+            offset = 180
+            if q[0] < 0:
+                offset *= -1
+            qTemp = np.array([q[0] - offset, q[3] * -1, q[2] * -1, 90 - q[1], q[4] - offset])
         # qTemp = qTemp * 180.0 / np.pi  # convert to degrees
-        print("Final Angles: {}".format(qTemp[1:]))
+        print("Final Angles: {}".format(qTemp))
 
         # gripper = "0002"
         # if open_gripper:

@@ -46,12 +46,23 @@ NUM_VIA_POINTS: The number of via points between each waypoint. Note that the to
 """
 
 TIMEOUT = 0.02  # seconds 0.03
-NUM_VIA_POINTS = 50  # 25
+NUM_VIA_POINTS = 5  # 25
 
 ##############################################################################
 # Path Selection
 ##############################################################################
-path = [(3, 0, 0, "top"), (1, 0, 0, "top")]
+path = [
+    # Point(3, 0, 0, "top", None),
+    # Point(2, 0, 0, "top", None),
+    # Point(4, 1, 2, "top", None),
+    # Point(3, 1, 1, "top", None),
+    # Point(5, 1, 3, "top", None),
+    # Point(4, 1, 2, "top", None)
+    Point(4, 0, 0, "top", None),
+    Point(2, 0, 0, "top", None),
+    Point(5, 0, 0, "top", None),
+    Point(3, 0, 0, "top", None),
+]
 
 ##############################################################################
 # Gripper Control
@@ -114,8 +125,8 @@ def get_path(case):
         ]
     if case == "stairs":
         return [
-            Point(3, 0, 1, "top", None),
-            Point(2, 0, 0, "top", None),
+            # Point(3, 0, 1, "top", None),
+            # Point(2, 0, 0, "top", None),
             Point(4, 0, 2, "top", None),
             Point(3, 0, 1, "top", None),
             Point(5, 0, 3, "top", None),
