@@ -32,14 +32,14 @@ files = {
     ]
 }
 
-files = {
-    "Pyramid_10x10x4 (316 Blocks)": [
-        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_1_robots.csv",
-        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_2_robots.csv",
-        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_3_robots.csv",
-        "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_4_robots.csv",
-    ]
-}
+# files = {
+#     "Pyramid_10x10x4 (316 Blocks)": [
+#         "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_1_robots.csv",
+#         "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_2_robots.csv",
+#         "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_3_robots.csv",
+#         "../simulator/results/pyramid/simulator_results_pyramid_10x10x4_4_robots.csv",
+#     ]
+# }
 
 
 def get_building_alg_times(files, fig, name):
@@ -54,26 +54,27 @@ def get_building_alg_times(files, fig, name):
     trendline = curve_fit(lambda t, a, b: a*np.exp(
         b*t),  np.array(number_of_robots),  np.array(building_alg_times))
     x = np.linspace(1.0, float(len(files)), num=200)
-    y = 9.27294187e+04 * np.exp(-4.49696822e-01 * x)
+    y = 1.41265909e+04 * np.exp(-2.33409909e-01 * x)
     print(trendline)
     fig.add_trace(
         go.Scatter(x=number_of_robots, y=building_alg_times,
-                   mode="markers+text",
-                   name=name,
+                   mode="markers",
+                   #    name=name,
                    line=dict(width=10),
                    marker=dict(size=30,
                                line=dict(
                                    width=2,
                                )
                                ),
-                   #    trendline="lowess"
-                   ),
 
+                   #    trendline="lowes",
+                   name="Robots",
+                   ),
     )
     fig.add_trace(
         go.Scatter(x=x, y=y,
                    #    mode="lines+markers+text",
-                   name=name,
+                   #    name=name,
                    line=dict(width=10),
                    marker=dict(size=18,
                                line=dict(
@@ -81,6 +82,7 @@ def get_building_alg_times(files, fig, name):
                                )
                                ),
                    #    trendline="lowess"
+                   name="Trendline",
                    ),
 
     )
@@ -93,8 +95,8 @@ def plot_building_alg_times(fig, files, experiment_name):
         get_building_alg_times(files[graphname], fig, graphname)
 
     fig.update_layout(
-        title=f"Time to Build Pyramid (316 Blocks)",
-        # template="plotly_dark",
+        title=f"Time to Build Plane (100 Blocks)",
+        template="plotly_dark",
         xaxis_title="Number of robots",
         yaxis_title="Number of timesteps",
         annotations=[
@@ -112,14 +114,14 @@ def plot_building_alg_times(fig, files, experiment_name):
                 ),
             )
         ],
-        showlegend=False,
+        showlegend=True,
         xaxis=dict(
             range=[1, 4],  # sets the range of xaxis
             titlefont=dict(size=32),
             tickfont=dict(size=40)
         ),
         yaxis=dict(
-            range=[0, 65000],  # sets the range of xaxis
+            range=[0, 12000],  # sets the range of xaxis
             titlefont=dict(size=32),
             tickfont=dict(size=40)
         ),
@@ -127,8 +129,6 @@ def plot_building_alg_times(fig, files, experiment_name):
         # paper_bgcolor='rgba(0,0,0,0)',
         # plot_bgcolor='rgba(0,0,0,0)',
         width=1200,
-
-
     )
     fig.update_xaxes(tick0=0, dtick=1.0)
 
@@ -139,4 +139,4 @@ def plot_building_alg_times(fig, files, experiment_name):
 fig = go.Figure()
 plot_building_alg_times(
     fig, files, experiment_name="")
-fig.show()
+fig.show(auto_open=False)
