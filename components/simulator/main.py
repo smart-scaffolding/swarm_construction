@@ -21,7 +21,6 @@ from components.simulator.events.gui_manager import GuiManager
 from swarm_c_library.blueprint_factory import BluePrintFactory
 
 POINTS = False
-ROBOTS = 1
 BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
 # BLUEPRINT = np.load("blueprint.npy")
@@ -58,6 +57,7 @@ text_representation.GetPosition2Coordinate().SetValue(0.2, 1.8)
 text_representation.GetSize([2, 0.5])
 text_representation.SetWindowLocation(text_representation.UpperLeftCorner)
 start_time = time.time()
+
 pipeline = VtkPipeline(gif_file=None)
 manager = GuiManager(pipeline=pipeline).enable_keypress().enable_color_highlighting()
 
@@ -597,24 +597,6 @@ class Simulate:
             self.pipeline.animate()
         except KeyboardInterrupt:
             logger.info("Exiting")
-
-
-def axesUniversal():
-    """
-
-    :return:
-    """
-    axes_uni = vtk.vtkAxesActor()
-    axes_uni.SetXAxisLabelText("x'")
-    axes_uni.SetYAxisLabelText("y'")
-    axes_uni.SetZAxisLabelText("z'")
-    axes_uni.SetTipTypeToSphere()
-    axes_uni.SetShaftTypeToCylinder()
-    axes_uni.SetTotalLength(2, 2, 2)
-    axes_uni.SetCylinderRadius(0.02)
-    axes_uni.SetAxisLabels(0)
-
-    return axes_uni
 
 
 if __name__ == "__main__":

@@ -2,6 +2,10 @@ import vtk
 
 
 class Selector:
+    """
+    Use this to highlight a selected component a certain color
+    """
+
     def __init__(self, pipeline):
         self.LastPickedActor = None
         self.LastPickedProperty = vtk.vtkProperty()

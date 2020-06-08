@@ -4,7 +4,7 @@ from components.simulator.events.selector import Selector
 
 class GuiManager:
     """
-    Manages all events related to GUI, such as keypresses. This uses the builder pattern to set 
+    Manages all events related to GUI, such as keypresses. This uses the builder pattern to set which events are enabled
     """
 
     def __init__(self, pipeline):
