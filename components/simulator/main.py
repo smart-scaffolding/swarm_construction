@@ -17,12 +17,11 @@ from components.simulator.common.transforms import np2vtk
 from components.simulator.model.create_actors import *
 from components.simulator.model.graphics import *
 from components.simulator.model.model import Inchworm
+from components.simulator.events.gui_manager import GuiManager
 from swarm_c_library.blueprint_factory import BluePrintFactory
 
 POINTS = False
 ROBOTS = 1
-DEBUG = False
-DEBUG_TOGGLED = False
 BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 
 # BLUEPRINT = np.load("blueprint.npy")
@@ -59,6 +58,8 @@ text_representation.GetPosition2Coordinate().SetValue(0.2, 1.8)
 text_representation.GetSize([2, 0.5])
 text_representation.SetWindowLocation(text_representation.UpperLeftCorner)
 start_time = time.time()
+pipeline = VtkPipeline(gif_file=None)
+manager = GuiManager(pipeline=pipeline).enable_keypress().enable_color_highlighting()
 
 
 class WorkerThread(threading.Thread):
@@ -88,26 +89,20 @@ class WorkerThread(threading.Thread):
                 messagedata = pickle.loads(message)
                 logger.debug(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
+                    print(
+                        f"[Worker thread]: Got block message: {topic} -> {messagedata}"
+                    )
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
                     if topic not in self.robot_actors:
-                        # print("[Worker thread]: Received new robot connection, adding to queue")
                         self.robot_actors[topic] = Queue()
                         self.robot_actors[topic].put((topic, messagedata))
                         self.filter_q.put(
                             (topic, messagedata, self.robot_actors[topic])
-                        )  # add new robot
-                        # create new worker here
-
-                        # self.result_q.put((topic, messagedata))
+                        )
                     else:
-                        # print(f"[Worker thread] Putting message to be sent to calculator thread")
-                        # print(messagedata.message)
                         self.robot_actors[topic].put((topic, messagedata))
-                        # self.result_q.put((topic, messagedata))
                 else:
-                    # print(f"Got message from unknown source: {topic} -> {messagedata}")
                     continue
             except:
                 continue
@@ -144,7 +139,7 @@ class CalculatorThread(WorkerThread):
                 DISPLAY ROBOTS
                 """
                 if not POINTS:
-                    # if isinstance(message.message, AnimationUpdateMessage): #TODO: Add this line back in
+                    # if isinstance(message.message, AnimationUpdateMessage): #TODO:
                     base = message.message.robot_base
                     trajectory = message.message.trajectory
                     path = message.message.path
@@ -183,7 +178,6 @@ class CalculatorThread(WorkerThread):
                     transform = np2vtk(new_position)
 
                     path = message.message.path
-                    # print(f"Path: {path}")
                     self.result_q.put((actor, [transform], None, path, None))
 
 
@@ -215,7 +209,9 @@ class vtkTimerCallback:
         self.result_q = result_q
         self.socket = socket
         self.pipeline = pipeline
-        self.colors = vtk_named_colors(["Firebrick", "Gray", "Firebrick", "Firebrick", "Gray", "Firebrick"])
+        self.colors = vtk_named_colors(
+            ["Firebrick", "Gray", "Firebrick", "Firebrick", "Gray", "Firebrick"]
+        )
         self.blocks = OrderedDict()
         self.block_q = block_q
         self.previous_path = []
@@ -237,7 +233,10 @@ class vtkTimerCallback:
         new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
 
         robot_actor, rendered_id = setup_pipeline_objs(
-            colors=self.colors, robot_id=robot, points=POINTS, block_on_end_effector=False
+            colors=self.colors,
+            robot_id=robot,
+            points=POINTS,
+            block_on_end_effector=False,
         )
         for link in robot_actor:
             self.pipeline.add_actor(link)
@@ -334,18 +333,14 @@ class vtkTimerCallback:
                                     True,
                                 )
 
-                                # logger.info(
-                                #     f"Moving block {block_on_ee} to new location {transforms[index]}"
-                                # )
                             else:
 
                                 _, new_block_tool, _ = self.blocks[block_on_ee]
-                                # logger.info(f"Already know about block {block_on_ee}")
+
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 color = vtk_named_colors(["Purple"])
                                 new_block_tool.SetVisibility(True)
                                 new_block_tool.GetProperty().SetColor(color[0])
-                                # new_block_tool.SetScale(0.013)
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
@@ -355,17 +350,14 @@ class vtkTimerCallback:
                                 if block_on_ee in self.blocks_at_starting_location:
                                     self.blocks_at_starting_location.remove(block_on_ee)
                                     self.removed_starting_block = True
-                                # logger.info(
-                                #     f"Moving block {block_on_ee} to new location"
-                                # )
 
                         elif index <= 5:
                             if index == 0:
                                 if self.robot_texts[robot_id]:
                                     rendered_id = self.robot_texts[robot_id]
-                                global DEBUG_TOGGLED
+                                # global manager
                                 # if DEBUG_TOGGLED:
-                                if DEBUG:
+                                if manager.show_debug_text():
                                     if debug_text:
                                         debug_text = debug_text.encode()
                                     else:
@@ -399,7 +391,6 @@ class vtkTimerCallback:
                                     robot_text_actor,
                                 )
                                 rendered_id = robot_text_actor
-                                DEBUG_TOGGLED = False
 
                                 rendered_id.SetUserMatrix(text_position)
                             actors[index].SetUserMatrix(transforms[index])
@@ -431,21 +422,21 @@ class vtkTimerCallback:
                 if topic in self.blocks:
                     location, actor, showing = self.blocks[message.message.id]
                     actor.SetUserMatrix(
-                        create_homogeneous_transform_from_point(message.message.location)
+                        create_homogeneous_transform_from_point(
+                            message.message.location
+                        )
                     )
-
-                    # actor.SetPosition(message.message.location)
                     self.blocks[message.message.id] = (message.message.location, actor)
                 else:
                     location = np.array(message.message.location)
-                    # print(message.message.location)
-                    # print(message.message.location[0])
                     if location[0] == 0.5 and location[1] == 0.5:
                         self.blocks_at_starting_location.append(message.message.id)
                     location[0] = float(location[0] + 0)
                     location[1] = float(location[1] + 0)
                     location[2] = float(location[2] + 0)
-                    transform = np2vtk(create_homogeneous_transform_from_point(location))
+                    transform = np2vtk(
+                        create_homogeneous_transform_from_point(location)
+                    )
 
                     actor, _, _ = add_block(
                         (0, 0, 0),
@@ -475,15 +466,6 @@ class vtkTimerCallback:
         iren.GetRenderWindow().Render()
 
 
-def Keypress(obj, event):
-    key = obj.GetKeySym()
-    if key == "d":
-        global DEBUG
-        global DEBUG_TOGGLED
-        DEBUG = True if DEBUG is False else False
-        DEBUG_TOGGLED = True
-
-
 class Simulate:
     """
 
@@ -498,8 +480,6 @@ class Simulate:
         self.new_actors = new_actors
         self.socket = socket
         self.block_q = block_q
-        self.LastPickedActor = None
-        self.LastPickedProperty = vtk.vtkProperty()
 
     def wait_for_structure_initialization(self, blueprint=None, colors=None):
         """
@@ -525,45 +505,13 @@ class Simulate:
                 print(COLORS)
         self.simulate()
 
-    def leftButtonPressEvent(self, obj, event):
-        clickPos = self.pipeline.iren.GetEventPosition()
-
-        picker = vtk.vtkPropPicker()
-        picker.Pick(clickPos[0], clickPos[1], 0, self.pipeline.ren)
-
-        # get the new
-        self.NewPickedActor = picker.GetActor()
-
-        # If something was selected
-        if self.NewPickedActor:
-            # If we picked something before, reset its property
-            if self.LastPickedActor:
-                self.LastPickedActor.GetProperty().DeepCopy(self.LastPickedProperty)
-            if self.NewPickedActor == self.LastPickedActor:
-                self.NewPickedActor.GetProperty().DeepCopy(self.LastPickedProperty)
-                return
-            # Save the property of the picked actor so that we can
-            # restore it next time
-            self.LastPickedProperty.DeepCopy(self.NewPickedActor.GetProperty())
-            # Highlight the picked actor by changing its properties
-            # self.NewPickedActor.
-            self.NewPickedActor.GetProperty().SetColor(1.0, 0.0, 0.0)
-            self.NewPickedActor.GetProperty().SetDiffuse(1.0)
-            self.NewPickedActor.GetProperty().SetSpecular(0.0)
-
-            # save the last picked actor
-            self.LastPickedActor = self.NewPickedActor
-
-        # self.pipeline.iren.OnLeftButtonDown()
-        return
-
-    def simulate(self):
+    def simulate(self, pipeline):
         """
 
         """
         # robot_actors = {}
 
-        self.pipeline = VtkPipeline(gif_file=None)
+        self.pipeline = pipeline
         self.param = {
             "cube_axes_x_bounds": np.array([[0, len(BLUEPRINT)]]),
             "cube_axes_y_bounds": np.array([[0, len(BLUEPRINT[0])]]),
@@ -594,8 +542,10 @@ class Simulate:
         )
 
         self.pipeline.iren.AddObserver("TimerEvent", cb.execute)
-        self.pipeline.iren.AddObserver("LeftButtonPressEvent", self.leftButtonPressEvent)
-        self.pipeline.iren.AddObserver("KeyPressEvent", Keypress)
+        self.pipeline.iren.AddObserver(
+            "LeftButtonPressEvent", manager.leftButtonPressEvent
+        )
+        self.pipeline.iren.AddObserver("KeyPressEvent", manager.keypress)
 
         self.pipeline.iren.CreateRepeatingTimer(10)
 
@@ -690,6 +640,6 @@ if __name__ == "__main__":
         socket=socket,
         block_q=block_queue,
     )
-    sim.simulate()
+    sim.simulate(pipeline=pipeline)
     # sim.wait_for_structure_initialization(blueprint=BLUEPRINT, colors=COLORS)
     # sim.wait_for_structure_initialization()
