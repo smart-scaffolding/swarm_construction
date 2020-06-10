@@ -18,6 +18,9 @@ from components.simulator.model.create_actors import *
 from components.simulator.model.graphics import *
 from components.simulator.model.model import Inchworm
 from components.simulator.events.gui_manager import GuiManager
+from components.simulator.communication.communicate_with_robot import WorkerThread
+from components.simulator.entities.orientation_widget import OrientationWidget
+
 from swarm_c_library.blueprint_factory import BluePrintFactory
 
 POINTS = False
@@ -45,76 +48,14 @@ reader_list.SetFileName(move_block_loc)
 move_block_file_location = vtk.vtkPolyDataMapper()
 move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
-text_actor = vtk.vtkTextActor()
-text_actor.SetInput(
-    f"Simulation Time: 00:00:00\nNumber of Robots: 0\nNumber of Blocks Placed: 0"
-)
-text_actor.GetTextProperty().SetColor(
-    uniform(0.0, 1.0), uniform(0.0, 1.0), uniform(0.0, 1.0)
-)
-
-text_representation = vtk.vtkTextRepresentation()
-text_representation.GetPosition2Coordinate().SetValue(0.2, 1.8)
-text_representation.GetSize([2, 0.5])
-text_representation.SetWindowLocation(text_representation.UpperLeftCorner)
-start_time = time.time()
-
 pipeline = VtkPipeline(gif_file=None)
-manager = GuiManager(pipeline=pipeline).enable_keypress().enable_color_highlighting()
-
-
-class WorkerThread(threading.Thread):
-    """
-
-    """
-
-    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
-        super(WorkerThread, self).__init__()
-        self.robot_actors = {}
-        self.dir_q = dir_q
-        self.result_q = result_q
-        self.filter_q = filter_q
-        self.stoprequest = threading.Event()
-        self.socket = socket
-        self.pipeline = pipeline
-        self.block_q = block_q
-
-    def run(self):
-        """
-
-        """
-        while not self.stoprequest.isSet():
-            try:
-                [topic, message] = self.socket.recv_multipart()
-                message = zlib.decompress(message)
-                messagedata = pickle.loads(message)
-                logger.debug(f"[Worker thread]: {topic} {messagedata}")
-                if "BLOCK" in str(topic.decode()):
-                    print(
-                        f"[Worker thread]: Got block message: {topic} -> {messagedata}"
-                    )
-                    self.block_q.put((topic, messagedata))
-                if "ROBOT" in str(topic.decode()):
-                    if topic not in self.robot_actors:
-                        self.robot_actors[topic] = Queue()
-                        self.robot_actors[topic].put((topic, messagedata))
-                        self.filter_q.put(
-                            (topic, messagedata, self.robot_actors[topic])
-                        )
-                    else:
-                        self.robot_actors[topic].put((topic, messagedata))
-                else:
-                    continue
-            except:
-                continue
-
-    def join(self, timeout=None):
-        """
-
-        :param timeout:
-        """
-        self.stoprequest.set()
-        super(WorkerThread, self).join(timeout)
+manager = (
+    GuiManager(pipeline=pipeline)
+    .enable_keypress()
+    .enable_color_highlighting()
+    .enable_orientation_widget()
+    .enable_sim_data_text()
+)
 
 
 class CalculatorThread(WorkerThread):
@@ -276,12 +217,7 @@ class vtkTimerCallback:
         :param obj:
         :param event:
         """
-        elapsed_time = time.time() - start_time
-
-        text_actor.SetInput(
-            f"Simulation Time: {time.strftime('%H:%M:%S', time.gmtime(elapsed_time))}\nNumber of "
-            f"Robots: {len(self.robot_actors)}\nNumber of Blocks Placed: {len(self.blocks)}"
-        )
+        manager.update_sim_data_text(len(self.robot_actors), len(self.blocks))
 
         if self.timer_count % 100 == 0:
             logger.debug(self.timer_count)
@@ -317,17 +253,20 @@ class vtkTimerCallback:
                         if index == 6:
 
                             if block_on_ee not in self.blocks:
+
+                                ######## TOOL (CREATE) #############################
                                 new_block_tool, _, _ = add_block(
                                     (0, 0, 0),
                                     block_file_location=move_block_file_location,
                                 )
-                                logger.info(len(actors))
                                 actors.append(new_block_tool)
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 new_block_tool.SetScale(0.013)
                                 new_block_tool.SetVisibility(True)
-                                # print("Updating block end position")
+                                ######## TOOL (CREATE) #############################
+
                                 self.pipeline.ren.AddActor(new_block_tool)
+
                                 self.blocks[block_on_ee] = (
                                     transforms[index],
                                     new_block_tool,
@@ -338,6 +277,7 @@ class vtkTimerCallback:
 
                                 _, new_block_tool, _ = self.blocks[block_on_ee]
 
+                                ######## TOOL (UPDATE) #############################
                                 new_block_tool.SetUserMatrix(transforms[index])
                                 color = vtk_named_colors(["Purple"])
                                 new_block_tool.SetVisibility(True)
@@ -347,6 +287,7 @@ class vtkTimerCallback:
                                     new_block_tool,
                                     True,
                                 )
+                                ######## TOOL (UPDATE) #############################
 
                                 if block_on_ee in self.blocks_at_starting_location:
                                     self.blocks_at_starting_location.remove(block_on_ee)
@@ -356,8 +297,8 @@ class vtkTimerCallback:
                             if index == 0:
                                 if self.robot_texts[robot_id]:
                                     rendered_id = self.robot_texts[robot_id]
-                                # global manager
-                                # if DEBUG_TOGGLED:
+
+                                ######## ROBOT TEXT #############################
                                 if manager.show_debug_text():
                                     if debug_text:
                                         debug_text = debug_text.encode()
@@ -380,8 +321,9 @@ class vtkTimerCallback:
                                 robot_text_actor.AddPosition(0, 0, 1)
                                 robot_text_actor.RotateX(60)
                                 robot_text_actor.SetScale(0.5)
-                                self.pipeline.remove_actor(rendered_id)
+                                ######## ROBOT TEXT #############################
 
+                                self.pipeline.remove_actor(rendered_id)
                                 self.pipeline.add_actor(robot_text_actor)
                                 self.pipeline.ren.AddActor(robot_text_actor)
                                 self.robot_texts[robot_id] = robot_text_actor
@@ -405,6 +347,8 @@ class vtkTimerCallback:
                         assembly.SetUserMatrix(transforms[index])
 
                 if path:
+
+                    ######## PATH #############################
                     logger.debug(f"Path in Callback: {path}")
                     logger.debug(f"Previous path: {self.previous_path}")
                     for i in self.previous_path:
@@ -415,6 +359,8 @@ class vtkTimerCallback:
                         self.previous_path.append(
                             self.pipeline.add_actor(cubeForPath(point))
                         )
+                    ######## PATH #############################
+
                     self.pipeline.animate()
 
         while not self.block_q.empty():
@@ -556,26 +502,6 @@ class Simulate:
             color=COLORS,
             block_file_location=block_file_location,
         )
-
-        text_widget = vtk.vtkTextWidget()
-        text_widget.SetRepresentation(text_representation)
-        text_widget.SetInteractor(self.pipeline.iren)
-        text_widget.SetTextActor(text_actor)
-        text_widget.SelectableOff()
-        text_widget.On()
-
-        xyzLabels = ["X", "Y", "Z"]
-        scale = [1.0, 1.0, 1.0]
-        axes = MakeAxesActor(scale, xyzLabels)
-
-        om2 = vtk.vtkOrientationMarkerWidget()
-        om2.SetOrientationMarker(axes)
-
-        # Position lower right in the viewport.
-        om2.SetViewport(0.8, 0, 1.0, 0.2)
-        om2.SetInteractor(self.pipeline.iren)
-        om2.EnabledOn()
-        om2.InteractiveOn()
 
         self.pool = [
             WorkerThread(

@@ -69,26 +69,13 @@ class VtkPipeline:
 
     def set_camera(self):
         cam = self.ren.GetActiveCamera()
-        # cam.Roll(90)
-
-        # cam.SetFocalPoint(0, 0, 0)
-        # cam.Pitch(90)
-
-        # cam.SetViewUp(1, 1, 0)
-        # cam.Yaw(-90)
-        # cam.Elevation(-90)
-        # cam.Zoom(0.6)
-        # cam.SetPosition(-1, -3, 1.3)
         self.ren.SetActiveCamera(cam)
 
     def animate(self):
         self.ren.ResetCamera()
-        # self.set
         self.ren_win.Render()
         self.iren.Initialize()
-        self.iren.CreateRepeatingTimer(
-            math.floor(1000 / self.timer_rate)
-        )  # Timer creates 60 fps
+        self.iren.CreateRepeatingTimer(math.floor(1000 / self.timer_rate))
         self.render()
 
     def screenshot(self, filename=None):

@@ -1,5 +1,11 @@
 from components.simulator.events.keypress import Keypress
 from components.simulator.events.selector import Selector
+from components.simulator.entities.orientation_widget import OrientationWidget
+from components.simulator.entities.sim_data_text import SimDataText
+
+from components.simulator.model.graphics import MakeAxesActor
+
+import vtk
 
 
 class GuiManager:
@@ -11,8 +17,11 @@ class GuiManager:
         self.keypress_enabled = False
         self.color_selection_enabled = False
         self.pipeline = pipeline
+
         self.keypress_command = None
         self.selector_command = None
+        self.orientation_widget = None
+        self.sim_data_text = None
 
     def enable_keypress(self):
         self.keypress_enabled = True
@@ -23,6 +32,22 @@ class GuiManager:
         self.color_selection_enabled = True
         self.selector_command = Selector(pipeline=self.pipeline)
         return self
+
+    def enable_orientation_widget(
+        self, xyzLabels=("X", "Y", "Z"), scale=(1.0, 1.0, 1.0)
+    ):
+        self.orientation_widget = OrientationWidget(
+            iren=self.pipeline.iren, xyzLabels=xyzLabels, scale=scale
+        )
+        return self
+
+    def enable_sim_data_text(self, color=None):
+        self.sim_data_text = SimDataText(self.pipeline.iren, color)
+        return self
+
+    def update_sim_data_text(self, num_robots, num_blocks):
+        if self.sim_data_text:
+            self.sim_data_text.update_text(num_robots, num_blocks)
 
     def keypress(self, obj, event):
         if self.keypress_enabled:
