@@ -33,6 +33,7 @@ loc = pkg_resources.resource_filename(
 )
 reader_list = vtk.vtkSTLReader()
 reader_list.SetFileName(loc)
+reader_list.GetOutput().GlobalReleaseDataFlagOn()
 block_file_location = vtk.vtkPolyDataMapper()
 block_file_location.SetInputConnection(reader_list.GetOutputPort())
 
