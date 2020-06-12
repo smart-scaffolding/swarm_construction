@@ -1,4 +1,9 @@
 import threading
+import zlib
+import zmq
+from logzero import logger
+import pickle
+from multiprocessing import Queue
 
 
 class WorkerThread(threading.Thread):
@@ -16,6 +21,7 @@ class WorkerThread(threading.Thread):
         self.socket = socket
         self.pipeline = pipeline
         self.block_q = block_q
+        print("WORKER THREAD HAS BEEN STARTED")
 
     def run(self):
         """
@@ -26,13 +32,12 @@ class WorkerThread(threading.Thread):
                 [topic, message] = self.socket.recv_multipart()
                 message = zlib.decompress(message)
                 messagedata = pickle.loads(message)
-                logger.debug(f"[Worker thread]: {topic} {messagedata}")
+                # logger.debug(f"[Worker thread]: {topic} {messagedata}")
                 if "BLOCK" in str(topic.decode()):
-                    print(
-                        f"[Worker thread]: Got block message: {topic} -> {messagedata}"
-                    )
+                    # print(f"[Worker thread]: Got block message: {topic} -> {messagedata}")
                     self.block_q.put((topic, messagedata))
                 if "ROBOT" in str(topic.decode()):
+                    # print(f"[Worker thread]: Got robot message: {topic} -> {messagedata}")
                     if topic not in self.robot_actors:
                         self.robot_actors[topic] = Queue()
                         self.robot_actors[topic].put((topic, messagedata))
@@ -42,8 +47,12 @@ class WorkerThread(threading.Thread):
                     else:
                         self.robot_actors[topic].put((topic, messagedata))
                 else:
+                    print(
+                        f"[Worker thread]: Got WEIRD message: {topic} -> {messagedata}"
+                    )
                     continue
             except:
+                logger.error(f"[Worker thread]: EXCEPTION")
                 continue
 
     def join(self, timeout=None):

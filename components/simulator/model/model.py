@@ -7,7 +7,7 @@ from .graphics import *
 
 
 class Inchworm(SerialLink):
-    def __init__(self, base=None, blueprint=None, port=None, baud=9600):
+    def __init__(self, base=None, port=None, baud=9600):
 
         # 1.926 in --> 0.489204 dm
         # 2.199 in --> 0.558546 dm

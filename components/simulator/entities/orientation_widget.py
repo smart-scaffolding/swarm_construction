@@ -5,10 +5,9 @@ import vtk
 
 class OrientationWidget:
     def __init__(self, iren, scale, xyzLabels):
-        self.om2 = None
+        self.widget = None
         axes = MakeAxesActor(scale, xyzLabels)
 
-        print(axes)
         om2 = vtk.vtkOrientationMarkerWidget()
         om2.SetOrientationMarker(axes)
 
@@ -17,5 +16,4 @@ class OrientationWidget:
         om2.SetInteractor(iren)
         om2.EnabledOn()
         om2.InteractiveOn()
-        print("Created orientation widget")
-        self.om2 = om2
+        self.widget = om2

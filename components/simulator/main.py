@@ -11,6 +11,7 @@ import zmq
 from logzero import logger
 
 import components.simulator.config as Config
+from components.simulator.globals import *
 from components.robot.communication.messages import BlockLocationMessage
 from components.simulator.common.common import create_homogeneous_transform_from_point
 from components.simulator.common.transforms import np2vtk
@@ -20,6 +21,8 @@ from components.simulator.model.model import Inchworm
 from components.simulator.events.gui_manager import GuiManager
 from components.simulator.communication.communicate_with_robot import WorkerThread
 from components.simulator.entities.orientation_widget import OrientationWidget
+from components.simulator.entities.block_manager import BlockManager
+from components.simulator.entities.robot_entity import Robot
 
 from swarm_c_library.blueprint_factory import BluePrintFactory
 
@@ -31,32 +34,6 @@ bx, by, bz = BLUEPRINT.shape
 
 COLORS = [[[vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
-loc = pkg_resources.resource_filename(
-    "components", "/".join(("simulator", "media", "block.stl"))
-)
-reader_list = vtk.vtkSTLReader()
-reader_list.SetFileName(loc)
-reader_list.GetOutput().GlobalReleaseDataFlagOn()
-block_file_location = vtk.vtkPolyDataMapper()
-block_file_location.SetInputConnection(reader_list.GetOutputPort())
-
-move_block_loc = pkg_resources.resource_filename(
-    "components", "/".join(("simulator", "media", "robot_block.stl"))
-)
-reader_list = vtk.vtkSTLReader()
-reader_list.SetFileName(move_block_loc)
-move_block_file_location = vtk.vtkPolyDataMapper()
-move_block_file_location.SetInputConnection(reader_list.GetOutputPort())
-
-pipeline = VtkPipeline(gif_file=None)
-manager = (
-    GuiManager(pipeline=pipeline)
-    .enable_keypress()
-    .enable_color_highlighting()
-    .enable_orientation_widget()
-    .enable_sim_data_text()
-)
-
 
 class CalculatorThread(WorkerThread):
     """
@@ -67,7 +44,6 @@ class CalculatorThread(WorkerThread):
         super(CalculatorThread, self).__init__(
             dir_q, result_q, filter_q, socket, pipeline, block_q
         )
-        self.blocks = {}
 
     def run(self):
         """
@@ -164,33 +140,42 @@ class vtkTimerCallback:
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
 
-    def add_robot_to_sim(self, robot, result_queue):
+    def add_robot_to_sim(self, robot_id, result_queue):
         """
 
         :param robot:
         :param result_queue:
         """
-        base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
+        logger.warning(f"Adding robot to sim: {robot_id}")
+        self.robot_actors[robot_id] = Robot(self.pipeline, result_queue, robot_id)
+        logger.warning(f"Added robot to sim: {robot_id} -----> {self.robot_actors}")
+        # self.pipeline.animate()
 
-        new_robot = Inchworm(base=base, blueprint=BLUEPRINT)
+        # #### ROBOT ----> (__init__) #################
 
-        robot_actor, rendered_id = setup_pipeline_objs(
-            colors=self.colors,
-            robot_id=robot,
-            points=POINTS,
-            block_on_end_effector=False,
-        )
-        for link in robot_actor:
-            self.pipeline.add_actor(link)
+        # base = np.matrix([[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 1.0], [0, 0, 0, 1]])
 
-        if rendered_id:
-            self.pipeline.add_actor(rendered_id)
-            self.robot_texts[robot] = rendered_id
+        # new_robot = Inchworm(base=base)
 
-        logger.debug("Should be seeing new robot, as it was just added")
+        # robot_actor, rendered_id = setup_pipeline_objs(
+        #     colors=self.colors,
+        #     robot_id=robot,
+        #     points=POINTS,
+        #     block_on_end_effector=False,
+        # )
+        # for link in robot_actor:
+        #     self.pipeline.add_actor(link)
 
-        self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
-        self.pipeline.animate()
+        # if rendered_id:
+        #     self.pipeline.add_actor(rendered_id)
+        #     self.robot_texts[robot] = rendered_id
+
+        # logger.debug("Should be seeing new robot, as it was just added")
+
+        # #### ROBOT ----> (__init__) #################
+
+        # self.robot_actors[robot] = (robot_actor, new_robot, result_queue, rendered_id)
+        # self.pipeline.animate()
 
     def create_new_thread(self, queue, result_queue):
         """
@@ -217,7 +202,7 @@ class vtkTimerCallback:
         :param obj:
         :param event:
         """
-        manager.update_sim_data_text(len(self.robot_actors), len(self.blocks))
+        guiManager.update_sim_data_text(len(self.robot_actors), len(self.blocks))
 
         if self.timer_count % 100 == 0:
             logger.debug(self.timer_count)
@@ -230,185 +215,216 @@ class vtkTimerCallback:
             self.create_new_thread(queue, result_q)
             logger.debug(f"Callback: Adding new actor to sim: {topic}")
             self.add_robot_to_sim(topic, result_q)
+            logger.warning(self.robot_actors)
 
-        for robot in self.robot_actors:
-            actors, model, robot_queue, rendered_id = self.robot_actors[robot]
-            if not robot_queue.empty():
-                (
-                    robot_id,
-                    transforms,
-                    text_position,
-                    path,
-                    block_on_ee,
-                    debug_text,
-                ) = robot_queue.get()
+        # logger.info("Checked to see if new actors, now updating robots")
+        # logger.warning(self.robot_actors)
+        for robot_id in self.robot_actors:
+            # logger.info(f"Calling update on robot: {robot_id}")
+            self.robot_actors[robot_id].update(self.pipeline)
 
-                for index in range(len(transforms)):
-                    assembly = vtk.vtkAssembly()
-                    assembly.GetParts()
-                    """
-                    ROBOT
-                    """
-                    if not POINTS:
-                        if index == 6:
+        # pipeline.animate()
+        # if path:
 
-                            if block_on_ee not in self.blocks:
+        #     ######## PATH #############################
+        #     logger.debug(f"Path in Callback: {path}")
+        #     logger.debug(f"Previous path: {self.previous_path}")
+        #     for i in self.previous_path:
+        #         self.pipeline.remove_actor(i)
+        #         self.previous_path.remove(i)
 
-                                ######## TOOL (CREATE) #############################
-                                new_block_tool, _, _ = add_block(
-                                    (0, 0, 0),
-                                    block_file_location=move_block_file_location,
-                                )
-                                actors.append(new_block_tool)
-                                new_block_tool.SetUserMatrix(transforms[index])
-                                new_block_tool.SetScale(0.013)
-                                new_block_tool.SetVisibility(True)
-                                ######## TOOL (CREATE) #############################
+        #     for point in path:
+        #         self.previous_path.append(
+        #             self.pipeline.add_actor(cubeForPath(point))
+        #         )
+        #     ######## PATH #############################
 
-                                self.pipeline.ren.AddActor(new_block_tool)
+        #     self.pipeline.animate()
+        # #### ROBOT ----> (update) #################
+        # actors, model, robot_queue, rendered_id = self.robot_actors[robot]
+        # if not robot_queue.empty():
+        #     (
+        #         robot_id,
+        #         transforms,
+        #         text_position,
+        #         path,
+        #         block_on_ee,
+        #         debug_text,
+        #     ) = robot_queue.get()
 
-                                self.blocks[block_on_ee] = (
-                                    transforms[index],
-                                    new_block_tool,
-                                    True,
-                                )
+        #     for index in range(len(transforms)):
+        #         assembly = vtk.vtkAssembly()
+        #         """
+        #         ROBOT
+        #         """
+        #         if not POINTS:
+        #             if index == 6:
 
-                            else:
+        #                 if block_on_ee not in self.blocks:
 
-                                _, new_block_tool, _ = self.blocks[block_on_ee]
+        #                     ######## TOOL (CREATE) #############################
+        #                     new_block_tool, _, _ = add_block(
+        #                         (0, 0, 0),
+        #                         block_file_location=move_block_file_location,
+        #                     )
+        #                     actors.append(new_block_tool)
+        #                     new_block_tool.SetUserMatrix(transforms[index])
+        #                     new_block_tool.SetScale(0.013)
+        #                     new_block_tool.SetVisibility(True)
+        #                     ######## TOOL (CREATE) #############################
 
-                                ######## TOOL (UPDATE) #############################
-                                new_block_tool.SetUserMatrix(transforms[index])
-                                color = vtk_named_colors(["Purple"])
-                                new_block_tool.SetVisibility(True)
-                                new_block_tool.GetProperty().SetColor(color[0])
-                                self.blocks[block_on_ee] = (
-                                    transforms[index],
-                                    new_block_tool,
-                                    True,
-                                )
-                                ######## TOOL (UPDATE) #############################
+        #                     self.pipeline.ren.AddActor(new_block_tool)
 
-                                if block_on_ee in self.blocks_at_starting_location:
-                                    self.blocks_at_starting_location.remove(block_on_ee)
-                                    self.removed_starting_block = True
+        #                     self.blocks[block_on_ee] = (
+        #                         transforms[index],
+        #                         new_block_tool,
+        #                         True,
+        #                     )
 
-                        elif index <= 5:
-                            if index == 0:
-                                if self.robot_texts[robot_id]:
-                                    rendered_id = self.robot_texts[robot_id]
+        #                 else:
 
-                                ######## ROBOT TEXT #############################
-                                if manager.show_debug_text():
-                                    if debug_text:
-                                        debug_text = debug_text.encode()
-                                    else:
-                                        debug_text = "".encode()
-                                    text_for_robot = robot_id + debug_text
-                                else:
-                                    text_for_robot = robot_id
-                                robot_text = vtk.vtkVectorText()
-                                robot_text.SetText(text_for_robot)
-                                robot_text_mapper = vtk.vtkPolyDataMapper()
-                                robot_text_mapper.SetInputConnection(
-                                    robot_text.GetOutputPort()
-                                )
-                                robot_text_actor = vtk.vtkActor()
-                                robot_text_actor.SetMapper(robot_text_mapper)
-                                robot_text_actor.GetProperty().SetColor(
-                                    0.5, 0.5, 0.5,
-                                )
-                                robot_text_actor.AddPosition(0, 0, 1)
-                                robot_text_actor.RotateX(60)
-                                robot_text_actor.SetScale(0.5)
-                                ######## ROBOT TEXT #############################
+        #                     _, new_block_tool, _ = self.blocks[block_on_ee]
 
-                                self.pipeline.remove_actor(rendered_id)
-                                self.pipeline.add_actor(robot_text_actor)
-                                self.pipeline.ren.AddActor(robot_text_actor)
-                                self.robot_texts[robot_id] = robot_text_actor
-                                self.robot_actors[robot] = (
-                                    actors,
-                                    model,
-                                    robot_queue,
-                                    robot_text_actor,
-                                )
-                                rendered_id = robot_text_actor
+        #                     ######## TOOL (UPDATE) #############################
+        #                     new_block_tool.SetUserMatrix(transforms[index])
+        #                     color = vtk_named_colors(["Purple"])
+        #                     new_block_tool.SetVisibility(True)
+        #                     new_block_tool.GetProperty().SetColor(color[0])
+        #                     self.blocks[block_on_ee] = (
+        #                         transforms[index],
+        #                         new_block_tool,
+        #                         True,
+        #                     )
+        #                     ######## TOOL (UPDATE) #############################
 
-                                rendered_id.SetUserMatrix(text_position)
-                            actors[index].SetUserMatrix(transforms[index])
-                            actors[index].SetScale(0.013)
+        #                     if block_on_ee in self.blocks_at_starting_location:
+        #                         self.blocks_at_starting_location.remove(block_on_ee)
+        #                         self.removed_starting_block = True
 
-                    """
-                    POINT
-                    """
-                    if POINTS:
-                        assembly = actors[index]
-                        assembly.SetUserMatrix(transforms[index])
+        #             elif index <= 5:
+        #                 if index == 0:
+        #                     if self.robot_texts[robot_id]:
+        #                         rendered_id = self.robot_texts[robot_id]
 
-                if path:
+        #                     ######## ROBOT TEXT #############################
+        #                     if guiManager.show_debug_text():
+        #                         if debug_text:
+        #                             debug_text = debug_text.encode()
+        #                         else:
+        #                             debug_text = "".encode()
+        #                         text_for_robot = robot_id + debug_text
+        #                     else:
+        #                         text_for_robot = robot_id
+        #                     robot_text = vtk.vtkVectorText()
+        #                     robot_text.SetText(text_for_robot)
+        #                     robot_text_mapper = vtk.vtkPolyDataMapper()
+        #                     robot_text_mapper.SetInputConnection(
+        #                         robot_text.GetOutputPort()
+        #                     )
+        #                     robot_text_actor = vtk.vtkActor()
+        #                     robot_text_actor.SetMapper(robot_text_mapper)
+        #                     robot_text_actor.GetProperty().SetColor(
+        #                         0.5, 0.5, 0.5,
+        #                     )
+        #                     robot_text_actor.AddPosition(0, 0, 1)
+        #                     robot_text_actor.RotateX(60)
+        #                     robot_text_actor.SetScale(0.5)
+        #                     ######## ROBOT TEXT #############################
 
-                    ######## PATH #############################
-                    logger.debug(f"Path in Callback: {path}")
-                    logger.debug(f"Previous path: {self.previous_path}")
-                    for i in self.previous_path:
-                        self.pipeline.remove_actor(i)
-                        self.previous_path.remove(i)
+        #                     self.pipeline.remove_actor(rendered_id)
+        #                     self.pipeline.add_actor(robot_text_actor)
+        #                     self.pipeline.ren.AddActor(robot_text_actor)
+        #                     self.robot_texts[robot_id] = robot_text_actor
+        #                     self.robot_actors[robot] = (
+        #                         actors,
+        #                         model,
+        #                         robot_queue,
+        #                         robot_text_actor,
+        #                     )
+        #                     rendered_id = robot_text_actor
 
-                    for point in path:
-                        self.previous_path.append(
-                            self.pipeline.add_actor(cubeForPath(point))
-                        )
-                    ######## PATH #############################
+        #                     rendered_id.SetUserMatrix(text_position)
+        #                 actors[index].SetUserMatrix(transforms[index])
+        #                 actors[index].SetScale(0.013)
 
-                    self.pipeline.animate()
+        #         """
+        #         POINT
+        #         """
+        #         if POINTS:
+        #             assembly = actors[index]
+        #             assembly.SetUserMatrix(transforms[index])
+        #     #### ROBOT ----> (update) #################
 
-        while not self.block_q.empty():
-            topic, message = self.block_q.get()
-            if isinstance(message.message, BlockLocationMessage):
-                if topic in self.blocks:
-                    location, actor, showing = self.blocks[message.message.id]
-                    actor.SetUserMatrix(
-                        create_homogeneous_transform_from_point(
-                            message.message.location
-                        )
-                    )
-                    self.blocks[message.message.id] = (message.message.location, actor)
-                else:
-                    location = np.array(message.message.location)
-                    if location[0] == 0.5 and location[1] == 0.5:
-                        self.blocks_at_starting_location.append(message.message.id)
-                    location[0] = float(location[0] + 0)
-                    location[1] = float(location[1] + 0)
-                    location[2] = float(location[2] + 0)
-                    transform = np2vtk(
-                        create_homogeneous_transform_from_point(location)
-                    )
+        # if path:
 
-                    actor, _, _ = add_block(
-                        (0, 0, 0),
-                        block_file_location=move_block_file_location,
-                        first_time=True,
-                    )
+        #     ######## PATH #############################
+        #     logger.debug(f"Path in Callback: {path}")
+        #     logger.debug(f"Previous path: {self.previous_path}")
+        #     for i in self.previous_path:
+        #         self.pipeline.remove_actor(i)
+        #         self.previous_path.remove(i)
 
-                    actor.SetUserMatrix(transform)
-                    actor.SetScale(0.013)
-                    actor.SetVisibility(False)
-                    self.blocks[message.message.id] = (transform, actor, False)
-                    self.pipeline.add_actor(actor)
-                    self.pipeline.animate()
+        #     for point in path:
+        #         self.previous_path.append(
+        #             self.pipeline.add_actor(cubeForPath(point))
+        #         )
+        #     ######## PATH #############################
 
-        if len(self.blocks_at_starting_location) > 0:
-            if self.removed_starting_block:
-                self.last_block_counter += 1
-                if self.last_block_counter >= self.time_till_next_block:
-                    block = self.blocks_at_starting_location[-1]
-                    transform, actor, showing = self.blocks[block]
-                    if not showing:
-                        actor.SetVisibility(True)
-                        self.blocks[block] = (transform, actor, True)
-                    self.removed_starting_block = False
-                    self.last_block_counter = 0
+        #     self.pipeline.animate()
+
+        blockManager.update(self.pipeline)
+        # #### BLOCK MANAGER ----> (update) #################
+        # while not self.block_q.empty():
+        #     topic, message = self.block_q.get()
+        #     if isinstance(message.message, BlockLocationMessage):
+        #         if topic in self.blocks:
+        #             location, actor, showing = self.blocks[message.message.id]
+        #             actor.SetUserMatrix(
+        #                 create_homogeneous_transform_from_point(
+        #                     message.message.location
+        #                 )
+        #             )
+        #             self.blocks[message.message.id] = (message.message.location, actor)
+        #         else:
+        #             location = np.array(message.message.location)
+        #             if location[0] == 0.5 and location[1] == 0.5:
+        #                 self.blocks_at_starting_location.append(message.message.id)
+        #             location[0] = float(location[0] + 0)
+        #             location[1] = float(location[1] + 0)
+        #             location[2] = float(location[2] + 0)
+        #             transform = np2vtk(
+        #                 create_homogeneous_transform_from_point(location)
+        #             )
+
+        #             actor, _, _ = add_block(
+        #                 (0, 0, 0),
+        #                 block_file_location=move_block_file_location,
+        #                 first_time=True,
+        #             )
+
+        #             actor.SetUserMatrix(transform)
+        #             actor.SetScale(0.013)
+        #             actor.SetVisibility(False)
+        #             self.blocks[message.message.id] = (transform, actor, False)
+        #             self.pipeline.add_actor(actor)
+        #             self.pipeline.animate()
+
+        # #### BLOCK MANAGER ----> (update) #################
+
+        blockManager.check_if_human_placed_block()
+        # #### BLOCK MANAGER ----> (check_if_human_placed_block) #################
+        # if len(self.blocks_at_starting_location) > 0:
+        #     if self.removed_starting_block:
+        #         self.last_block_counter += 1
+        #         if self.last_block_counter >= self.time_till_next_block:
+        #             block = self.blocks_at_starting_location[-1]
+        #             transform, actor, showing = self.blocks[block]
+        #             if not showing:
+        #                 actor.SetVisibility(True)
+        #                 self.blocks[block] = (transform, actor, True)
+        #             self.removed_starting_block = False
+        #             self.last_block_counter = 0
+        # #### BLOCK MANAGER ----> (check_if_human_placed_block) #################
         iren = obj
         iren.GetRenderWindow().Render()
 
@@ -450,7 +466,7 @@ class Simulate:
                 COLORS = messagedata.message.colors
                 print(BLUEPRINT)
                 print(COLORS)
-        self.simulate()
+        self.simulate(pipeline)
 
     def simulate(self, pipeline):
         """
@@ -490,9 +506,9 @@ class Simulate:
 
         self.pipeline.iren.AddObserver("TimerEvent", cb.execute)
         self.pipeline.iren.AddObserver(
-            "LeftButtonPressEvent", manager.leftButtonPressEvent
+            "LeftButtonPressEvent", guiManager.leftButtonPressEvent
         )
-        self.pipeline.iren.AddObserver("KeyPressEvent", manager.keypress)
+        self.pipeline.iren.AddObserver("KeyPressEvent", guiManager.keypress)
 
         self.pipeline.iren.CreateRepeatingTimer(10)
 
@@ -508,7 +524,7 @@ class Simulate:
                 dir_q=self.dir_q,
                 result_q=self.result_q,
                 filter_q=self.new_actors,
-                socket=socket,
+                socket=self.socket,
                 pipeline=self.pipeline,
                 block_q=self.block_q,
             )
@@ -534,12 +550,6 @@ if __name__ == "__main__":
     socket.bind(Config.communication["receive_messages_port"])
 
     socket.setsockopt(zmq.SUBSCRIBE, b"")
-
-    dir_q = Queue()
-    result_q = Queue()
-    new_actors = Queue()
-    robot_update = Queue()
-    block_queue = Queue()
 
     sim = Simulate(
         robot_update=robot_update,

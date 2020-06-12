@@ -126,29 +126,19 @@ robot = RobotMain()
 robot.initialize_communications()
 time.sleep(2)
 
-blocks = [
-    block_id
-]
+blocks = [block_id, block_id_2, block_id_3]
 
 for block in blocks:
     robot.simulator_communicator.send_communication(
-        topic=block,
-        message=BlockLocationMessage(
-            block_id=block,
-            location=(
-                4 + 0.5,
-                0 + 0.5,
-                1 + 0.6,
-            ),
-        ),
+        topic=block, message=BlockLocationMessage(block_id=block, location=(0, 0, 1),),
     )
     print(f"Just Sent block message: {block}")
 
-path = [
-    Point(4, 0, 1, "top", None), 
-    Point(3, 0, 0, "top", None),
-    Point(5, 0, 1, "top", block_id),
-]
+# path = [
+#     Point(4, 0, 1, "top", None),
+#     Point(3, 0, 0, "top", None),
+#     Point(5, 0, 1, "top", block_id),
+# ]
 # path = [
 #     Point(3, 0, 1, "top", block_id),
 #     Point(2, 0, 0, "top", None),

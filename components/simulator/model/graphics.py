@@ -75,7 +75,9 @@ class VtkPipeline:
         self.ren.ResetCamera()
         self.ren_win.Render()
         self.iren.Initialize()
-        self.iren.CreateRepeatingTimer(math.floor(1000 / self.timer_rate))
+        self.iren.CreateRepeatingTimer(
+            math.floor(1000 / self.timer_rate)
+        )  # Timer creates 60 fps
         self.render()
 
     def screenshot(self, filename=None):
