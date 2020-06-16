@@ -1,11 +1,15 @@
 import math
 
-import numpy as np
-import pkg_resources
 import vtk
 
 
 class VtkPipeline:
+    """
+    This class is used to render components to the VTK renderer pipeline. All rendered components should interact
+    with the rendering pipeline. 
+
+    """
+
     def __init__(
         self,
         background=(0.15, 0.15, 0.15),
@@ -115,132 +119,29 @@ class VtkPipeline:
                 path = self.gif_file + "%d.png" % (self.screenshot_count - 1)
                 self.gif_data.append(imageio.imread(path))
 
-
-def axesUniversal():
-    axes_uni = vtk.vtkAxesActor()
-    axes_uni.SetXAxisLabelText("x'")
-    axes_uni.SetYAxisLabelText("y'")
-    axes_uni.SetZAxisLabelText("z'")
-    axes_uni.SetTipTypeToSphere()
-    axes_uni.SetShaftTypeToCylinder()
-    axes_uni.SetTotalLength(2, 2, 2)
-    axes_uni.SetCylinderRadius(0.02)
-    axes_uni.SetAxisLabels(0)
-
-    return axes_uni
-
-
-def axesCube(
-    ren,
-    x_bound=np.matrix([[-1.5, 1.5]]),
-    y_bound=np.matrix([[-1.5, 1.5]]),
-    z_bound=np.matrix([[-1.5, 1.5]]),
-):
-    cube_axes_actor = vtk.vtkCubeAxesActor()
-    cube_axes_actor.SetBounds(
-        x_bound[0, 0],
-        x_bound[0, 1],
-        y_bound[0, 0],
-        y_bound[0, 1],
-        z_bound[0, 0],
-        z_bound[0, 1],
-    )
-    cube_axes_actor.SetCamera(ren.GetActiveCamera())
-    cube_axes_actor.GetTitleTextProperty(0).SetColor(1.0, 0.0, 0.0)
-    cube_axes_actor.GetLabelTextProperty(0).SetColor(1.0, 0.0, 0.0)
-
-    cube_axes_actor.GetTitleTextProperty(1).SetColor(0.0, 1.0, 0.0)
-    cube_axes_actor.GetLabelTextProperty(1).SetColor(0.0, 1.0, 0.0)
-
-    cube_axes_actor.GetTitleTextProperty(2).SetColor(0.0, 0.0, 1.0)
-    cube_axes_actor.GetLabelTextProperty(2).SetColor(0.0, 0.0, 1.0)
-
-    cube_axes_actor.SetFlyModeToStaticTriad()
-
-    return cube_axes_actor
+    @staticmethod
+    def vtk_named_colors(colors):
+        """
+        Returns a list of vtk colors
+        :param colors: List of color names supported by vtk
+        :return: A list of vtk colors
+        """
+        if type(colors) is not list:
+            colors = [colors]
+        colors_rgb = [0] * len(colors)
+        for i in range(len(colors)):
+            colors_rgb[i] = list(vtk.vtkNamedColors().GetColor3d(colors[i]))
+        return colors_rgb
 
 
-def axes_x_y(ren):
-    axis_x_y = axesCube(ren)
-    axis_x_y.SetUse2DMode(1)
-    axis_x_y.ZAxisLabelVisibilityOff()
-    axis_x_y.SetAxisOrigin(-3, -3, 0)
-    axis_x_y.SetUseAxisOrigin(1)
-
-    return axis_x_y
-
-
-def axesActor2d():
-    axes = vtk.vtkAxesActor()
-    axes.SetTotalLength(1, 1, 0)
-    axes.SetZAxisLabelText("")
-
-    return axes
-
-
-def vtk_named_colors(colors):
+def cube_for_path(point):
     """
-    Returns a list of vtk colors
-    :param colors: List of color names supported by vtk
-    :return: A list of vtk colors
+    Creates a cube that can be used to show the path a robot is expected to take.
+
+    NOTE: This method is currently unused.
+
     """
-    if type(colors) is not list:
-        colors = [colors]
-    colors_rgb = [0] * len(colors)
-    for i in range(len(colors)):
-        colors_rgb[i] = list(vtk.vtkNamedColors().GetColor3d(colors[i]))
-    return colors_rgb
 
-
-def vtk_named_colors_3d(colors):
-    """
-    Returns a list of vtk colors
-    :param colors: List of color names supported by vtk
-    :return: A list of vtk colors
-    """
-    # if type(colors) is not list:
-    #     colors = [colors]
-    # colors_rgb = [[[0] * len(colors)]*len(colors[0])]*len(colors[0][0])
-    # for i in range(len(colors)):
-    #     print(colors[i])
-    #     colors_rgb[i] = list(vtk.vtkNamedColors().GetColor3d(str(colors[i])))
-
-    return list(vtk.vtkNamedColors().GetColor3d(colors))
-
-
-def floor():
-    plane = vtk.vtkPlaneSource()
-    reader = vtk.vtkJPEGReader()
-    reader.SetFileName(
-        pkg_resources.resource_filename("simulator", "media/imgs/floor.jpg")
-    )
-    texture = vtk.vtkTexture()
-    texture.SetInputConnection(reader.GetOutputPort())
-    map_to_plane = vtk.vtkTextureMapToPlane()
-    map_to_plane.SetInputConnection(plane.GetOutputPort())
-    mapper = vtk.vtkPolyDataMapper()
-
-    mapper.SetInputConnection(map_to_plane.GetOutputPort())
-    actor = vtk.vtkActor()
-    actor.SetMapper(mapper)
-    actor.SetTexture(texture)
-    return actor
-
-
-def axesCubeFloor(
-    ren,
-    x_bound=np.matrix([[-1.5, 1.5]]),
-    y_bound=np.matrix([[-1.5, 1.5]]),
-    z_bound=np.matrix([[-1.5, 1.5]]),
-    position=None,
-):
-    axes = axesCube(ren, x_bound=x_bound, y_bound=y_bound, z_bound=z_bound)
-    assembly = vtk.vtkAssembly()
-    assembly.AddPart(axes)
-    return assembly
-
-
-def cubeForPath(point):
     colors = vtk.vtkNamedColors()
     direction = point[3]
     cube_source = vtk.vtkCubeSource()
@@ -300,7 +201,13 @@ def cubeForPath(point):
     return cube_actor
 
 
-def circleForTrajectory(point, direction, index=None):
+def circle_for_trajectory(point, direction, index=None):
+    """
+    Creates a circle that can be used for showing trajectories.
+
+    NOTE: This method is currently unused.
+
+    """
     colors = vtk.vtkNamedColors()
 
     source = vtk.vtkSphereSource()
@@ -325,45 +232,3 @@ def circleForTrajectory(point, direction, index=None):
     prop_assembly = vtk.vtkPropAssembly()
     prop_assembly.AddPart(circle_actor)
     return prop_assembly
-
-
-def MakeAxesActor(scale, xyzLabels):
-    axes = vtk.vtkAxesActor()
-    axes.SetScale(scale[0], scale[1], scale[2])
-    axes.SetShaftTypeToCylinder()
-    axes.SetXAxisLabelText(xyzLabels[0])
-    axes.SetYAxisLabelText(xyzLabels[1])
-    axes.SetZAxisLabelText(xyzLabels[2])
-    axes.SetCylinderRadius(0.5 * axes.GetCylinderRadius())
-    axes.SetConeRadius(1.025 * axes.GetConeRadius())
-    axes.SetSphereRadius(1.5 * axes.GetSphereRadius())
-    tprop = axes.GetXAxisCaptionActor2D().GetCaptionTextProperty()
-    tprop.ItalicOn()
-    tprop.ShadowOn()
-    tprop.SetFontFamilyToTimes()
-    # Use the same text properties on the other two axes.
-    axes.GetYAxisCaptionActor2D().GetCaptionTextProperty().ShallowCopy(tprop)
-    axes.GetZAxisCaptionActor2D().GetCaptionTextProperty().ShallowCopy(tprop)
-    return axes
-
-
-class AnimationUpdate:
-    def __init__(
-        self,
-        robot,
-        robot_base,
-        index,
-        direction,
-        trajectory,
-        path,
-        placedObstacle=False,
-        obstacle=None,
-    ):
-        self.robot = robot
-        self.robot_base = robot_base
-        self.index = index
-        self.direction = direction
-        self.trajectory = trajectory
-        self.path = path
-        self.placedObstacle = placedObstacle
-        self.obstacle = obstacle

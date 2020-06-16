@@ -1,9 +1,9 @@
 from math import pi
 
+import numpy as np
+
 from components.simulator.common import transforms as tr
-from components.simulator.common.serial_link import SerialLink, Revolute, Prismatic
-from .create_actors import *
-from .graphics import *
+from components.simulator.common.serial_link import SerialLink, Revolute
 
 
 class Inchworm(SerialLink):

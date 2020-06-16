@@ -1,11 +1,7 @@
+from components.simulator.entities.gui.orientation_widget import OrientationWidget
+from components.simulator.entities.gui.sim_data_text import SimDataText
 from components.simulator.events.keypress import Keypress
 from components.simulator.events.selector import Selector
-from components.simulator.entities.orientation_widget import OrientationWidget
-from components.simulator.entities.sim_data_text import SimDataText
-
-from components.simulator.model.graphics import MakeAxesActor
-
-import vtk
 
 
 class GuiManager:
@@ -33,9 +29,7 @@ class GuiManager:
         self.selector_command = Selector(pipeline=self.pipeline)
         return self
 
-    def enable_orientation_widget(
-        self, xyzLabels=("X", "Y", "Z"), scale=(1.0, 1.0, 1.0)
-    ):
+    def enable_orientation_widget(self, xyzLabels=("X", "Y", "Z"), scale=(1.0, 1.0, 1.0)):
         self.orientation_widget = OrientationWidget(
             iren=self.pipeline.iren, xyzLabels=xyzLabels, scale=scale
         )
@@ -45,9 +39,23 @@ class GuiManager:
         self.sim_data_text = SimDataText(self.pipeline.iren, color)
         return self
 
-    def update_sim_data_text(self, num_robots, num_blocks):
+    def update_sim_data_text(
+        self, num_robots, num_blocks, num_timesteps, base_num_blocks
+    ):
         if self.sim_data_text:
-            self.sim_data_text.update_text(num_robots, num_blocks)
+            self.sim_data_text.update_text(
+                num_robots, num_blocks, num_timesteps, base_num_blocks
+            )
+
+    def check_for_simulation_finish(
+        self, structure_queue, num_robots, num_blocks, num_timesteps, base_num_blocks
+    ):
+        while not structure_queue.empty():
+            _, message = structure_queue.get()
+            filename = message.message.filename
+            self.sim_data_text.save_results(
+                filename, num_robots, num_blocks, num_timesteps, base_num_blocks
+            )
 
     def keypress(self, obj, event):
         if self.keypress_enabled:

@@ -24,7 +24,6 @@ class Keypress:
 
     def d_press(self):
         self.DEBUG = True if self.DEBUG is False else False
-        print("D Button pressed")
 
     def factory(self, arg):
         return arg

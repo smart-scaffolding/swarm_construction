@@ -1,32 +1,35 @@
+import pickle
 import threading
 import zlib
-import zmq
-from logzero import logger
-import pickle
 from multiprocessing import Queue
 
+import zmq
+from logzero import logger
 
-class WorkerThread(threading.Thread):
+import components.simulator.config as Config
+
+
+class SimulatorCommunicator(threading.Thread):
+    """
+    Used to listen for incoming messages to the simulator. This class inherits from the thread class and is run in a
+    separate thread.
+
     """
 
-    """
-
-    def __init__(self, dir_q, result_q, filter_q, socket, pipeline, block_q):
-        super(WorkerThread, self).__init__()
+    def __init__(self, robot_q, block_q, structure_q):
+        super(SimulatorCommunicator, self).__init__()
         self.robot_actors = {}
-        self.dir_q = dir_q
-        self.result_q = result_q
-        self.filter_q = filter_q
+        self.robot_q = robot_q
         self.stoprequest = threading.Event()
-        self.socket = socket
-        self.pipeline = pipeline
         self.block_q = block_q
-        print("WORKER THREAD HAS BEEN STARTED")
+        self.structure_q = structure_q
+
+        context = zmq.Context()
+        self.socket = context.socket(zmq.SUB)
+        self.socket.bind(Config.communication["receive_messages_port"])
+        self.socket.setsockopt(zmq.SUBSCRIBE, b"")
 
     def run(self):
-        """
-
-        """
         while not self.stoprequest.isSet():
             try:
                 [topic, message] = self.socket.recv_multipart()
@@ -41,24 +44,17 @@ class WorkerThread(threading.Thread):
                     if topic not in self.robot_actors:
                         self.robot_actors[topic] = Queue()
                         self.robot_actors[topic].put((topic, messagedata))
-                        self.filter_q.put(
-                            (topic, messagedata, self.robot_actors[topic])
-                        )
+                        self.robot_q.put((topic, messagedata, self.robot_actors[topic]))
                     else:
                         self.robot_actors[topic].put((topic, messagedata))
+                if "STRUCTURE" in str(topic.decode()):
+                    self.structure_q.put((topic, messagedata))
                 else:
-                    print(
-                        f"[Worker thread]: Got WEIRD message: {topic} -> {messagedata}"
-                    )
                     continue
             except:
                 logger.error(f"[Worker thread]: EXCEPTION")
                 continue
 
     def join(self, timeout=None):
-        """
-
-        :param timeout:
-        """
         self.stoprequest.set()
-        super(WorkerThread, self).join(timeout)
+        super(SimulatorCommunicator, self).join(timeout)
