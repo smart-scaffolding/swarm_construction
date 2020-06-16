@@ -1,15 +1,34 @@
-from logzero import setup_default_logger, logfile, LogFormatter
 import logging
+
 import pyfiglet
+from logzero import LogFormatter, logfile, setup_default_logger
 from pkg_resources import resource_filename
 
-DEBUG = True  # Use to control printing
+from components.simulator.model.graphics import VtkPipeline
+from swarm_c_library.blueprint_factory import BluePrintFactory
+
 communication = {
     "receive_messages_port": "tcp://0.0.0.0:5559",
 }
 
+# NOTE: This blueprint is meant to be the existing structure that already exists, not the one the robot will create
+BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
+bx, by, bz = BLUEPRINT.shape
+COLORS = [[[VtkPipeline.vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
+
+# Frequency at which number of timesteps will be displayed (DEFAULT: 100)
+# NOTE: Log level must be set to DEBUG to view
+PRINT_TIMER_FREQUENCY = 100
+
+# If on a Mac (only Mac supported), this will create an alarm that will ring once the simulation has finished
+NOTIFY_WHEN_SIMULATION_FINISHED = True
 LOGLEVEL = logging.INFO
 
+
+"""
+BELOW IS INFORMATION RELATED TO LOGGING ONLY
+
+"""
 LOGFILE = resource_filename("components", "simulator/logs/simulator_logfile.log")
 
 banner = pyfiglet.figlet_format("Swarm Construction: Simulator")

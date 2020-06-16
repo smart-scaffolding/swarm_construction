@@ -66,7 +66,7 @@ class AnimationUpdateMessage(Message):
         placedObstacle=False,
         obstacle=None,
         block_on_ee=False,
-        debug_text=""
+        debug_text="",
     ):
         super().__init__(message_id=RobotBehaviors.SIMULATION)
         self.robot_base = robot_base

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import zmq
 from zmq import devices
 

@@ -271,7 +271,7 @@ def move_to_point(
     for index, point in enumerate(setPoints):
         gamma = temp_direction_to_gamma_convertion(direction)
         ik_angles = robot.ikin(
-            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=False
+            goalPos=point, gamma=gamma, phi=0, baseID=baseID, simHuh=True
         )
         ik_angles = map_angles_from_robot_to_simulation(ik_angles)
 
@@ -304,13 +304,17 @@ def move_to_point(
     forward_4 = np.asmatrix(forward_4)
     forward_5 = np.asmatrix(forward_5)
 
-    ik_angles = np.concatenate((forward_1, forward_2, forward_3, forward_4, forward_5), axis=0)
+    ik_angles = np.concatenate(
+        (forward_1, forward_2, forward_3, forward_4, forward_5), axis=0
+    )
     return ik_angles.T
 
 
 def map_angles_from_robot_to_simulation(angles):
     angles = angles * 180 / np.pi
-    angles = np.array([angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3], angles[4]])
+    angles = np.array(
+        [angles[0], 90 - angles[1], -1 * angles[2], -1 * angles[3], angles[4]]
+    )
     # angles = np.array([0,90-27,-124,0])
     return angles
 
@@ -450,7 +454,9 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
                 move_base[1] + pad_y_before
             ] = 0
             planner = PathPlanner(
-                blueprint=modified_blueprint, arm_reach=(1, 1), search=PathPlanners.AStar,
+                blueprint=modified_blueprint,
+                arm_reach=(1, 1),
+                search=PathPlanners.AStar,
             )
 
             start = ee_up
@@ -610,7 +616,9 @@ def follow_path(robot, num_steps, offset, path, secondPosition=None):
             ] = 0
 
             planner = PathPlanner(
-                blueprint=modified_blueprint, arm_reach=(2.38, 2.38), search=PathPlanners.AStar,
+                blueprint=modified_blueprint,
+                arm_reach=(2.38, 2.38),
+                search=PathPlanners.AStar,
             )
 
             start = ee_up
@@ -702,7 +710,9 @@ def update_path_single(save_path, new_motion_1):
     return np.concatenate((save_path, new_motion_1))
 
 
-def add_offset(ee_pos, direction, offset, previous_direction=None, index=None, type=None):
+def add_offset(
+    ee_pos, direction, offset, previous_direction=None, index=None, type=None
+):
 
     if direction == "top" or previous_direction == "top":
         ee_pos[2] = float(ee_pos[2]) + offset
@@ -787,12 +797,27 @@ def send_to_simulator(base, trajectory, topic=TOPIC, holding_block=False):
     trajectory[4] -= 90
     trajectory = trajectory * np.pi / 180
     # print(f"TRAJ: {trajectory.shape}")
-    trajectory = np.array([[trajectory[0], 0, trajectory[1], trajectory[2], trajectory[3], 0, trajectory[4]]])
+    trajectory = np.array(
+        [
+            [
+                trajectory[0],
+                0,
+                trajectory[1],
+                trajectory[2],
+                trajectory[3],
+                0,
+                trajectory[4],
+            ]
+        ]
+    )
     # trajectory = np.array([[-1.57079633, 0., 1.08612036, -2.17062641, -0.48629028, 0., 0.]])
     # print(f"LENGTH OF TRAJECTORY: {trajectory.shape}")
     # print(f'after converted to pi: {trajectory}')
     messagedata = AnimationUpdateMessage(
-        robot_base=base, trajectory=trajectory, block_on_ee=holding_block
+        robot_base=base,
+        trajectory=trajectory,
+        block_on_ee=holding_block,
+        debug_text="\nThis is a test of the debug props",
     )
     # print(holding_block)
     message_obj = MessageWrapper(topic=topic, message=messagedata)
