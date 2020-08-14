@@ -29,6 +29,7 @@ class BlockManager:
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
         self.blocks_already_in_env = 0
+        self.colored_blocks = []
 
         loc = pkg_resources.resource_filename(
             "components", "/".join(("simulator", "media", "block.stl"))
@@ -51,6 +52,11 @@ class BlockManager:
                     self.blocks[topic].update(pipeline, transform)
                 else:
                     self.add_new_block(pipeline, transform, block_id)
+        for block_id in self.colored_blocks:
+            try:
+                self.blocks[block_id].flicker_color()
+            except KeyError:
+                pass
         self.check_if_human_placed_block()
 
     def update_block(self, pipeline, transform, block_id):
