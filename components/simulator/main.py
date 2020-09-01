@@ -47,6 +47,8 @@ class EventLoop:
             blockManager.get_blocks_in_env(),
         )
 
+        guiManager.update_sick_blocks_text(blockManager.get_sick_blocks())
+
         # If the simulation has finished (must receive message from structure that all divisions have been built),
         # the simulator will save the results to a file
         guiManager.check_for_simulation_finish(
@@ -135,7 +137,9 @@ class Simulate:
         # Start all communicators
         self.pool = [
             SimulatorCommunicator(
-                robot_q=self.robot_q, block_q=self.block_q, structure_q=self.structure_q,
+                robot_q=self.robot_q,
+                block_q=self.block_q,
+                structure_q=self.structure_q,
             )
         ]
 
@@ -157,6 +161,8 @@ if __name__ == "__main__":
 
     logger.info("Starting up simulator...")
 
-    sim = Simulate(robot_q=robot_queue, block_q=block_queue, structure_q=structure_queue,)
+    sim = Simulate(
+        robot_q=robot_queue, block_q=block_queue, structure_q=structure_queue,
+    )
     sim.simulate(pipeline=pipeline)
     # sim.wait_for_structure_initialization()

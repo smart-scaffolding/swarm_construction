@@ -17,6 +17,12 @@ class BlueprintTemplate:
         self.data = data
 
 
+class EmptyBlueprint(BlueprintTemplate):
+    def __init__(self, name="Empty"):
+        data = np.zeros((4, 5, 5))
+        super().__init__(data=data, length=0, width=0, height=0, name=name)
+
+
 class PlaygroundBlueprint(BlueprintTemplate):
     def __init__(self, name="Playground"):
         data = np.array(
@@ -56,7 +62,9 @@ class Pyramid(BlueprintTemplate):
             blueprint_status.append(next_level)
 
         data = np.dstack(blueprint_status)
-        super().__init__(data=data, length=length, width=width, height=height, name=name)
+        super().__init__(
+            data=data, length=length, width=width, height=height, name=name
+        )
 
 
 class Cube(BlueprintTemplate):
@@ -77,7 +85,11 @@ class Plane(BlueprintTemplate):
         data = np.array([[[1] * height] * length] * width)
         data = pad_blueprint(data, pad)
         super().__init__(
-            data=data, length=length + pad, width=width + pad, height=height + pad, name=name
+            data=data,
+            length=length + pad,
+            width=width + pad,
+            height=height + pad,
+            name=name,
         )
 
 
@@ -97,7 +109,9 @@ class BlockWorld(BlueprintTemplate):
             blueprint_status.append(next_level)
 
         data = np.dstack(blueprint_status).T
-        super().__init__(data=data, length=length, width=width, height=height, name=name)
+        super().__init__(
+            data=data, length=length, width=width, height=height, name=name
+        )
 
 
 class RandomWorld(BlueprintTemplate):
@@ -131,7 +145,9 @@ class RandomWorldConstrained(BlueprintTemplate):
             else:
                 data[x, y, z] = 1
 
-        super().__init__(data=data, length=length, width=width, height=height, name=name)
+        super().__init__(
+            data=data, length=length, width=width, height=height, name=name
+        )
 
 
 class StairwayToHeaven(BlueprintTemplate):

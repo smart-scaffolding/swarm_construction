@@ -17,6 +17,7 @@ guiManager = (
     .enable_color_highlighting()
     .enable_orientation_widget()
     .enable_sim_data_text()
+    .enable_sick_blocks_text()
 )
 
 robot_queue = Queue()

@@ -1,5 +1,6 @@
 from components.simulator.entities.gui.orientation_widget import OrientationWidget
 from components.simulator.entities.gui.sim_data_text import SimDataText
+from components.simulator.entities.gui.sick_blocks_text import SickBlocksText
 from components.simulator.events.keypress import Keypress
 from components.simulator.events.selector import Selector
 
@@ -18,6 +19,7 @@ class GuiManager:
         self.selector_command = None
         self.orientation_widget = None
         self.sim_data_text = None
+        self.sick_blocks_text = None
 
     def enable_keypress(self):
         self.keypress_enabled = True
@@ -29,7 +31,9 @@ class GuiManager:
         self.selector_command = Selector(pipeline=self.pipeline)
         return self
 
-    def enable_orientation_widget(self, xyzLabels=("X", "Y", "Z"), scale=(1.0, 1.0, 1.0)):
+    def enable_orientation_widget(
+        self, xyzLabels=("X", "Y", "Z"), scale=(1.0, 1.0, 1.0)
+    ):
         self.orientation_widget = OrientationWidget(
             iren=self.pipeline.iren, xyzLabels=xyzLabels, scale=scale
         )
@@ -39,6 +43,10 @@ class GuiManager:
         self.sim_data_text = SimDataText(self.pipeline.iren, color)
         return self
 
+    def enable_sick_blocks_text(self, color=None):
+        self.sick_blocks_text = SickBlocksText(self.pipeline.iren, color)
+        return self
+
     def update_sim_data_text(
         self, num_robots, num_blocks, num_timesteps, base_num_blocks
     ):
@@ -46,6 +54,12 @@ class GuiManager:
             self.sim_data_text.update_text(
                 num_robots, num_blocks, num_timesteps, base_num_blocks
             )
+
+    def update_sick_blocks_text(self, sick_blocks):
+        if len(sick_blocks) > 0:
+            self.sick_blocks_text.update_text(sick_blocks)
+        else:
+            self.sick_blocks_text.hide()
 
     def check_for_simulation_finish(
         self, structure_queue, num_robots, num_blocks, num_timesteps, base_num_blocks

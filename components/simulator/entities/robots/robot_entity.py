@@ -19,6 +19,7 @@ class Robot:
     as dots. This can be toggled with the 'show_as_point' field.
 
     """
+
     def __init__(self, pipeline, robot_queue, robot_id, show_as_point=False):
         self.robot_queue = robot_queue
         self.robot_id = robot_id
@@ -164,5 +165,4 @@ class Robot:
         file_names = []
         for i in range(0, num):
             file_names.append("link" + str(i) + ".stl")
-        print(f"NUMBER OF STL FILES: {file_names}")
         return file_names

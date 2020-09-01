@@ -16,6 +16,11 @@ BLUEPRINT = BluePrintFactory().get_blueprint("Playground").data
 bx, by, bz = BLUEPRINT.shape
 COLORS = [[[VtkPipeline.vtk_named_colors(["DarkGreen"])] * bz] * by] * bx
 
+# Use to color blocks at specified feeding location if True
+FEEDING_LOCATIONS = [(0, 0, 1)]
+USE_FEEDING_LOCATION = False
+
+
 # Frequency at which number of timesteps will be displayed (DEFAULT: 100)
 # NOTE: Log level must be set to DEBUG to view
 PRINT_TIMER_FREQUENCY = 100

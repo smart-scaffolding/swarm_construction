@@ -11,6 +11,8 @@ from components.simulator.entities.blocks.block_entity import Block
 from components.simulator.globals import block_queue
 from swarm_c_library.profiling.debug import timefunc
 
+import components.simulator.config as Config
+
 
 class BlockManager:
     """
@@ -29,6 +31,10 @@ class BlockManager:
         self.blocks_at_starting_location = []
         self.removed_starting_block = True
         self.blocks_already_in_env = 0
+        self.colored_blocks = []
+
+        self.feeding_locations = Config.FEEDING_LOCATIONS
+        self.use_feeding_locations = Config.USE_FEEDING_LOCATION
 
         loc = pkg_resources.resource_filename(
             "components", "/".join(("simulator", "media", "block.stl"))
@@ -46,11 +52,15 @@ class BlockManager:
             if isinstance(message.message, BlockLocationMessage):
                 block_id = message.message.id
                 location = message.message.location
-                transform = self._calc_transform(location, block_id)
-                if topic in self.blocks:
-                    self.blocks[topic].update(pipeline, transform)
+                status = message.message.status
+                if status == "-":
+                    self.remove_state(block_id, pipeline)
+                elif status == "?":
+                    self.sick_state(block_id, topic, location, pipeline)
                 else:
-                    self.add_new_block(pipeline, transform, block_id)
+                    self.add_state(block_id, topic, location, pipeline)
+        self.flicker_blocks()
+
         self.check_if_human_placed_block()
 
     def update_block(self, pipeline, transform, block_id):
@@ -62,17 +72,53 @@ class BlockManager:
         else:
             self.add_new_block(pipeline, transform, block_id)
 
-    def _calc_transform(self, location, block_id, ignore_feeding_location=False):
+    def _calc_transform(self, location, block_id, use_feeding_location=True):
         location = np.array(location)
-        if location[0] == 0 and location[1] == 0 and not ignore_feeding_location:
+        at_feeding_location = False
+        if self._check_if_feeding_location(location) and use_feeding_location:
             self.blocks_at_starting_location.append(block_id)
+            at_feeding_location = True
         transform = np2vtk(create_homogeneous_transform_from_point(location))
-        return transform
+        return transform, at_feeding_location
 
-    def add_new_block(self, pipeline, transform, block_id, color=None):
-        self.blocks[block_id] = Block(
-            pipeline, transform, block_id, self.block_file_location, color
+    def _check_if_feeding_location(self, block_location):
+        for locations in self.feeding_locations:
+            if block_location[0] == locations[0] and block_location[1] == locations[0]:
+                return True
+        return False
+
+    def add_state(self, block_id, topic, location, pipeline, show=True):
+        transform, at_feeding_location = self._calc_transform(
+            location, block_id, self.use_feeding_locations
         )
+        if topic in self.blocks:
+            self.blocks[topic].update(pipeline, transform, show=show)
+        else:
+            self.add_new_block(
+                pipeline, transform, block_id, display=(not at_feeding_location)
+            )
+        return topic
+
+    def remove_state(self, block_id, pipeline):
+        if block_id in self.blocks:
+            block = self.blocks.pop(block_id)
+            if block_id in self.colored_blocks:
+                self.colored_blocks.remove(block_id)
+            block.remove(pipeline)
+
+    def sick_state(self, block_id, topic, location, pipeline):
+        block_id = self.add_state(block_id, topic, location, pipeline, show=False)
+        self.colored_blocks.append(block_id)
+
+    def add_new_block(self, pipeline, transform, block_id, color=None, display=False):
+        self.blocks[block_id] = Block(
+            pipeline, transform, block_id, self.block_file_location, color, display
+        )
+        return self.blocks[block_id]
+
+    def flicker_blocks(self):
+        for block_id in self.colored_blocks:
+            self.blocks[block_id].flicker_color()
 
     def check_if_human_placed_block(self):
         if len(self.blocks_at_starting_location) > 0:
@@ -95,8 +141,8 @@ class BlockManager:
                 for k in range(len(blueprint[0][0])):
                     if blueprint[i][j][k]:
                         block_id = f"BLOCK_{i}_{j}_{k}"
-                        transform = self._calc_transform(
-                            (i, j, k), block_id, ignore_feeding_location=True
+                        transform, _ = self._calc_transform(
+                            (i, j, k), block_id, use_feeding_location=False
                         )
                         my_color = color[i][j][k]
                         self.add_new_block(pipeline, transform, block_id, my_color)
@@ -108,6 +154,9 @@ class BlockManager:
 
     def get_blocks_in_env(self):
         return self.blocks_already_in_env
+
+    def get_sick_blocks(self):
+        return self.colored_blocks
 
 
 # NOTE: The manager is defined here
