@@ -135,10 +135,27 @@ class BlockLocationMessage:
 
     """
 
-    def __init__(self, block_id, location, removed=False):
+    def __init__(self, block_id, location, status="+"):
+        """
+        +  ---> added
+        -  ---> removed
+        ?  ---> sick
+        """
         self.id = block_id
         self.location = location
-        self.removed = removed
+        self.status = status
+
+    def add(self):
+        self.status = "+"
+        return self
+
+    def remove(self):
+        self.status = "-"
+        return self
+
+    def sick(self):
+        self.status = "?"
+        return self
 
 
 class MessageWrapper:
