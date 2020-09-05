@@ -135,7 +135,7 @@ class BlockLocationMessage:
 
     """
 
-    def __init__(self, block_id, location, status="+"):
+    def __init__(self, block_id, location, status="+", color=None):
         """
         +  ---> added
         -  ---> removed
@@ -144,6 +144,7 @@ class BlockLocationMessage:
         self.id = block_id
         self.location = location
         self.status = status
+        self.color = color
 
     def add(self):
         self.status = "+"

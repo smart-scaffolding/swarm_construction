@@ -10,6 +10,7 @@ from components.simulator.common.transforms import np2vtk
 from components.simulator.entities.blocks.block_entity import Block
 from components.simulator.globals import block_queue
 from swarm_c_library.profiling.debug import timefunc
+from components.simulator.model.graphics import VtkPipeline
 
 import components.simulator.config as Config
 
@@ -53,12 +54,15 @@ class BlockManager:
                 block_id = message.message.id
                 location = message.message.location
                 status = message.message.status
+                color = message.message.color
+                if color is not None:
+                    color = VtkPipeline.vtk_named_colors([color])
                 if status == "-":
                     self.remove_state(block_id, pipeline)
                 elif status == "?":
                     self.sick_state(block_id, topic, location, pipeline)
                 else:
-                    self.add_state(block_id, topic, location, pipeline)
+                    self.add_state(block_id, topic, location, pipeline, color=color)
         self.flicker_blocks()
 
         self.check_if_human_placed_block()
@@ -87,7 +91,7 @@ class BlockManager:
                 return True
         return False
 
-    def add_state(self, block_id, topic, location, pipeline, show=True):
+    def add_state(self, block_id, topic, location, pipeline, show=True, color=None):
         transform, at_feeding_location = self._calc_transform(
             location, block_id, self.use_feeding_locations
         )
@@ -95,7 +99,11 @@ class BlockManager:
             self.blocks[topic].update(pipeline, transform, show=show)
         else:
             self.add_new_block(
-                pipeline, transform, block_id, display=(not at_feeding_location)
+                pipeline,
+                transform,
+                block_id,
+                display=(not at_feeding_location),
+                color=color,
             )
         return topic
 
@@ -108,7 +116,8 @@ class BlockManager:
 
     def sick_state(self, block_id, topic, location, pipeline):
         block_id = self.add_state(block_id, topic, location, pipeline, show=False)
-        self.colored_blocks.append(block_id)
+        if block_id not in self.colored_blocks:
+            self.colored_blocks.append(block_id)
 
     def add_new_block(self, pipeline, transform, block_id, color=None, display=False):
         self.blocks[block_id] = Block(

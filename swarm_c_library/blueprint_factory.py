@@ -28,6 +28,7 @@ class BluePrintFactory:
         )
         self.possible_blueprints["Cube_5x5x5"] = Cube(5, 5, 5, name="Cube_5x5x5")
         self.possible_blueprints["Plane_5x5x1"] = Plane(5, 5, name="Plane_5x5x1")
+        self.possible_blueprints["Plane_6x4x1"] = Plane(4, 6, name="Plane_6x4x1")
         self.possible_blueprints["Plane_10x10x1"] = Plane(10, 10, name="Plane_10x10x1")
         self.possible_blueprints["Plane_12x12x1"] = Plane(12, 12, name="Plane_12x12x1")
         self.possible_blueprints["Plane_20x20x1"] = Plane(20, 20, name="Plane_20x20x1")
